@@ -4,6 +4,69 @@
 
 ---
 
+## 지금 상태: TravelMate 프로젝트만 만든 경우 — 당신이 해야 할 일
+
+Firebase 사이트에서 **TravelMate** 프로젝트만 만들어 둔 상태라면, 아래 순서대로 진행하세요.
+
+### 1단계: Firebase 콘솔에서 설정 (웹)
+
+1. **Firestore 사용**
+   - [Firebase 콘솔](https://console.firebase.google.com/) → 프로젝트 **TravelMate** 선택
+   - 왼쪽 **빌드** → **Firestore Database** → **데이터베이스 만들기**
+   - **프로덕션 모드** → 위치 **asia-northeast3 (서울)** → **사용 설정**
+
+2. **Authentication(인증) 사용**
+   - **빌드** → **Authentication** → **시작하기**
+   - **로그인 방법** 탭에서 **이메일/비밀번호**, **Google** 사용 설정
+
+3. **Storage** (선택 사항)
+   - 프로필/게시글/일정 이미지는 **백엔드**에서 받아 저장합니다 (POST /api/upload/profile, /post, /itinerary). Firebase Storage는 사용하지 않습니다.
+   - 채팅 등 다른 용도로 Storage가 필요하면 **빌드** → **Storage** → **시작하기**에서 설정 가능합니다.
+
+4. **백엔드용 서비스 계정 키 다운로드**
+   - 콘솔 좌측 상단 **톱니바퀴** → **프로젝트 설정** → **서비스 계정** 탭
+   - **새 비공개 키 생성** → JSON 파일 다운로드
+   - 이 파일을 `travel_mate_backend` 폴더에 넣고, 이름을 `serviceAccountKey.json`으로 변경
+   - `.env` 파일에서 `FIREBASE_SERVICE_ACCOUNT_KEY_PATH=./serviceAccountKey.json` 으로 설정 (이미 되어 있으면 경로만 확인)
+
+### 2단계: Flutter 앱에 Firebase 연결 (한 번에 자동 설정)
+
+1. **FlutterFire CLI 설치 및 로그인**
+   ```bash
+   dart pub global activate flutterfire_cli
+   firebase login
+   ```
+
+2. **Flutter 프로젝트에서 Firebase 연결**
+   ```bash
+   cd travel_mate_app
+   flutterfire configure
+   ```
+   - 프로젝트 목록에서 **TravelMate** 선택
+   - 플랫폼에서 **Android**, **iOS**, **Web** 선택 후 완료
+   - 이렇게 하면 `lib/firebase_options.dart`, `android/app/google-services.json`, iOS/Web 설정이 자동 생성·배치됩니다.
+
+3. **Android에 Google 서비스 플러그인 추가**  
+   `travel_mate_app/android/app/build.gradle.kts` 상단 `plugins { }` 안에 다음 한 줄 추가:
+   ```kotlin
+   id("com.google.gms.google-services")
+   ```
+   그리고 `travel_mate_app/android/build.gradle.kts` (프로젝트 루트 쪽)에 classpath가 필요하면 아래 가이드 2.3 참고.
+
+4. **앱 실행**
+   ```bash
+   cd travel_mate_app
+   flutter pub get
+   flutter run
+   ```
+
+### 3단계: 백엔드 서버
+
+- `.env`에 DB 설정은 이미 되어 있음.
+- `serviceAccountKey.json`을 `travel_mate_backend`에 두고 `FIREBASE_SERVICE_ACCOUNT_KEY_PATH`가 그 파일을 가리키면 백엔드에서 Firebase Admin(인증 검증 등) 사용 가능.
+
+---
+
 ## 목차
 
 1.  **Firebase 프로젝트 설정 (웹 콘솔)**
@@ -194,7 +257,7 @@ try {
   admin.initializeApp({
     credential: admin.credential.applicationDefault(),
   });
-  console.log('Firebase Admin SDK C초기화 성공');
+  console.log('Firebase Admin SDK 초기화 성공');
 } catch (error) {
   console.error('Firebase Admin SDK 초기화 실패:', error);
   process.exit(1);

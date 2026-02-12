@@ -7,8 +7,8 @@ const { Sequelize } = require('sequelize');
 const dotenv = require('dotenv');
 const path = require('path');
 
-// .env 파일에서 환경 변수 로드
-dotenv.config({ path: path.resolve(__dirname, '../../travel_mate_backend/.env') });
+// .env 파일에서 환경 변수 로드 (travel_mate_backend 루트 기준)
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 const sequelize = new Sequelize(
   process.env.DB_NAME,

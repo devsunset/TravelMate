@@ -64,7 +64,7 @@ class PostRepositoryImpl implements PostRepository {
 
   @override
   Future<String> uploadPostImage(String postId, String imagePath) async {
-    // For post images, we need to pass the current user's ID for folder structure in Firebase Storage
+    // 게시글 이미지는 백엔드 업로드 시 사용자 ID로 경로가 구성됨
     // Assuming the authorId is the current user's Firebase UID
     final currentUserId = 'currentUserId'; // TODO: Get actual current user ID from Firebase Auth
     return await remoteDataSource.uploadPostImage(currentUserId, File(imagePath));

@@ -32,6 +32,7 @@ class _PostWriteScreenState extends State<PostWriteScreen> {
   String? _selectedCategory;
   List<File> _pickedImages = [];
   List<String> _existingImageUrls = []; // For editing existing post
+  Post? _loadedPost; // 수정 시 로드된 게시글 (createdAt 등 유지용)
 
   bool _isLoading = false;
   String? _errorMessage;
@@ -125,7 +126,7 @@ class _PostWriteScreenState extends State<PostWriteScreen> {
           throw Exception('User not logged in.');
         }
 
-        // 1. Upload new images to Firebase Storage
+        // 1. 새 이미지를 백엔드에 업로드
         List<String> uploadedImageUrls = [];
         final uploadPostImage = Provider.of<UploadPostImage>(context, listen: false);
         for (File image in _pickedImages) {
@@ -144,7 +145,7 @@ class _PostWriteScreenState extends State<PostWriteScreen> {
           content: _contentController.text.trim(),
           category: _selectedCategory!,
           imageUrls: allImageUrls,
-          createdAt: _post?.createdAt ?? DateTime.now(), // Preserve createdAt for existing post
+          createdAt: _loadedPost?.createdAt ?? DateTime.now(), // Preserve createdAt for existing post
           updatedAt: DateTime.now(),
         );
 

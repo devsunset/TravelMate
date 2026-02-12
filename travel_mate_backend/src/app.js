@@ -23,6 +23,7 @@ const itineraryRoutes = require('./routes/itineraryRoutes');
 const commentRoutes = require('./routes/commentRoutes');
 const interactionRoutes = require('./routes/interactionRoutes');
 const reportRoutes = require('./routes/reportRoutes');
+const uploadRoutes = require('./routes/uploadRoutes');
 
 // 모델 로드 (Sequelize 동기화 시 스키마 반영용)
 const User = require('./models/user');
@@ -43,18 +44,22 @@ const Bookmark = require('./models/bookmark');
 const Report = require('./models/report');
 
 // 환경 변수 로드 (.env 경로: 프로젝트 루트 기준)
-dotenv.config({ path: path.resolve(__dirname, '../../travel_mate_backend/.env') });
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 // Firebase Admin SDK 초기화 (서비스 계정 키 경로 사용)
 const serviceAccountPath = path.resolve(
   __dirname,
-  '../../travel_mate_backend',
+  '..',
   process.env.FIREBASE_SERVICE_ACCOUNT_KEY_PATH
 );
 admin.initializeApp({ credential: admin.credential.cert(serviceAccountPath) });
 
 const app = express();
 app.use(express.json());
+
+// 업로드 이미지 정적 제공 (uploads/ 디렉터리)
+const uploadsPath = path.resolve(__dirname, '../uploads');
+app.use('/uploads', express.static(uploadsPath));
 
 // API 라우트 마운트
 app.use('/api/auth', authRoutes);
@@ -67,6 +72,7 @@ app.use('/api/itineraries', itineraryRoutes);
 app.use('/api/comments', commentRoutes);
 app.use('/api/interactions', interactionRoutes);
 app.use('/api/reports', reportRoutes);
+app.use('/api/upload', uploadRoutes);
 
 /**
  * 인증 필요 테스트용 보호 라우트

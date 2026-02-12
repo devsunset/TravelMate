@@ -6,6 +6,10 @@ USE `travel_mate`;
 -- 데이터베이스: MariaDB
 -- 인코딩: utf8mb4
 -- 최종 업데이트: 2026-02-12
+--
+-- 이미지 URL 안내: 프로필/게시글/일정 이미지는 Firebase Storage가 아닌
+-- 백엔드(Node.js)에서 수신·저장합니다. POST /api/upload/profile, /api/upload/post,
+-- /api/upload/itinerary 로 업로드 후 반환된 imageUrl을 각 테이블에 저장합니다.
 
 -- -----------------------------------------------------
 -- Table `users`
@@ -29,7 +33,7 @@ CREATE TABLE IF NOT EXISTS `user_profiles` (
   `userId` INT NOT NULL UNIQUE COMMENT 'users 테이블 외래 키',
   `nickname` VARCHAR(255) NOT NULL UNIQUE COMMENT '사용자 닉네임',
   `bio` TEXT COMMENT '자기소개',
-  `profileImageUrl` VARCHAR(255) COMMENT '프로필 이미지 URL',
+  `profileImageUrl` VARCHAR(512) COMMENT '프로필 이미지 URL (백엔드 POST /api/upload/profile 반환 URL). 긴 URL 대비 512 권장.',
   `gender` VARCHAR(50) COMMENT '성별 (Male, Female, Other 등)',
   `ageRange` VARCHAR(50) COMMENT '연령대 (20s, 30s 등)',
   `travelStyles` JSON COMMENT '여행 스타일 태그 목록 (JSON 배열)',
@@ -106,7 +110,7 @@ CREATE TABLE IF NOT EXISTS `itineraries` (
   `description` TEXT NOT NULL COMMENT '일정 상세 설명',
   `startDate` DATE NOT NULL COMMENT '여행 시작일',
   `endDate` DATE NOT NULL COMMENT '여행 종료일',
-  `imageUrls` JSON COMMENT '대표 이미지 URL 목록 (JSON 배열)',
+  `imageUrls` JSON COMMENT '대표 이미지 URL 목록 (백엔드 /api/upload/itinerary 반환 URL 배열)',
   `mapData` JSON COMMENT '지도 관련 데이터 (마커, 경로 등, JSON)',
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '생성일',
   `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일',
@@ -130,7 +134,7 @@ CREATE TABLE IF NOT EXISTS `posts` (
   `categoryId` INT NOT NULL COMMENT '카테고리 (post_categories.id)',
   `title` VARCHAR(255) NOT NULL COMMENT '게시글 제목',
   `content` TEXT NOT NULL COMMENT '게시글 본문',
-  `imageUrls` JSON COMMENT '첨부 이미지 URL 목록 (JSON 배열)',
+  `imageUrls` JSON COMMENT '첨부 이미지 URL 목록 (백엔드 /api/upload/post 반환 URL 배열)',
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '작성일',
   `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일',
   PRIMARY KEY (`id`),

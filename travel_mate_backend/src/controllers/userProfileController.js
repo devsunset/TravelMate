@@ -98,7 +98,7 @@ exports.updateUserProfile = async (req, res, next) => {
 
 /**
  * 프로필 이미지 URL 갱신
- * body.profileImageUrl만 저장합니다. 실제 업로드는 클라이언트에서 Firebase Storage로 수행합니다.
+ * body.profileImageUrl만 저장합니다. 실제 업로드는 클라이언트에서 백엔드 POST /api/upload/profile 로 수행합니다.
  */
 exports.updateProfileImage = async (req, res, next) => {
   try {

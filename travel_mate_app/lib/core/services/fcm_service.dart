@@ -2,7 +2,7 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
 
 class FcmService {
   final FirebaseMessaging _firebaseMessaging;
@@ -73,10 +73,10 @@ class FcmService {
       String deviceType = 'unknown';
       if (kIsWeb) {
         deviceType = 'web';
-      } else if (Theme.of(null).platform == TargetPlatform.android) {
-         deviceType = 'android';
-      } else if (Theme.of(null).platform == TargetPlatform.iOS) {
-         deviceType = 'ios';
+      } else if (defaultTargetPlatform == TargetPlatform.android) {
+        deviceType = 'android';
+      } else if (defaultTargetPlatform == TargetPlatform.iOS) {
+        deviceType = 'ios';
       }
 
       await _dio.post(

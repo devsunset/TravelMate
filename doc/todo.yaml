@@ -34,7 +34,7 @@ tasks:
       - id: setup-001-flutter-init
         title: Flutter 프로젝트 초기화
         description: Flutter 애플리케이션의 기본 구조를 설정하고, `pubspec.yaml`에 필수 패키지(provider/riverpod, dio, firebase_auth, cloud_firestore,
-          firebase_storage, image_picker, shared_preferences)를 추가합니다.
+          image_picker, shared_preferences)를 추가합니다.
         category: setup
         implementation_notes:
           - Flutter 최신 버전으로 프로젝트를 생성합니다.
@@ -78,7 +78,7 @@ tasks:
       - Flutter 앱이 성공적으로 빌드되고 에뮬레이터에서 실행됩니다.
       - Node.js API 서버가 'npm start' 또는 'node src/app.js'로 성공적으로 시작됩니다.
       - MariaDB 마이그레이션 도구가 성공적으로 초기화되고 첫 마이그레이션 스크립트가 실행됩니다.
-      - Firebase 콘솔에서 Auth, Firestore, Storage 서비스가 활성화됩니다.
+      - Firebase 콘솔에서 Auth, Firestore 서비스가 활성화됩니다.
       - Firebase SDK가 Flutter 앱과 Node.js 서버에서 정상적으로 초기화됩니다.
     risks:
       - risk: 환경 설정 오류로 인한 개발 지연
@@ -256,7 +256,7 @@ tasks:
   - id: profile-004-detailed-management
     title: 심층 프로필 관리 기능 구현
     priority: P0
-    description: 사용자가 여행 스타일, 관심사, 자기소개, 프로필 사진 등을 포함한 상세 프로필 정보를 설정하고 편집할 수 있는 기능을 구현합니다. Firebase Storage와 Node.js API 서버,
+    description: 사용자가 여행 스타일, 관심사, 자기소개, 프로필 사진 등을 포함한 상세 프로필 정보를 설정하고 편집할 수 있는 기능을 구현합니다. 백엔드 이미지 업로드 API와 Node.js API 서버,
       MariaDB 간의 연동을 포함합니다.
     files:
       - path: travel_mate_app/lib/presentation/profile/profile_edit_screen.dart
@@ -266,7 +266,7 @@ tasks:
         description: 프로필 상세 조회 UI 컴포넌트
         type: create
       - path: travel_mate_app/lib/data/datasources/profile_remote_datasource.dart
-        description: 프로필 API 호출 및 Firebase Storage 연동 로직
+        description: 프로필 API 호출 및 백엔드 이미지 업로드 연동 로직
         type: create
       - path: travel_mate_app/lib/data/repositories/profile_repository_impl.dart
         description: 프로필 데이터 처리 로직 구현체
@@ -283,8 +283,8 @@ tasks:
       - path: travel_mate_backend/src/routes/userRoutes.js
         description: 사용자 및 프로필 관련 API 라우팅 정의
         type: create
-      - path: travel_mate_backend/src/services/imageUploadService.js
-        description: Firebase Storage 연동 서비스 (옵션)
+      - path: travel_mate_backend/src/controllers/uploadController.js
+        description: 이미지 업로드 API (POST /api/upload/profile 등)
         type: create
     subtasks:
       - id: profile-004-flutter-ui
@@ -296,15 +296,14 @@ tasks:
           - 다양한 입력 필드(텍스트, 선택형 태그)에 대한 UI 컴포넌트를 재사용 가능하게 개발합니다.
           - "`image_picker`를 사용하여 갤러리/카메라에서 이미지를 선택하고 미리보기 기능을 제공합니다."
           - 선택형 태그(여행 스타일, 관심사)는 동적으로 관리될 수 있도록 구현합니다.
-      - id: profile-004-flutter-firebase-storage
-        title: Flutter Firebase Storage 프로필 이미지 업로드
-        description: "`image_picker`로 선택된 이미지를 Firebase Storage에 업로드하고, 업로드 성공 시 반환되는 URL을 획득합니다. 이미지 업로드 전 클라이언트에서 압축하여 전송 시간을
+      - id: profile-004-flutter-backend-upload
+        title: Flutter 백엔드 프로필 이미지 업로드
+        description: "`image_picker`로 선택된 이미지를 백엔드 POST /api/upload/profile 로 업로드하고, 반환되는 imageUrl을 획득합니다. 이미지 업로드 전 클라이언트에서 압축하여 전송 시간을
           단축합니다."
         category: data
         implementation_notes:
-          - "`firebase_storage` 패키지를 사용하여 이미지를 Firebase Storage에 업로드합니다."
-          - "업로드 시 사용자 ID 기반의 경로를 사용하여 파일 관리를 용이하게 합니다 (예: `users/{uid}/profile_images/{filename}`)."
-          - 업로드 전 `image_picker`의 압축 옵션을 활용하거나 `flutter_image_compress`와 같은 라이브러리를 사용하여 이미지 크기를 최적화합니다 (NFR1.3).
+          - Dio 등으로 multipart/form-data (필드명 image) 요청을 POST /api/upload/profile 에 보냅니다.
+          - 업로드 전 `flutter_image_compress` 등으로 이미지 크기를 최적화합니다 (NFR1.3).
       - id: profile-004-backend-profile-crud
         title: Node.js API 서버 프로필 CRUD API 구현
         description: "`GET /api/users/{userId}/profile`, `PATCH /api/users/{userId}/profile`, `POST
@@ -314,31 +313,29 @@ tasks:
         implementation_notes:
           - Sequelize/TypeORM을 사용하여 `user_profiles`, `tags`, `user_profile_tags` 테이블과의 상호작용을 구현합니다.
           - "`PATCH` 요청 시 부분 업데이트를 지원하도록 합니다."
-          - "`POST /api/users/{userId}/profile/image`는 Firebase Storage에서 업로드된 이미지의 URL만 받아서 MariaDB에 저장합니다."
+          - "`POST /api/users/{userId}/profile/image`는 클라이언트가 먼저 POST /api/upload/profile 로 업로드한 뒤 받은 URL을 받아 MariaDB에 저장합니다."
           - 사용자 ID를 기반으로 하는 권한 미들웨어(`authMiddleware`)를 적용하여 본인 프로필만 수정 가능하도록 합니다.
-      - id: profile-004-firebase-storage-rules
-        title: Firebase Storage 보안 규칙 설정
-        description: 프로필 이미지 업로드 및 접근에 대한 Firebase Storage 보안 규칙을 설정하여 인증된 사용자만 자신의 폴더에 파일을 업로드하고, 공개적으로 접근 가능한 이미지는 누구나 읽을 수
-          있도록 합니다.
+      - id: profile-004-backend-upload-auth
+        title: 백엔드 이미지 업로드 API 인증
+        description: POST /api/upload/profile 등 이미지 업로드 API에 authMiddleware를 적용하여 인증된 사용자만 업로드할 수 있도록 합니다.
         category: security
         implementation_notes:
-          - 규칙은 `match /users/{userId}/profile_images/{allPaths=**}` 경로에 대해 `request.auth.uid == userId`일 때만 쓰기 권한을
-            부여합니다.
-          - 읽기 권한은 `allow read;`로 설정하여 모든 프로필 이미지가 공개적으로 접근 가능하도록 합니다.
+          - multer와 authMiddleware를 조합하여 인증 후 업로드 디렉터리(uploads/profile/{uid}/)에 저장합니다.
+          - 업로드된 파일은 /uploads 정적 경로로 제공되며, 필요 시 읽기 권한 정책을 적용합니다.
     dependencies:
       - auth-003-user-authentication
       - db-002-base-schema
     completion_criteria:
       - 모든 프로필 필드가 Flutter UI에서 정확히 입력/선택되고 저장될 수 있습니다.
-      - 갤러리/카메라에서 선택된 프로필 사진이 Firebase Storage에 성공적으로 업로드되고, 반환된 URL이 MariaDB에 저장됩니다.
+      - 갤러리/카메라에서 선택된 프로필 사진이 백엔드에 성공적으로 업로드되고, 반환된 URL이 MariaDB에 저장됩니다.
       - 프로필 수정 시, 변경 사항이 즉시 Flutter UI 및 API 서버/MariaDB에 반영됩니다.
       - 다른 사용자의 프로필은 조회만 가능하며, 수정 시도 시 403 Forbidden 또는 401 Unauthorized 응답이 반환됩니다.
-      - 업로드된 이미지가 Firebase Storage 보안 규칙에 따라 올바르게 접근 제어됩니다.
+      - 업로드된 이미지가 백엔드 /uploads 경로로 올바르게 제공됩니다.
     risks:
       - risk: 개인 정보 유출 위험 (프로필 사진, 상세 정보)
-        mitigation: Firebase Storage 보안 규칙 강화 및 API 서버의 권한 미들웨어 철저히 검증 (NFR2.2, NFR2.3)
+        mitigation: 백엔드 업로드 API 권한 미들웨어 및 API 서버 인가 검증 강화 (NFR2.2, NFR2.3)
       - risk: 이미지 업로드/로딩 성능 저하
-        mitigation: 클라이언트 측 이미지 압축, Firebase CDN 활용, `cached_network_image` 사용 (NFR1.3)
+        mitigation: 클라이언트 측 이미지 압축, 백엔드 정적 제공·캐싱, `cached_network_image` 사용 (NFR1.3)
     order: 40
   - id: auth-005-account-management
     title: 개인정보 수정 및 계정 탈퇴 기능 구현
@@ -616,7 +613,7 @@ tasks:
   - id: community-009-public-forum
     title: 공개 게시판 참여 기능 구현
     priority: P0
-    description: 사용자가 자유롭게 게시글을 작성하고, 열람하며, 카테고리별 검색/필터링이 가능한 공개 커뮤니티 게시판 기능을 구현합니다. 게시글에 이미지를 첨부할 수 있도록 Firebase Storage를 연동합니다.
+    description: 사용자가 자유롭게 게시글을 작성하고, 열람하며, 카테고리별 검색/필터링이 가능한 공개 커뮤니티 게시판 기능을 구현합니다. 게시글 이미지는 백엔드 POST /api/upload/post 로 업로드합니다.
     files:
       - path: travel_mate_app/lib/presentation/community/community_screen.dart
         description: 커뮤니티 게시글 목록 UI 컴포넌트
@@ -628,7 +625,7 @@ tasks:
         description: 게시글 작성/수정 UI 컴포넌트
         type: create
       - path: travel_mate_app/lib/data/datasources/post_remote_datasource.dart
-        description: 게시글 API 호출 및 Firebase Storage 연동 로직
+        description: 게시글 API 호출 및 백엔드 이미지 업로드 연동 로직
         type: create
       - path: travel_mate_app/lib/domain/entities/post.dart
         description: 게시글 엔티티 정의
@@ -655,14 +652,13 @@ tasks:
           - 게시글 목록은 `ListView.builder`로 구현하여 효율적으로 렌더링하고, 무한 스크롤 기능을 포함합니다.
           - 게시글 작성/수정 시 폼 유효성 검사를 수행하고, 이미지 미리보기 기능을 제공합니다.
           - "`cached_network_image`를 사용하여 이미지 로딩 성능을 최적화합니다 (NFR1.3)."
-      - id: community-009-flutter-firebase-storage
-        title: Flutter 게시글 이미지 Firebase Storage 업로드
-        description: "`image_picker`로 선택된 이미지를 Firebase Storage에 업로드하고, 반환된 URL들을 API 서버에 전송합니다. 이미지 업로드 전 클라이언트에서 압축하여 전송 시간을
+      - id: community-009-flutter-backend-upload
+        title: Flutter 게시글 이미지 백엔드 업로드
+        description: "`image_picker`로 선택된 이미지를 백엔드 POST /api/upload/post 로 업로드하고, 반환된 imageUrl들을 API 서버에 전송합니다. 이미지 업로드 전 클라이언트에서 압축하여 전송 시간을
           단축합니다."
         category: data
         implementation_notes:
-          - 여러 이미지를 한 번에 업로드할 수 있도록 구현하며, 각 이미지에 대해 고유한 URL을 받습니다.
-          - 업로드 경로는 `posts/{postId}/images/{filename}` 형태로 구성하여 관리를 용이하게 합니다.
+          - 여러 이미지를 순차 또는 병렬로 POST /api/upload/post 에 업로드하고, 각 응답의 imageUrl을 수집합니다.
           - NFR1.3에 따라 이미지 크기를 최적화합니다.
       - id: community-009-backend-crud
         title: Node.js API 서버 게시글 CRUD API 구현
@@ -675,14 +671,12 @@ tasks:
           - 게시글 목록 조회 시 카테고리, 검색어, 페이징 필터를 지원합니다.
           - "`image_urls` 필드는 MariaDB의 JSON 타입을 사용하여 여러 이미지 URL을 배열로 저장합니다."
           - 수정 및 삭제 시 `authMiddleware`를 통해 현재 로그인된 사용자가 게시글의 작성자인지 확인하는 인가 로직을 구현합니다 (NFR2.2).
-      - id: community-009-firebase-storage-rules
-        title: Firebase Storage 게시글 이미지 보안 규칙 설정
-        description: 게시글 이미지 업로드 및 접근에 대한 Firebase Storage 보안 규칙을 설정하여 인증된 사용자만 파일을 업로드하고, 게시글 이미지는 누구나 읽을 수 있도록 합니다.
+      - id: community-009-backend-upload-auth
+        title: 백엔드 게시글 이미지 업로드 API 인증
+        description: POST /api/upload/post 에 authMiddleware를 적용하여 인증된 사용자만 업로드할 수 있도록 합니다.
         category: security
         implementation_notes:
-          - 규칙은 `match /posts/{postId}/images/{allPaths=**}` 경로에 대해 `request.auth.uid != null`일 때만 쓰기 권한을 부여하고, 읽기 권한은
-            `allow read;`로 설정합니다.
-          - 게시글 수정/삭제 시 해당 이미지도 관리될 수 있도록 고려합니다 (자동 삭제는 Firebase Storage Lifecycle Rules 또는 서버 로직으로 구현 가능).
+          - multer와 authMiddleware로 업로드 디렉터리(uploads/posts/{uid}/)에 저장하고, /uploads 로 정적 제공합니다.
     dependencies:
       - match-008-realtime-chat
     completion_criteria:
@@ -690,18 +684,18 @@ tasks:
       - 카테고리 필터링 및 검색 기능이 정상 작동하며, 결과가 정확하게 표시됩니다.
       - 게시글 상세 페이지에서 모든 내용(텍스트, 첨부 이미지)이 올바르게 표시됩니다.
       - 게시글 수정/삭제 시 본인만 가능하며, 권한 없는 사용자의 시도는 차단됩니다.
-      - 업로드된 게시글 이미지가 Firebase Storage 보안 규칙에 따라 올바르게 접근 제어됩니다.
+      - 업로드된 게시글 이미지가 백엔드 /uploads 경로로 올바르게 제공됩니다.
     risks:
       - risk: 대량의 게시글 조회 시 성능 저하
         mitigation: MariaDB 인덱스 최적화, 페이징/무한 스크롤 구현, API 서버 캐싱 고려 (NFR1.1, NFR3.1)
       - risk: 악성 이미지 업로드
-        mitigation: Firebase Storage에서 지원하는 콘텐츠 검사 기능 탐색 및 클라이언트 측 유효성 검사 강화
+        mitigation: 백엔드에서 업로드 파일 유효성 검사 및 클라이언트 측 유효성 검사 강화
     order: 90
   - id: community-010-itinerary-sharing
     title: 여행 일정 및 경로 공유 기능 구현
     priority: P0
-    description: 사용자가 자신이 다녀온 여행의 상세 일정 및 경로를 작성하고, 사진과 지도를 첨부하여 다른 사용자와 공유할 수 있는 기능을 구현합니다. Firebase Storage를 연동하여 이미지를
-      관리하고, 지도 데이터도 포함합니다.
+    description: 사용자가 자신이 다녀온 여행의 상세 일정 및 경로를 작성하고, 사진과 지도를 첨부하여 다른 사용자와 공유할 수 있는 기능을 구현합니다. 이미지는 백엔드 POST /api/upload/itinerary 로
+      업로드하고, 지도 데이터도 포함합니다.
     files:
       - path: travel_mate_app/lib/presentation/itinerary/itinerary_list_screen.dart
         description: 여행 일정 목록 UI 컴포넌트
@@ -713,7 +707,7 @@ tasks:
         description: 여행 일정 작성/수정 UI 컴포넌트
         type: create
       - path: travel_mate_app/lib/data/datasources/itinerary_remote_datasource.dart
-        description: 여행 일정 API 호출 및 Firebase Storage 연동 로직
+        description: 여행 일정 API 호출 및 백엔드 이미지 업로드 연동 로직
         type: create
       - path: travel_mate_app/lib/domain/entities/itinerary.dart
         description: 여행 일정 엔티티 정의
@@ -745,8 +739,8 @@ tasks:
           - "`google_maps_flutter` 패키지를 사용하여 지도 상에 경로 및 마커를 표시하는 기능을 구현합니다."
           - 이미지 첨부 및 로딩은 게시글과 유사한 방식으로 처리합니다 (NFR1.3).
       - id: community-010-flutter-firebase-storage
-        title: Flutter 여행 일정 이미지 Firebase Storage 업로드
-        description: 여행 일정에 첨부되는 이미지를 Firebase Storage에 업로드하고, 반환된 URL들을 API 서버에 전송합니다. 이미지 업로드 전 클라이언트에서 압축하여 전송 시간을 단축합니다.
+        title: Flutter 여행 일정 이미지 백엔드 업로드
+        description: 여행 일정에 첨부되는 이미지를 백엔드 POST /api/upload/itinerary 로 업로드하고, 반환된 URL들을 API 서버에 전송합니다. 이미지 업로드 전 클라이언트에서 압축하여 전송 시간을 단축합니다.
         category: data
         implementation_notes:
           - 게시글 이미지 업로드와 동일한 로직을 재사용하거나 확장하여 구현합니다.
@@ -763,14 +757,12 @@ tasks:
           - Sequelize/TypeORM을 사용하여 복합적인 관계형 데이터(itineraries, days, activities)를 처리하는 로직을 구현합니다.
           - "`image_urls` 및 `map_data` 필드는 MariaDB의 JSON 타입을 사용하여 저장하고, 유효성 검사를 수행합니다."
           - 수정 및 삭제 시 `authMiddleware`를 통해 현재 로그인된 사용자가 일정의 작성자인지 확인하는 인가 로직을 구현합니다 (NFR2.2).
-      - id: community-010-firebase-storage-rules
-        title: Firebase Storage 여행 일정 이미지 보안 규칙 설정
-        description: 여행 일정 이미지 업로드 및 접근에 대한 Firebase Storage 보안 규칙을 설정하여 인증된 사용자만 파일을 업로드하고, 여행 일정 이미지는 누구나 읽을 수 있도록 합니다.
+      - id: community-010-backend-upload-auth
+        title: 백엔드 일정 이미지 업로드 API 인증
+        description: POST /api/upload/itinerary 에 authMiddleware를 적용하여 인증된 사용자만 업로드할 수 있도록 합니다.
         category: security
         implementation_notes:
-          - 규칙은 `match /itineraries/{itineraryId}/images/{allPaths=**}` 경로에 대해 `request.auth.uid != null`일 때만 쓰기 권한을
-            부여하고, 읽기 권한은 `allow read;`로 설정합니다.
-          - 게시글 이미지 보안 규칙과 일관성을 유지합니다.
+          - multer와 authMiddleware로 uploads/itineraries/{uid}/ 에 저장하고, /uploads 로 정적 제공합니다.
     dependencies:
       - community-009-public-forum
     completion_criteria:
@@ -778,7 +770,7 @@ tasks:
       - 일정 상세 페이지에서 모든 정보(날짜별 활동, 사진, 지도 데이터)가 시각적으로 명확하게 표시됩니다.
       - 지도 첨부 시, 경로 정보가 지도상에 정확히 마커 또는 경로로 표시됩니다.
       - 일정 수정/삭제 시 본인만 가능하며, 권한 없는 사용자의 시도는 차단됩니다.
-      - 업로드된 일정 이미지가 Firebase Storage 보안 규칙에 따라 올바르게 접근 제어됩니다.
+      - 업로드된 일정 이미지가 백엔드 /uploads 경로로 올바르게 제공됩니다.
     risks:
       - risk: 복잡한 일정 데이터 구조로 인한 저장/조회 오류
         mitigation: ORM 릴레이션 설정 및 트랜잭션 처리 견고화, 데이터 유효성 검사 강화
@@ -1149,12 +1141,12 @@ implementation_guides:
   - id: ig-005-image-optimization
     title: 이미지 업로드 및 로딩 최적화
     category: 성능
-    content: NFR1.3에 따라 이미지 업로드 및 로딩은 2초 이내에 완료되어야 합니다. 이를 위해 클라이언트에서 이미지 업로드 전 해상도 및 크기를 최적화(압축)하고, Firebase Storage의 CDN을
+    content: NFR1.3에 따라 이미지 업로드 및 로딩은 2초 이내에 완료되어야 합니다. 이를 위해 클라이언트에서 이미지 업로드 전 해상도 및 크기를 최적화(압축)하고, 백엔드 /uploads 정적 제공(및 필요 시 CDN)을
       활용하여 이미지 로딩 속도를 높입니다. Flutter 앱에서는 `cached_network_image`와 같은 라이브러리를 사용하여 캐싱 처리를 구현합니다.
     related_tasks:
-      - profile-004-flutter-firebase-storage
-      - community-009-flutter-firebase-storage
-      - community-010-flutter-firebase-storage
+      - profile-004-flutter-backend-upload
+      - community-009-flutter-backend-upload
+      - community-010-flutter-backend-upload
       - nfr-014-performance-tuning
     code_examples:
       - language: dart
@@ -1293,8 +1285,8 @@ execution_order:
         - community-011-comments-qa
         - community-012-likes-bookmarks
         - community-013-reporting
-      description: 공개 게시판, 여행 일정 공유, 댓글, 좋아요, 북마크, 신고 등 사용자들이 정보를 공유하고 상호작용할 수 있는 커뮤니티 기능을 구현합니다. Firebase Storage를 활용하여 미디어
-        파일 관리를 통합합니다.
+      description: 공개 게시판, 여행 일정 공유, 댓글, 좋아요, 북마크, 신고 등 사용자들이 정보를 공유하고 상호작용할 수 있는 커뮤니티 기능을 구현합니다. 이미지는 백엔드 업로드 API로
+        관리합니다.
     - phase_name: "Phase 5: 통합, 최적화 및 최종 검증"
       task_ids:
         - nfr-014-optimizations

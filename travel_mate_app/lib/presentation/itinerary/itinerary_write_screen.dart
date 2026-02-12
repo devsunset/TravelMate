@@ -180,7 +180,7 @@ class _ItineraryWriteScreenState extends State<ItineraryWriteScreen> {
           throw Exception('Please select a start and end date.');
         }
 
-        // 1. Upload new images to Firebase Storage
+        // 1. 새 이미지를 백엔드에 업로드
         List<String> uploadedImageUrls = [];
         final uploadItineraryImage = Provider.of<UploadItineraryImage>(context, listen: false);
         for (File image in _pickedImages) {

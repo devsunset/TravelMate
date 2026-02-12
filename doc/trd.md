@@ -2,7 +2,7 @@
 
 ## 1. 프로젝트 개요
 
-'트래블 메이트'는 Flutter 기반의 모바일 커뮤니티 애플리케이션으로, 사용자가 여행 동반자를 찾고, 여행 정보를 공유하며, 1:1 실시간 채팅을 통해 소통할 수 있도록 지원합니다. 백엔드 서비스는 Firebase를 활용하여 인증, 실시간 채팅(Firestore), 파일 스토리지를 처리하며, 핵심 데이터(사용자 프로필, 게시글, 일정 등)는 별도의 Node.js 기반 API 서버를 통해 MariaDB에 저장 및 관리됩니다.
+'트래블 메이트'는 Flutter 기반의 모바일 커뮤니티 애플리케이션으로, 사용자가 여행 동반자를 찾고, 여행 정보를 공유하며, 1:1 실시간 채팅을 통해 소통할 수 있도록 지원합니다. 백엔드 서비스는 Firebase를 활용하여 인증·실시간 채팅(Firestore)을 처리하며, 이미지(프로필/게시글/일정)는 Node.js API 서버에서 수신·저장합니다. 핵심 데이터(사용자 프로필, 게시글, 일정 등)는 Node.js API 서버를 통해 MariaDB에 저장 및 관리됩니다.
 
 ## 2. 아키텍처 개요
 
@@ -13,13 +13,12 @@ graph TD
     A[Flutter Mobile App] --> B(API Server: Node.js/Express);
     A --> C(Firebase Authentication);
     A --> D(Firebase Firestore: Realtime Chat);
-    A --> E(Firebase Storage: Media Files);
     B --> F(MariaDB Database);
-    B --> E;
+    B --> G(Backend Uploads: 이미지 저장);
     C --> A;
     D --> A;
-    E --> A;
-    E --> B;
+    B --> A;
+    G --> A;
 ```
 
 ### 2.1. 컴포넌트 설명
@@ -28,7 +27,7 @@ graph TD
 *   **API Server (Node.js/Express)**: Flutter 앱의 요청을 받아 MariaDB와 상호작용하는 백엔드 서비스. 사용자 프로필, 커뮤니티 게시글, 여행 일정 등의 데이터를 관리하고 RESTful API를 제공합니다. Firebase Admin SDK를 통해 사용자 인증 토큰을 검증합니다.
 *   **Firebase Authentication**: 사용자 회원가입, 로그인 및 인증(이메일/비밀번호, 소셜 로그인)을 담당합니다. 사용자 ID 토큰을 발급하여 API 서버에 전달합니다.
 *   **Firebase Firestore**: 1:1 실시간 채팅 기능을 위한 NoSQL 데이터베이스입니다. 메시지 데이터의 실시간 동기화를 처리합니다.
-*   **Firebase Storage**: 사용자 프로필 사진, 게시글 및 여행 일정에 첨부되는 이미지와 같은 미디어 파일을 저장하고 관리합니다.
+*   **Backend Uploads (Node.js)**: 프로필 사진, 게시글·일정 첨부 이미지를 API 서버가 수신하여 `uploads/` 디렉터리에 저장하고, 접근 URL을 반환합니다. (Firebase Storage 미사용)
 *   **MariaDB Database**: 사용자 프로필 상세 정보, 여행 스타일, 커뮤니티 게시글, 여행 일정, 댓글, 좋아요 등 핵심 비즈니스 데이터를 관계형 모델로 저장합니다.
 
 ## 3. 기술 스택
@@ -40,8 +39,7 @@ graph TD
 |               | `dio`                                              | HTTP 통신 클라이언트                                         |
 |               | `firebase_auth`                                    | Firebase 인증 연동                                           |
 |               | `cloud_firestore`                                  | Firebase Firestore 연동 (실시간 채팅)                        |
-|               | `firebase_storage`                                 | Firebase Storage 연동 (미디어 파일)                          |
-|               | `image_picker`                                     | 이미지 선택 및 업로드                                        |
+|               | `image_picker`                                     | 이미지 선택 (업로드는 백엔드 API로 전송)                      |
 |               | `shared_preferences` / `hive`                      | 로컬 데이터 저장 (간단한 설정, 캐싱)                         |
 | **API 서버**  | Node.js (LTS)                                      | 백엔드 API 개발 런타임                                       |
 |               | Express.js                                         | Node.js 웹 애플리케이션 프레임워크 (RESTful API 구현)        |
@@ -53,7 +51,7 @@ graph TD
 |               | Flyway / Knex.js                                   | 데이터베이스 스키마 마이그레이션 관리                        |
 | **클라우드 서비스**| Google Cloud Platform (GCP) / AWS / Azure (배포 환경) | API 서버 호스팅, MariaDB 인스턴스 호스팅 (Cloud SQL, RDS 등), CDN 등 |
 | **실시간 통신**| Firebase Firestore                                 | 1:1 실시간 채팅 메시지 동기화                                |
-| **파일 저장** | Firebase Storage                                   | 사용자 프로필 이미지, 게시글/일정 첨부 파일 저장             |
+| **파일 저장** | Node.js API 서버 (multer, uploads/)                | 프로필·게시글·일정 이미지 수신 및 저장 (POST /api/upload/*)  |
 | **알림**      | Firebase Cloud Messaging (FCM)                     | 푸시 알림 발송 (새 쪽지, 채팅, 댓글 등)                      |
 
 ## 4. 프로젝트 폴더 구조
@@ -121,7 +119,7 @@ graph TD
 ### 5.1. 인증 및 사용자 관리 (`Auth & User Management`)
 
 *   **목적**: 사용자 회원가입, 로그인, 프로필 관리 및 인증 시스템을 구축합니다.
-*   **의존성**: Firebase Authentication, Node.js API Server, MariaDB, Firebase Storage.
+*   **의존성**: Firebase Authentication, Node.js API Server, MariaDB, Backend Image Upload.
 
 #### 5.1.1. 사용자 인증 (`User Authentication`)
 
@@ -176,7 +174,7 @@ graph TD
         *   사용자가 여행 스타일(선택형 태그), 관심사(선택형 태그), 자기소개(자유 텍스트), 희망 동반자 유형(자유 텍스트)을 입력/선택할 수 있는 UI 제공.
         *   `image_picker`를 사용하여 갤러리/카메라에서 프로필 사진 선택 및 업로드 기능 제공.
         *   프로필 정보 수정 시, API 서버에 변경 사항 `PATCH` 요청.
-        *   프로필 사진 변경 시, Firebase Storage에 이미지 업로드 후, 반환된 URL을 API 서버에 업데이트 요청.
+        *   프로필 사진 변경 시, 백엔드 POST /api/upload/profile 로 이미지 업로드 후, 반환된 URL을 API 서버에 업데이트 요청.
     *   **검증 기준**:
         *   모든 프로필 필드가 정확히 저장되고 조회되어야 합니다.
         *   프로필 사진 업로드 및 변경 시, 새 사진이 즉시 반영되고 기존 사진은 대체되어야 합니다.
@@ -185,10 +183,10 @@ graph TD
     *   **API 엔드포인트**:
         *   `GET /api/users/{userId}/profile`: 특정 사용자의 상세 프로필 조회.
         *   `PATCH /api/users/{userId}/profile`: 사용자 프로필 정보 업데이트.
-        *   `POST /api/users/{userId}/profile/image`: 프로필 이미지 URL 업데이트 (Flutter에서 Firebase Storage 업로드 후 호출).
+        *   `POST /api/users/{userId}/profile/image`: 프로필 이미지 URL 업데이트 (Flutter에서 백엔드 POST /api/upload/profile 업로드 후 호출).
     *   **기능**:
         *   MariaDB `user_profiles` 테이블에서 사용자 프로필 정보를 조회 및 업데이트합니다.
-        *   Firebase Storage에서 파일 업로드를 직접 처리하지 않고, 클라이언트에서 업로드 후 받은 URL을 MariaDB에 저장합니다.
+        *   이미지 파일은 클라이언트가 POST /api/upload/profile로 업로드하고, 반환된 URL을 이 API로 전달하여 MariaDB에 저장합니다.
         *   요청 시 JWT 또는 Firebase `idToken`을 사용하여 사용자 본인임을 확인하는 미들웨어를 적용합니다.
     *   **검증 기준**:
         *   프로필 업데이트 요청 시, MariaDB `user_profiles` 테이블의 해당 필드가 성공적으로 변경되어야 합니다.
@@ -227,11 +225,11 @@ graph TD
         *   `user_profiles` 테이블의 `user_id`는 `users` 테이블의 `id`를 외래 키로 참조해야 합니다.
         *   여행 스타일 및 관심사는 `tags` 테이블에 사전 정의된 값으로 관리되어야 합니다.
         *   `user_profile_tags`를 통해 다대다 관계가 명확하게 표현되어야 합니다.
-*   **Firebase Storage**:
-    *   **기능**: 프로필 이미지 파일을 저장합니다. 파일 업로드 시 고유한 URL을 생성하고 반환합니다.
+*   **Backend Image Upload**:
+    *   **기능**: POST /api/upload/profile 로 수신한 프로필 이미지를 서버 `uploads/profile/{userId}/` 에 저장하고 접근 URL을 반환합니다.
     *   **검증 기준**:
-        *   업로드된 이미지는 안전하게 저장되고, 생성된 URL을 통해 접근 가능해야 합니다.
-        *   기존 프로필 이미지 변경 시, 이전 이미지는 삭제 또는 비활성화되어 불필요한 스토리지 사용을 방지해야 합니다.
+        *   업로드된 이미지는 안전하게 저장되고, 반환된 URL을 통해 접근 가능해야 합니다.
+        *   (선택) 기존 프로필 이미지 변경 시 이전 파일 정리 정책을 적용할 수 있습니다.
 
 #### 5.1.3. 개인정보 수정 및 탈퇴 (`Personal Info & Account Deletion`)
 
@@ -426,7 +424,7 @@ graph TD
 ### 5.3. 커뮤니티 및 정보 공유 (`Community & Information Sharing`)
 
 *   **목적**: 사용자들이 여행 관련 정보를 자유롭게 공유하고, 질문/답변하며 소통하는 공개 커뮤니티 기능을 제공합니다.
-*   **의존성**: Node.js API Server, MariaDB, Firebase Storage.
+*   **의존성**: Node.js API Server, MariaDB, Backend Image Upload.
 
 #### 5.3.1. 공개 게시판 참여 (`Public Forum Participation`)
 
@@ -453,7 +451,7 @@ graph TD
         *   MariaDB `posts` 테이블에 게시글 정보를 저장, 조회, 수정, 삭제합니다.
         *   `posts_categories` 테이블을 사용하여 카테고리 관리를 합니다.
         *   게시글 작성 시 사용자 ID와 연결하며, 수정/삭제 시 본인 확인을 위한 권한 검증.
-        *   `image_urls`는 클라이언트에서 Firebase Storage에 업로드 후 받은 URL을 저장.
+        *   `image_urls`는 클라이언트가 POST /api/upload/post 로 업로드 후 받은 URL을 저장.
     *   **검증 기준**:
         *   게시글 CRUD 작업이 모두 정상 작동하며, 권한 없는 사용자의 수정/삭제는 방지되어야 합니다.
         *   카테고리 및 검색어에 따른 게시글 필터링이 정확해야 합니다.
@@ -483,10 +481,10 @@ graph TD
     *   **검증 기준**:
         *   `user_id`는 `users` 테이블을, `category_id`는 `post_categories` 테이블을 참조해야 합니다.
         *   `image_urls`는 JSON 배열 형태로 여러 이미지를 저장할 수 있어야 합니다.
-*   **Firebase Storage**:
-    *   **기능**: 게시글에 첨부되는 이미지 파일을 저장합니다.
+*   **Backend Image Upload**:
+    *   **기능**: POST /api/upload/post 로 수신한 게시글 이미지를 서버 `uploads/posts/{userId}/` 에 저장하고 URL을 반환합니다.
     *   **검증 기준**:
-        *   업로드된 이미지는 안전하게 저장되고, URL을 통해 접근 가능해야 합니다.
+        *   업로드된 이미지는 안전하게 저장되고, 반환된 URL을 통해 접근 가능해야 합니다.
 
 #### 5.3.2. 여행 일정 및 경로 공유 (`Travel Itinerary & Route Sharing`)
 
@@ -560,10 +558,7 @@ graph TD
     *   **검증 기준**:
         *   일정은 `itineraries`, `itinerary_days`, `itinerary_activities` 테이블에 걸쳐 관계형으로 저장되어야 합니다.
         *   `image_urls` 및 `map_data`는 JSON 형태로 다양한 데이터를 수용할 수 있어야 합니다.
-*   **Firebase Storage**:
-    *   **기능**: 여행 일정에 첨부되는 이미지 파일을 저장합니다.
-    *   **검증 기준**:
-        *   업로드된 이미지는 안전하게 저장되고, URL을 통해 접근 가능해야 합니다.
+*   **Backend Image Upload**: (5.3.2 일정 공유) POST /api/upload/itinerary 로 수신한 이미지를 서버에 저장하고 URL을 반환합니다.
 
 #### 5.3.3. 댓글 및 질문/답변 (`Comments & Q&A`)
 
@@ -742,9 +737,9 @@ graph TD
         *   클라이언트 앱에서 Firestore 리스너를 최적화하여 불필요한 재렌더링 방지.
 *   **NFR1.3: 이미지 업로드 및 로딩은 2초 이내에 완료되어야 한다.**
     *   **기술적 접근**:
-        *   Firebase Storage를 사용하며, Firebase의 CDN(Content Delivery Network)을 통해 이미지 로딩 속도를 최적화합니다.
+        *   백엔드(Node.js)에서 이미지를 수신·저장하고, `/uploads` 정적 경로로 제공합니다. 필요 시 CDN 또는 리버스 프록시 캐싱 적용.
         *   Flutter 앱에서 이미지 로딩 시 `cached_network_image`와 같은 라이브러리를 사용하여 캐싱 처리.
-        *   이미지 업로드 전 클라이언트에서 해상도 및 크기를 최적화 (압축)하여 전송 시간을 단축합니다.
+        *   이미지 업로드 전 클라이언트에서 해상도 및 크기를 최적화(압축)하여 전송 시간을 단축합니다.
 
 ### 6.2. 보안 (`Security`)
 
@@ -772,7 +767,7 @@ graph TD
     *   **기술적 접근**:
         *   **API 서버**: Node.js는 비동기 I/O 모델을 기반으로 하여 높은 동시성을 처리하는 데 유리합니다. API 서버는 Stateless하게 설계하여 수평 확장이 용이하도록 합니다 (로드 밸런서 뒤에 여러 인스턴스 배포). Google Cloud Run, AWS ECS/Fargate 등 서버리스 또는 컨테이너 기반 배포 환경을 활용하여 트래픽에 따라 자동 스케일링을 구현합니다.
         *   **데이터베이스**: MariaDB는 읽기 복제(Read Replicas)를 통해 읽기 요청을 분산하고, 필요시 샤딩(Sharding)을 고려할 수 있습니다. 초기 단계에는 충분한 리소스(CPU, RAM, IOPS)를 가진 고성능 인스턴스를 사용합니다.
-        *   **Firebase 서비스**: Firebase Auth, Firestore, Storage는 Google의 인프라를 기반으로 하여 대규모 트래픽에 대한 높은 확장성을 기본적으로 제공합니다.
+        *   **Firebase 서비스**: Firebase Auth, Firestore는 Google 인프라 기반으로 확장성을 제공합니다. 이미지는 백엔드에서 저장·제공합니다.
 *   **NFR3.2: 데이터베이스는 향후 데이터 증가에 유연하게 대응할 수 있는 구조여야 한다. (MariaDB 활용)**
     *   **기술적 접근**:
         *   정규화된 스키마 설계: 데이터 중복을 최소화하고 데이터 일관성을 유지합니다.
@@ -826,7 +821,7 @@ graph TD
 ### 7.2. UserProfile
 
 *   **설명**: 사용자의 상세 프로필 정보.
-*   **저장소**: MariaDB (`user_profiles` 테이블), Firebase Storage (프로필 이미지).
+*   **저장소**: MariaDB (`user_profiles` 테이블). 프로필 이미지 파일은 백엔드 uploads/profile 에 저장되고, URL만 DB에 저장.
 *   **필드**:
     *   `user_id` (INT, PK, FK `users.id`)
     *   `nickname` (VARCHAR, UNIQUE, NOT NULL)
@@ -872,7 +867,7 @@ graph TD
 ### 7.6. Post
 
 *   **설명**: 공개 게시판 게시글.
-*   **저장소**: MariaDB (`posts` 테이블), Firebase Storage (이미지).
+*   **저장소**: MariaDB (`posts` 테이블). 게시글 이미지 파일은 백엔드 uploads/posts 에 저장되고, URL 배열만 DB에 저장.
 *   **필드**:
     *   `id` (INT, PK, AUTO_INCREMENT)
     *   `user_id` (INT, FK `users.id`, NOT NULL)
@@ -887,7 +882,7 @@ graph TD
 ### 7.7. Itinerary
 
 *   **설명**: 여행 일정 및 경로 공유.
-*   **저장소**: MariaDB (`itineraries`, `itinerary_days`, `itinerary_activities` 테이블), Firebase Storage (이미지).
+*   **저장소**: MariaDB (`itineraries`, `itinerary_days`, `itinerary_activities` 테이블). 일정 이미지 파일은 백엔드 uploads/itineraries 에 저장되고, URL 배열만 DB에 저장.
 *   **필드**:
     *   `id` (INT, PK, AUTO_INCREMENT)
     *   `user_id` (INT, FK `users.id`, NOT NULL)

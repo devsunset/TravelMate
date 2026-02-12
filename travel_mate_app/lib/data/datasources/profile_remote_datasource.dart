@@ -1,29 +1,24 @@
-/// 프로필 API 호출 및 Firebase Storage 프로필 이미지 업로드.
+/// 프로필 API 호출 및 백엔드 프로필 이미지 업로드.
 import 'dart:io';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:travel_mate_app/app/constants.dart';
 import 'package:travel_mate_app/data/models/user_profile_model.dart';
 
 class ProfileRemoteDataSource {
-  final FirebaseStorage _firebaseStorage;
   final FirebaseAuth _firebaseAuth;
-  final Dio _dio; // For making API calls to your Node.js backend
+  final Dio _dio;
 
   ProfileRemoteDataSource({
-    FirebaseStorage? firebaseStorage,
     FirebaseAuth? firebaseAuth,
     Dio? dio,
-  })  : _firebaseStorage = firebaseStorage ?? FirebaseStorage.instance,
-        _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance,
+  })  : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance,
         _dio = dio ?? Dio();
 
-  // Upload profile image to Firebase Storage
+  /// 프로필 이미지를 백엔드에 업로드하고 반환된 imageUrl을 전달합니다.
   Future<String> uploadProfileImage(String userId, File imageFile) async {
     try {
-      // Compress image before uploading
-      // Example from implementation guide ig-005-image-optimization
       final filePath = imageFile.absolute.path;
       final targetPath = '${filePath}_compressed.jpg';
 
@@ -40,13 +35,25 @@ class ProfileRemoteDataSource {
         throw Exception('Image compression failed');
       }
 
-      final ref = _firebaseStorage.ref().child('users/$userId/profile_images/${DateTime.now().millisecondsSinceEpoch}.jpg');
-      final uploadTask = ref.putFile(File(compressedImage.path));
-      final snapshot = await uploadTask.whenComplete(() {});
-      final downloadUrl = await snapshot.ref.getDownloadURL();
-      return downloadUrl;
-    } on FirebaseException catch (e) {
-      throw Exception('Firebase Storage Error: ${e.message}');
+      final idToken = await _firebaseAuth.currentUser?.getIdToken();
+      if (idToken == null) throw Exception('User not authenticated.');
+
+      final formData = FormData.fromMap({
+        'image': await MultipartFile.fromFile(compressedImage.path, filename: 'image.jpg'),
+      });
+
+      final response = await _dio.post(
+        '${AppConstants.apiBaseUrl}/api/upload/profile',
+        data: formData,
+        options: Options(
+          headers: {'Authorization': 'Bearer $idToken'},
+        ),
+      );
+
+      if (response.statusCode == 200 && response.data['imageUrl'] != null) {
+        return response.data['imageUrl'] as String;
+      }
+      throw Exception('Failed to upload image: ${response.data}');
     } catch (e) {
       throw Exception('Failed to upload image: ${e.toString()}');
     }
@@ -61,7 +68,7 @@ class ProfileRemoteDataSource {
       }
 
       final response = await _dio.get(
-        'http://localhost:3000/api/users/$userId/profile', // Replace with your backend URL
+        '${AppConstants.apiBaseUrl}/api/users/$userId/profile', // Replace with your backend URL
         options: Options(
           headers: {'Authorization': 'Bearer $idToken'},
         ),
@@ -86,7 +93,7 @@ class ProfileRemoteDataSource {
       }
 
       final response = await _dio.post(
-        'http://localhost:3000/api/users/${userProfile.userId}/profile', // Replace with your backend URL
+        '${AppConstants.apiBaseUrl}/api/users/${userProfile.userId}/profile',
         data: userProfile.toJson(),
         options: Options(
           headers: {'Authorization': 'Bearer $idToken'},
@@ -110,7 +117,7 @@ class ProfileRemoteDataSource {
       }
 
       final response = await _dio.patch(
-        'http://localhost:3000/api/users/${userProfile.userId}/profile', // Replace with your backend URL
+        '${AppConstants.apiBaseUrl}/api/users/${userProfile.userId}/profile',
         data: userProfile.toJson(),
         options: Options(
           headers: {'Authorization': 'Bearer $idToken'},
@@ -134,7 +141,7 @@ class ProfileRemoteDataSource {
       }
 
       final response = await _dio.delete(
-        'http://localhost:3000/api/users/$userId/profile', // Replace with your backend URL
+        '${AppConstants.apiBaseUrl}/api/users/$userId/profile', // Replace with your backend URL
         options: Options(
           headers: {'Authorization': 'Bearer $idToken'},
         ),

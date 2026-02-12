@@ -103,7 +103,7 @@ GoRouter createRouter(User? user) {
       GoRoute(
         path: '/signup',
         builder: (BuildContext context, GoRouterState state) {
-          return const SignUpScreen();
+          return const SignupScreen();
         },
       ),
       GoRoute(

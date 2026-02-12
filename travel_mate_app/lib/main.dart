@@ -7,7 +7,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:dio/dio.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 
 import 'package:travel_mate_app/firebase_options.dart';
 import 'package:travel_mate_app/app/app.dart';
@@ -71,9 +70,6 @@ void main() async {
         Provider<FirebaseFirestore>(
           create: (_) => FirebaseFirestore.instance,
         ),
-        Provider<FirebaseStorage>(
-          create: (_) => FirebaseStorage.instance,
-        ),
         Provider<AuthService>(
           create: (_) => AuthService(),
         ),
@@ -101,18 +97,10 @@ void main() async {
           ),
         ),
         Provider<PostRemoteDataSource>(
-          create: (context) => PostRemoteDataSource(
-            firebaseStorage: context.read<FirebaseStorage>(),
-            firebaseAuth: FirebaseAuth.instance,
-            dio: context.read<Dio>(),
-          ),
+          create: (context) => PostRemoteDataSource(dio: context.read<Dio>()),
         ),
         Provider<ItineraryRemoteDataSource>(
-          create: (context) => ItineraryRemoteDataSource(
-            firebaseStorage: context.read<FirebaseStorage>(),
-            firebaseAuth: FirebaseAuth.instance,
-            dio: context.read<Dio>(),
-          ),
+          create: (context) => ItineraryRemoteDataSource(dio: context.read<Dio>()),
         ),
         Provider<UserProfileRepository>(
           create: (context) => UserProfileRepositoryImpl(

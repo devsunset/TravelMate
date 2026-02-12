@@ -1,28 +1,24 @@
-/// 일정 API 호출 및 Firebase Storage 일정 이미지 업로드.
+/// 일정 API 호출 및 백엔드 일정 이미지 업로드.
 import 'dart:io';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:travel_mate_app/app/constants.dart';
 import 'package:travel_mate_app/data/models/itinerary_model.dart';
 
 class ItineraryRemoteDataSource {
-  final FirebaseStorage _firebaseStorage;
   final FirebaseAuth _firebaseAuth;
-  final Dio _dio; // For making API calls to your Node.js backend
+  final Dio _dio;
 
   ItineraryRemoteDataSource({
-    FirebaseStorage? firebaseStorage,
     FirebaseAuth? firebaseAuth,
     Dio? dio,
-  })  : _firebaseStorage = firebaseStorage ?? FirebaseStorage.instance,
-        _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance,
+  })  : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance,
         _dio = dio ?? Dio();
 
-  // Upload itinerary image to Firebase Storage
+  /// 일정 이미지를 백엔드에 업로드하고 반환된 imageUrl을 전달합니다.
   Future<String> uploadItineraryImage(String userId, File imageFile) async {
     try {
-      // Compress image before uploading
       final filePath = imageFile.absolute.path;
       final targetPath = '${filePath}_compressed.jpg';
 
@@ -39,13 +35,25 @@ class ItineraryRemoteDataSource {
         throw Exception('Image compression failed');
       }
 
-      final ref = _firebaseStorage.ref().child('itineraries/$userId/${DateTime.now().millisecondsSinceEpoch}.jpg');
-      final uploadTask = ref.putFile(File(compressedImage.path));
-      final snapshot = await uploadTask.whenComplete(() {});
-      final downloadUrl = await snapshot.ref.getDownloadURL();
-      return downloadUrl;
-    } on FirebaseException catch (e) {
-      throw Exception('Firebase Storage Error: ${e.message}');
+      final idToken = await _firebaseAuth.currentUser?.getIdToken();
+      if (idToken == null) throw Exception('User not authenticated.');
+
+      final formData = FormData.fromMap({
+        'image': await MultipartFile.fromFile(compressedImage.path, filename: 'image.jpg'),
+      });
+
+      final response = await _dio.post(
+        '${AppConstants.apiBaseUrl}/api/upload/itinerary',
+        data: formData,
+        options: Options(
+          headers: {'Authorization': 'Bearer $idToken'},
+        ),
+      );
+
+      if (response.statusCode == 200 && response.data['imageUrl'] != null) {
+        return response.data['imageUrl'] as String;
+      }
+      throw Exception('Failed to upload image: ${response.data}');
     } catch (e) {
       throw Exception('Failed to upload image: ${e.toString()}');
     }
@@ -60,7 +68,7 @@ class ItineraryRemoteDataSource {
       }
 
       final response = await _dio.get(
-        'http://localhost:3000/api/itineraries', // Replace with your backend URL
+        '${AppConstants.apiBaseUrl}/api/itineraries', // Replace with your backend URL
         options: Options(
           headers: {'Authorization': 'Bearer $idToken'},
         ),
@@ -87,7 +95,7 @@ class ItineraryRemoteDataSource {
       }
 
       final response = await _dio.get(
-        'http://localhost:3000/api/itineraries/$itineraryId', // Replace with your backend URL
+        '${AppConstants.apiBaseUrl}/api/itineraries/$itineraryId', // Replace with your backend URL
         options: Options(
           headers: {'Authorization': 'Bearer $idToken'},
         ),
@@ -112,7 +120,7 @@ class ItineraryRemoteDataSource {
       }
 
       final response = await _dio.post(
-        'http://localhost:3000/api/itineraries', // Replace with your backend URL
+        '${AppConstants.apiBaseUrl}/api/itineraries', // Replace with your backend URL
         data: itinerary.toJson(),
         options: Options(
           headers: {'Authorization': 'Bearer $idToken'},
@@ -136,7 +144,7 @@ class ItineraryRemoteDataSource {
       }
 
       final response = await _dio.patch(
-        'http://localhost:3000/api/itineraries/${itinerary.id}', // Replace with your backend URL
+        '${AppConstants.apiBaseUrl}/api/itineraries/${itinerary.id}', // Replace with your backend URL
         data: itinerary.toJson(),
         options: Options(
           headers: {'Authorization': 'Bearer $idToken'},
@@ -160,7 +168,7 @@ class ItineraryRemoteDataSource {
       }
 
       final response = await _dio.delete(
-        'http://localhost:3000/api/itineraries/$itineraryId', // Replace with your backend URL
+        '${AppConstants.apiBaseUrl}/api/itineraries/$itineraryId', // Replace with your backend URL
         options: Options(
           headers: {'Authorization': 'Bearer $idToken'},
         ),
