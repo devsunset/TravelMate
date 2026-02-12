@@ -4,6 +4,7 @@
 !*.env.example
 **/serviceAccountKey*.json
 **/*-firebase-adminsdk-*.json
+.xxx
 
 # 백엔드
 travel_mate_backend/node_modules/
