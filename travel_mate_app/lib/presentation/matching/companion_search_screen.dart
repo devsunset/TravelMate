@@ -1,0 +1,340 @@
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+
+import 'package:travel_mate_app/app/theme.dart';
+import 'package:travel_mate_app/app/constants.dart';
+import 'package:travel_mate_app/domain/entities/user_profile.dart';
+import 'package:travel_mate_app/domain/usecases/search_companions_usecase.dart';
+
+/// 동행 검색 화면. 목적지·성별·연령 등 필터로 프로필 검색.
+class CompanionSearchScreen extends StatefulWidget {
+  const CompanionSearchScreen({Key? key}) : super(key: key);
+
+  @override
+  State<CompanionSearchScreen> createState() => _CompanionSearchScreenState();
+}
+
+class _CompanionSearchScreenState extends State<CompanionSearchScreen> {
+  final TextEditingController _destinationController = TextEditingController();
+  final TextEditingController _searchKeywordController = TextEditingController();
+  String? _selectedGender;
+  String? _selectedAgeRange;
+  final List<String> _selectedTravelStyles = [];
+  final List<String> _selectedInterests = [];
+  DateTime? _startDate;
+  DateTime? _endDate;
+
+  bool _isLoading = false;
+  String? _errorMessage;
+  List<UserProfile> _searchResults = []; // Will store search results
+
+  final List<String> _genders = ['Male', 'Female', 'Other', 'Any'];
+  final List<String> _ageRanges = ['10s', '20s', '30s', '40s', '50s+', 'Any'];
+  final List<String> _availableTravelStyles = ['Adventure', 'Relaxation', 'Cultural', 'Foodie', 'Budget-friendly', 'Luxury', 'Solo Traveler', 'Group Traveler'];
+  final List<String> _availableInterests = ['Nature', 'History', 'Art', 'Beach', 'Mountains', 'City Exploration', 'Photography', 'Shopping', 'Nightlife', 'Wellness'];
+
+  @override
+  void dispose() {
+    _destinationController.dispose();
+    _searchKeywordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _selectDateRange(BuildContext context) async {
+    final DateTimeRange? picked = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365 * 2)), // 2 years from now
+      initialDateRange: _startDate != null && _endDate != null
+          ? DateTimeRange(start: _startDate!, end: _endDate!)
+          : null,
+    );
+    if (picked != null && (picked.start != _startDate || picked.end != _endDate)) {
+      setState(() {
+        _startDate = picked.start;
+        _endDate = picked.end;
+      });
+    }
+  }
+
+  void _searchCompanions() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+      _searchResults = [];
+    });
+
+    try {
+      // TODO: Implement actual search logic using SearchCompanionsUsecase
+      // For now, simulate some dummy results
+      await Future.delayed(const Duration(seconds: 2));
+
+      setState(() {
+        _searchResults = [
+          UserProfile(
+            userId: 'user123',
+            nickname: 'ExplorerJane',
+            profileImageUrl: 'https://picsum.photos/200/300?random=1',
+            bio: 'Adventure seeker and hiking enthusiast.',
+            gender: 'Female',
+            ageRange: '20s',
+            travelStyles: ['Adventure', 'Solo Traveler'],
+            interests: ['Nature', 'Photography'],
+            preferredDestinations: ['Patagonia', 'New Zealand'],
+          ),
+          UserProfile(
+            userId: 'user456',
+            nickname: 'FoodieMark',
+            profileImageUrl: 'https://picsum.photos/200/300?random=2',
+            bio: 'Traveling the world one dish at a time.',
+            gender: 'Male',
+            ageRange: '30s',
+            travelStyles: ['Foodie', 'Cultural'],
+            interests: ['Food', 'History'],
+            preferredDestinations: ['Italy', 'Thailand'],
+          ),
+        ];
+        _isLoading = false;
+        if (_searchResults.isEmpty) {
+          _errorMessage = 'No companions found for your search criteria.';
+        }
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Failed to search companions: ${e.toString()}';
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Find Companions'),
+        backgroundColor: AppColors.primary,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search),
+            onPressed: _searchCompanions,
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(AppConstants.paddingMedium),
+            child: Column(
+              children: [
+                TextFormField(
+                  controller: _destinationController,
+                  decoration: const InputDecoration(
+                    labelText: 'Destination',
+                    hintText: 'e.g., Paris, Seoul',
+                    prefixIcon: Icon(Icons.location_on),
+                  ),
+                ),
+                const SizedBox(height: AppConstants.spacingMedium),
+                TextFormField(
+                  controller: _searchKeywordController,
+                  decoration: const InputDecoration(
+                    labelText: 'Keywords (Nickname, Bio)',
+                    hintText: 'e.g., adventurous, photographer',
+                    prefixIcon: Icon(Icons.text_fields),
+                  ),
+                ),
+                const SizedBox(height: AppConstants.spacingMedium),
+                Row(
+                  children: [
+                    Expanded(
+                      child: DropdownButtonFormField<String>(
+                        value: _selectedGender,
+                        decoration: const InputDecoration(
+                          labelText: 'Gender',
+                          prefixIcon: Icon(Icons.wc),
+                        ),
+                        items: _genders.map((String gender) {
+                          return DropdownMenuItem<String>(
+                            value: gender,
+                            child: Text(gender),
+                          );
+                        }).toList(),
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            _selectedGender = newValue;
+                          });
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: AppConstants.spacingMedium),
+                    Expanded(
+                      child: DropdownButtonFormField<String>(
+                        value: _selectedAgeRange,
+                        decoration: const InputDecoration(
+                          labelText: 'Age Range',
+                          prefixIcon: Icon(Icons.timelapse),
+                        ),
+                        items: _ageRanges.map((String age) {
+                          return DropdownMenuItem<String>(
+                            value: age,
+                            child: Text(age),
+                          );
+                        }).toList(),
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            _selectedAgeRange = newValue;
+                          });
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppConstants.spacingMedium),
+                ListTile(
+                  title: Text(
+                    _startDate == null && _endDate == null
+                        ? 'Select Date Range'
+                        : '${_startDate!.day}/${_startDate!.month}/${_startDate!.year} - ${_endDate!.day}/${_endDate!.month}/${_endDate!.year}',
+                  ),
+                  leading: const Icon(Icons.calendar_today),
+                  trailing: const Icon(Icons.arrow_forward_ios),
+                  onTap: () => _selectDateRange(context),
+                ),
+                const SizedBox(height: AppConstants.spacingMedium),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Travel Styles',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+                Wrap(
+                  spacing: AppConstants.spacingSmall,
+                  runSpacing: AppConstants.spacingSmall,
+                  children: _availableTravelStyles.map((style) {
+                    final isSelected = _selectedTravelStyles.contains(style);
+                    return FilterChip(
+                      label: Text(style),
+                      selected: isSelected,
+                      onSelected: (selected) {
+                        setState(() {
+                          if (selected) {
+                            _selectedTravelStyles.add(style);
+                          } else {
+                            _selectedTravelStyles.remove(style);
+                          }
+                        });
+                      },
+                      selectedColor: AppColors.accent.withOpacity(0.3),
+                      checkmarkColor: AppColors.primary,
+                      labelStyle: TextStyle(color: isSelected ? AppColors.primary : AppColors.textPrimary),
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: AppConstants.spacingMedium),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Interests',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+                Wrap(
+                  spacing: AppConstants.spacingSmall,
+                  runSpacing: AppConstants.spacingSmall,
+                  children: _availableInterests.map((interest) {
+                    final isSelected = _selectedInterests.contains(interest);
+                    return FilterChip(
+                      label: Text(interest),
+                      selected: isSelected,
+                      onSelected: (selected) {
+                        setState(() {
+                          if (selected) {
+                            _selectedInterests.add(interest);
+                          } else {
+                            _selectedInterests.remove(interest);
+                          }
+                        });
+                      },
+                      selectedColor: AppColors.accent.withOpacity(0.3),
+                      checkmarkColor: AppColors.primary,
+                      labelStyle: TextStyle(color: isSelected ? AppColors.primary : AppColors.textPrimary),
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: AppConstants.spacingMedium),
+                if (_errorMessage != null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: AppConstants.paddingMedium),
+                    child: Text(
+                      _errorMessage!,
+                      style: const TextStyle(color: Colors.red),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                _isLoading
+                    ? const CircularProgressIndicator()
+                    : SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: _searchCompanions,
+                          child: const Text('Search'),
+                        ),
+                      ),
+              ],
+            ),
+          ),
+          const Divider(),
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _searchResults.isEmpty && _errorMessage == null
+                    ? Center(
+                        child: Text(
+                          'No companions found. Try adjusting your search.',
+                          style: Theme.of(context).textTheme.titleMedium,
+                          textAlign: TextAlign.center,
+                        ),
+                      )
+                    : _errorMessage != null
+                        ? Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(AppConstants.paddingMedium),
+                              child: Text(
+                                _errorMessage!,
+                                style: const TextStyle(color: Colors.red),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          )
+                        : ListView.builder(
+                            itemCount: _searchResults.length,
+                            itemBuilder: (context, index) {
+                              final user = _searchResults[index];
+                              return Card(
+                                margin: const EdgeInsets.symmetric(horizontal: AppConstants.paddingMedium, vertical: AppConstants.paddingSmall),
+                                elevation: 1,
+                                child: ListTile(
+                                  leading: CircleAvatar(
+                                    backgroundImage: NetworkImage(user.profileImageUrl ?? 'https://www.gravatar.com/avatar/?d=mp'),
+                                  ),
+                                  title: Text(user.nickname),
+                                  subtitle: Text('${user.gender ?? ''}, ${user.ageRange ?? ''}\n${user.bio ?? ''}'),
+                                  isThreeLine: true,
+                                  onTap: () {
+                                    context.go('/users/${user.userId}'); // Navigate to user's profile
+                                  },
+                                ),
+                              );
+                            },
+                          ),
+          ),
+        ],
+      ),
+    );
+  }
+}
