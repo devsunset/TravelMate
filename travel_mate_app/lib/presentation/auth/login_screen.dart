@@ -219,11 +219,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   width: double.infinity,
                   child: OutlinedButton.icon(
                     onPressed: _loginWithGoogle,
-                    icon: Image.asset(
-                      'images/google_logo.png',
-                      height: 24.0,
-                      width: 24.0,
-                    ),
+                    icon: Icon(Icons.g_mobiledata, size: 24, color: AppColors.textPrimary),
                     label: Text(
                       'Sign in with Google',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(

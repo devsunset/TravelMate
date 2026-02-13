@@ -1,23 +1,25 @@
-/// 일정 API 호출 및 백엔드 일정 이미지 업로드.
-import 'dart:io' if (dart.library.html) 'package:travel_mate_app/core/io_stub/file_stub.dart';
+/// 프로필 API 호출 및 백엔드 프로필 이미지 업로드 (IO/모바일).
+import 'dart:io';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:travel_mate_app/app/constants.dart';
-import 'package:travel_mate_app/data/models/itinerary_model.dart';
+import 'package:travel_mate_app/data/models/user_profile_model.dart';
 
-class ItineraryRemoteDataSource {
+class ProfileRemoteDataSource {
   final FirebaseAuth _firebaseAuth;
   final Dio _dio;
 
-  ItineraryRemoteDataSource({
+  ProfileRemoteDataSource({
     FirebaseAuth? firebaseAuth,
     Dio? dio,
   })  : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance,
         _dio = dio ?? Dio();
 
-  /// 일정 이미지를 백엔드에 업로드하고 반환된 imageUrl을 전달합니다.
-  Future<String> uploadItineraryImage(String userId, File imageFile) async {
+  /// image: String(경로) 또는 File. 웹에서는 사용하지 않음.
+  Future<String> uploadProfileImage(String userId, dynamic image) async {
+    final File imageFile = image is String ? File(image) : image as File;
     try {
       final filePath = imageFile.absolute.path;
       final targetPath = '${filePath}_compressed.jpg';
@@ -43,7 +45,7 @@ class ItineraryRemoteDataSource {
       });
 
       final response = await _dio.post(
-        '${AppConstants.apiBaseUrl}/api/upload/itinerary',
+        '${AppConstants.apiBaseUrl}/api/upload/profile',
         data: formData,
         options: Options(
           headers: {'Authorization': 'Bearer $idToken'},
@@ -59,8 +61,7 @@ class ItineraryRemoteDataSource {
     }
   }
 
-  // Get itineraries from backend API
-  Future<List<ItineraryModel>> getItineraries() async {
+  Future<UserProfileModel> getUserProfile(String userId) async {
     try {
       final idToken = await _firebaseAuth.currentUser?.getIdToken();
       if (idToken == null) {
@@ -68,51 +69,23 @@ class ItineraryRemoteDataSource {
       }
 
       final response = await _dio.get(
-        '${AppConstants.apiBaseUrl}/api/itineraries', // Replace with your backend URL
+        '${AppConstants.apiBaseUrl}/api/users/$userId/profile',
         options: Options(
           headers: {'Authorization': 'Bearer $idToken'},
         ),
       );
 
       if (response.statusCode == 200) {
-        return (response.data['itineraries'] as List)
-            .map((json) => ItineraryModel.fromJson(json))
-            .toList();
+        return UserProfileModel.fromJson(response.data['userProfile']);
       } else {
-        throw Exception('Failed to load itineraries: ${response.data}');
+        throw Exception('Failed to load user profile: ${response.data}');
       }
     } catch (e) {
-      throw Exception('Failed to get itineraries: ${e.toString()}');
+      throw Exception('Failed to get user profile: ${e.toString()}');
     }
   }
 
-  // Get single itinerary from backend API
-  Future<ItineraryModel> getItinerary(String itineraryId) async {
-    try {
-      final idToken = await _firebaseAuth.currentUser?.getIdToken();
-      if (idToken == null) {
-        throw Exception('User not authenticated.');
-      }
-
-      final response = await _dio.get(
-        '${AppConstants.apiBaseUrl}/api/itineraries/$itineraryId', // Replace with your backend URL
-        options: Options(
-          headers: {'Authorization': 'Bearer $idToken'},
-        ),
-      );
-
-      if (response.statusCode == 200) {
-        return ItineraryModel.fromJson(response.data['itinerary']);
-      } else {
-        throw Exception('Failed to load itinerary: ${response.data}');
-      }
-    } catch (e) {
-      throw Exception('Failed to get itinerary: ${e.toString()}');
-    }
-  }
-
-  // Create itinerary in backend API
-  Future<void> createItinerary(ItineraryModel itinerary) async {
+  Future<void> createUserProfile(UserProfileModel userProfile) async {
     try {
       final idToken = await _firebaseAuth.currentUser?.getIdToken();
       if (idToken == null) {
@@ -120,23 +93,22 @@ class ItineraryRemoteDataSource {
       }
 
       final response = await _dio.post(
-        '${AppConstants.apiBaseUrl}/api/itineraries', // Replace with your backend URL
-        data: itinerary.toJson(),
+        '${AppConstants.apiBaseUrl}/api/users/${userProfile.userId}/profile',
+        data: userProfile.toJson(),
         options: Options(
           headers: {'Authorization': 'Bearer $idToken'},
         ),
       );
 
       if (response.statusCode != 201) {
-        throw Exception('Failed to create itinerary: ${response.data}');
+        throw Exception('Failed to create user profile: ${response.data}');
       }
     } catch (e) {
-      throw Exception('Failed to create itinerary: ${e.toString()}');
+      throw Exception('Failed to create user profile: ${e.toString()}');
     }
   }
 
-  // Update itinerary in backend API
-  Future<void> updateItinerary(ItineraryModel itinerary) async {
+  Future<void> updateUserProfile(UserProfileModel userProfile) async {
     try {
       final idToken = await _firebaseAuth.currentUser?.getIdToken();
       if (idToken == null) {
@@ -144,23 +116,22 @@ class ItineraryRemoteDataSource {
       }
 
       final response = await _dio.patch(
-        '${AppConstants.apiBaseUrl}/api/itineraries/${itinerary.id}', // Replace with your backend URL
-        data: itinerary.toJson(),
+        '${AppConstants.apiBaseUrl}/api/users/${userProfile.userId}/profile',
+        data: userProfile.toJson(),
         options: Options(
           headers: {'Authorization': 'Bearer $idToken'},
         ),
       );
 
       if (response.statusCode != 200) {
-        throw Exception('Failed to update itinerary: ${response.data}');
+        throw Exception('Failed to update user profile: ${response.data}');
       }
     } catch (e) {
-      throw Exception('Failed to update itinerary: ${e.toString()}');
+      throw Exception('Failed to update user profile: ${e.toString()}');
     }
   }
 
-  // Delete itinerary in backend API
-  Future<void> deleteItinerary(String itineraryId) async {
+  Future<void> deleteUserProfile(String userId) async {
     try {
       final idToken = await _firebaseAuth.currentUser?.getIdToken();
       if (idToken == null) {
@@ -168,17 +139,17 @@ class ItineraryRemoteDataSource {
       }
 
       final response = await _dio.delete(
-        '${AppConstants.apiBaseUrl}/api/itineraries/$itineraryId', // Replace with your backend URL
+        '${AppConstants.apiBaseUrl}/api/users/$userId/profile',
         options: Options(
           headers: {'Authorization': 'Bearer $idToken'},
         ),
       );
 
       if (response.statusCode != 204) {
-        throw Exception('Failed to delete itinerary: ${response.data}');
+        throw Exception('Failed to delete user profile: ${response.data}');
       }
     } catch (e) {
-      throw Exception('Failed to delete itinerary: ${e.toString()}');
+      throw Exception('Failed to delete user profile: ${e.toString()}');
     }
   }
 }

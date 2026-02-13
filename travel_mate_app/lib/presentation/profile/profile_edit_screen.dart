@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dart:io';
+import 'dart:io' if (dart.library.html) 'package:travel_mate_app/core/io_stub/file_stub.dart';
+import 'package:travel_mate_app/core/io_stub/picked_image_provider_io.dart' if (dart.library.html) 'package:travel_mate_app/core/io_stub/picked_image_provider_web.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import 'package:travel_mate_app/app/theme.dart';
@@ -177,11 +178,10 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                             CircleAvatar(
                               radius: 70,
                               backgroundColor: AppColors.lightGrey,
-                              backgroundImage: _pickedImage != null
-                                  ? FileImage(_pickedImage!)
-                                  : (_currentProfileImageUrl != null && _currentProfileImageUrl!.isNotEmpty
+                              backgroundImage: imageProviderForPickedFile(_pickedImage) ??
+                                  (_currentProfileImageUrl != null && _currentProfileImageUrl!.isNotEmpty
                                       ? NetworkImage(_currentProfileImageUrl!) as ImageProvider
-                                      : const AssetImage('images/default_avatar.png')
+                                      : null
                                   ),
                               child: _pickedImage == null && (_currentProfileImageUrl == null || _currentProfileImageUrl!.isEmpty)
                                   ? Icon(Icons.person, size: 70, color: AppColors.grey)

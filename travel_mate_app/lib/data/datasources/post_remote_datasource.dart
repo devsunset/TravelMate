@@ -1,5 +1,5 @@
 /// 게시글 API 호출 및 백엔드 이미지 업로드.
-import 'dart:io';
+import 'dart:io' if (dart.library.html) 'package:travel_mate_app/core/io_stub/file_stub.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';

@@ -5,9 +5,10 @@
 
 const express = require('express');
 const cors = require('cors');
+const fs = require('fs');
+const path = require('path');
 const admin = require('firebase-admin');
 const dotenv = require('dotenv');
-const path = require('path');
 
 const sequelize = require('./config/database');
 const authMiddleware = require('./middlewares/authMiddleware');
@@ -44,15 +45,18 @@ const Like = require('./models/like');
 const Bookmark = require('./models/bookmark');
 const Report = require('./models/report');
 
-// 환경 변수 로드 (.env 경로: 프로젝트 루트 기준)
-dotenv.config({ path: path.resolve(__dirname, '../.env') });
+// 환경 변수 로드 (.env 경로: travel_mate_backend 루트 기준)
+const envPath = path.resolve(__dirname, '../.env');
+dotenv.config({ path: envPath });
 
-// Firebase Admin SDK 초기화 (서비스 계정 키 경로 사용)
-const serviceAccountPath = path.resolve(
-  __dirname,
-  '..',
-  process.env.FIREBASE_SERVICE_ACCOUNT_KEY_PATH
-);
+const serviceAccountKeyPath = process.env.FIREBASE_SERVICE_ACCOUNT_KEY_PATH || './serviceAccountKey.json';
+const serviceAccountPath = path.resolve(__dirname, '..', serviceAccountKeyPath);
+if (!fs.existsSync(serviceAccountPath)) {
+  console.error(
+    '[환경 설정] 서비스 계정 키 파일이 없습니다. .env의 FIREBASE_SERVICE_ACCOUNT_KEY_PATH 또는 travel_mate_backend/serviceAccountKey.json 을 확인하세요.'
+  );
+  process.exit(1);
+}
 admin.initializeApp({ credential: admin.credential.cert(serviceAccountPath) });
 
 const app = express();

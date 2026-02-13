@@ -8,15 +8,17 @@ const User = require('../models/user');
 
 /**
  * 프로필 조회
- * params.userId는 Firebase UID. 프로필이 없으면 기본값으로 생성 후 반환합니다.
+ * params.userId는 Firebase UID. 사용자가 DB에 없으면 토큰 정보로 자동 생성 후 프로필 생성/반환합니다.
  */
 exports.getUserProfile = async (req, res, next) => {
   try {
     const { userId } = req.params;
+    const firebaseUid = req.user?.uid || userId;
+    const firebaseEmail = req.user?.email || '';
 
-    const user = await User.findOne({ where: { firebase_uid: userId } });
+    let user = await User.findOne({ where: { firebase_uid: firebaseUid } });
     if (!user) {
-      return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
+      user = await User.create({ firebase_uid: firebaseUid, email: firebaseEmail || `user_${firebaseUid}@temp` });
     }
 
     let userProfile = await UserProfile.findOne({ where: { userId: user.id } });
