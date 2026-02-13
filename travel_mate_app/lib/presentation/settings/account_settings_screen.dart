@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:travel_mate_app/app/theme.dart';
 import 'package:travel_mate_app/app/constants.dart';
+import 'package:travel_mate_app/presentation/common/app_app_bar.dart';
 import 'package:travel_mate_app/core/services/auth_service.dart';
 
 /// 계정 설정 화면. 로그아웃·계정 삭제 등.
@@ -142,10 +143,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Account Settings'),
-        backgroundColor: AppColors.primary,
-      ),
+      appBar: const AppAppBar(title: '계정 설정'),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : Padding(

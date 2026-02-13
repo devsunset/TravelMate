@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:travel_mate_app/app/theme.dart';
 import 'package:travel_mate_app/app/constants.dart';
 import 'package:travel_mate_app/domain/entities/user_profile.dart';
+import 'package:travel_mate_app/presentation/common/app_app_bar.dart';
 import 'package:travel_mate_app/domain/usecases/get_user_profile.dart';
 import 'package:travel_mate_app/presentation/common/report_button_widget.dart';
 
@@ -59,9 +60,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     final isMyProfile = currentUserUid == widget.userId;
     
     return Scaffold(
-      appBar: AppBar(
-        title: Text(isMyProfile ? 'My Profile' : '${_userProfile?.nickname ?? 'User'}\'s Profile'),
-        backgroundColor: AppColors.primary,
+      appBar: AppAppBar(
+        title: isMyProfile ? '내 프로필' : '${_userProfile?.nickname ?? '프로필'}',
         actions: [
           if (isMyProfile) // Only show edit button if it's the current user's profile
             IconButton(
@@ -130,25 +130,25 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       _buildProfileDetailCard(
                         context,
                         title: 'About Me',
-                        content: _userProfile?.bio ?? 'No bio provided.',
+                        content: _userProfile?.bio ?? '소개가 없습니다.',
                       ),
                       const SizedBox(height: AppConstants.spacingMedium),
                       _buildProfileDetailCard(
                         context,
-                        title: 'Travel Styles',
-                        content: _userProfile?.travelStyles.join(', ') ?? 'No travel styles selected.',
+                        title: '여행 스타일',
+                        content: _userProfile?.travelStyles.join(', ') ?? '선택된 여행 스타일이 없습니다.',
                       ),
                       const SizedBox(height: AppConstants.spacingMedium),
                       _buildProfileDetailCard(
                         context,
-                        title: 'Interests',
-                        content: _userProfile?.interests.join(', ') ?? 'No interests selected.',
+                        title: '관심사',
+                        content: _userProfile?.interests.join(', ') ?? '선택된 관심사가 없습니다.',
                       ),
                       const SizedBox(height: AppConstants.spacingMedium),
                       _buildProfileDetailCard(
                         context,
-                        title: 'Preferred Destinations',
-                        content: _userProfile?.preferredDestinations.join(', ') ?? 'No preferred destinations.',
+                        title: '선호 지역',
+                        content: _userProfile?.preferredDestinations.join(', ') ?? '선택된 선호 지역이 없습니다.',
                       ),
                     ],
                   ),

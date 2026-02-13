@@ -95,7 +95,7 @@ class PostRemoteDataSource {
       }
 
       final response = await _dio.get(
-        'http://localhost:3000/api/posts/$postId', // Replace with your backend URL
+        '${AppConstants.apiBaseUrl}/api/posts/$postId',
         options: Options(
           headers: {'Authorization': 'Bearer $idToken'},
         ),
@@ -168,7 +168,7 @@ class PostRemoteDataSource {
       }
 
       final response = await _dio.delete(
-        'http://localhost:3000/api/posts/$postId', // Replace with your backend URL
+        '${AppConstants.apiBaseUrl}/api/posts/$postId',
         options: Options(
           headers: {'Authorization': 'Bearer $idToken'},
         ),

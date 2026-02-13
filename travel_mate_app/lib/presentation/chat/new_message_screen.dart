@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:travel_mate_app/app/theme.dart';
 import 'package:travel_mate_app/app/constants.dart';
 import 'package:travel_mate_app/domain/usecases/send_private_message.dart';
+import 'package:travel_mate_app/presentation/common/app_app_bar.dart';
 
 /// 1:1 쪽지 작성·발송 화면.
 class NewMessageScreen extends StatefulWidget {
@@ -73,11 +74,8 @@ class _NewMessageScreenState extends State<NewMessageScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.receiverNickname != null
-            ? 'Message ${widget.receiverNickname}'
-            : 'New Message'),
-        backgroundColor: AppColors.primary,
+      appBar: AppAppBar(
+        title: widget.receiverNickname != null ? '${widget.receiverNickname}에게 쪽지' : '새 쪽지',
       ),
       body: Padding(
         padding: const EdgeInsets.all(AppConstants.paddingMedium),

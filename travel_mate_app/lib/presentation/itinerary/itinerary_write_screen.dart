@@ -9,6 +9,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import 'package:travel_mate_app/app/theme.dart';
 import 'package:travel_mate_app/app/constants.dart';
+import 'package:travel_mate_app/presentation/common/app_app_bar.dart';
 import 'package:travel_mate_app/domain/entities/itinerary.dart';
 import 'package:travel_mate_app/domain/usecases/create_itinerary.dart';
 import 'package:travel_mate_app/domain/usecases/update_itinerary.dart';
@@ -38,6 +39,7 @@ class _ItineraryWriteScreenState extends State<ItineraryWriteScreen> {
 
   bool _isLoading = false;
   String? _errorMessage;
+  Itinerary? _loadedItinerary; // When editing, store loaded itinerary for createdAt etc.
 
   // For map
   late GoogleMapController mapController;
@@ -61,6 +63,7 @@ class _ItineraryWriteScreenState extends State<ItineraryWriteScreen> {
     try {
       final getItinerary = Provider.of<GetItinerary>(context, listen: false);
       final fetchedItinerary = await getItinerary.execute(widget.itineraryId!);
+      _loadedItinerary = fetchedItinerary;
 
       _titleController.text = fetchedItinerary.title;
       _descriptionController.text = fetchedItinerary.description;
@@ -201,7 +204,7 @@ class _ItineraryWriteScreenState extends State<ItineraryWriteScreen> {
           endDate: _endDate!,
           imageUrls: allImageUrls,
           mapData: _markers.map((e) => {'latitude': e.position.latitude, 'longitude': e.position.longitude}).toList(), // Example map data
-          createdAt: _itinerary?.createdAt ?? DateTime.now(), // Preserve createdAt for existing itinerary
+          createdAt: _loadedItinerary?.createdAt ?? DateTime.now(),
           updatedAt: DateTime.now(),
         );
 
@@ -243,11 +246,7 @@ class _ItineraryWriteScreenState extends State<ItineraryWriteScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.itineraryId == null ? 'Create New Itinerary' : 'Edit Itinerary'),
-        backgroundColor: AppColors.primary,
-        elevation: 0,
-      ),
+      appBar: AppAppBar(title: widget.itineraryId == null ? '일정 만들기' : '일정 수정'),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(

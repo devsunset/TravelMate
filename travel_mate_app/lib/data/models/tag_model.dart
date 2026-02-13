@@ -12,12 +12,13 @@ class Tag extends Equatable {
     required this.tagType,
   });
 
+  /// 백엔드가 id를 int 또는 string으로 보낼 수 있음.
   factory Tag.fromJson(Map<String, dynamic> json) {
-    return Tag(
-      id: json['id'] as int,
-      tagName: json['tag_name'] as String,
-      tagType: json['tag_type'] as String,
-    );
+    final idRaw = json['id'];
+    final id = idRaw is int ? idRaw : int.tryParse(idRaw?.toString() ?? '0') ?? 0;
+    final tagName = json['tag_name'] == null ? '' : (json['tag_name'] is int ? (json['tag_name'] as int).toString() : json['tag_name'] as String);
+    final tagType = json['tag_type'] == null ? '' : (json['tag_type'] is int ? (json['tag_type'] as int).toString() : json['tag_type'] as String);
+    return Tag(id: id, tagName: tagName, tagType: tagType);
   }
 
   Map<String, dynamic> toJson() {

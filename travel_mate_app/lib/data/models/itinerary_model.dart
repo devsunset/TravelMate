@@ -1,4 +1,5 @@
 /// 일정 DTO. JSON 직렬화 및 [Itinerary] 엔티티 확장.
+/// 백엔드(Sequelize)는 id, authorId 등을 int로 보낼 수 있으므로 int/String 모두 파싱.
 import 'package:travel_mate_app/domain/entities/itinerary.dart';
 
 class ItineraryModel extends Itinerary {
@@ -15,24 +16,39 @@ class ItineraryModel extends Itinerary {
     required super.updatedAt,
   });
 
+  static String _toString(dynamic v) => v == null ? '' : (v is int ? v.toString() : v as String);
+  static DateTime _toDateTime(dynamic v) {
+    if (v == null) return DateTime.now();
+    if (v is DateTime) return v;
+    return DateTime.parse(v.toString());
+  }
+  static List<String> _toStringList(List<dynamic>? list) =>
+      list?.map((e) => e == null ? '' : (e is int ? e.toString() : e as String)).toList() ?? const [];
+  static double _toDouble(dynamic v) {
+    if (v == null) return 0.0;
+    if (v is num) return v.toDouble();
+    return double.tryParse(v.toString()) ?? 0.0;
+  }
+  static List<Map<String, double>> _toMapDataList(List<dynamic>? list) {
+    if (list == null) return const [];
+    return list.map((e) {
+      if (e is! Map) return <String, double>{};
+      return (e as Map).map((k, v) => MapEntry(k.toString(), _toDouble(v)));
+    }).toList();
+  }
+
   factory ItineraryModel.fromJson(Map<String, dynamic> json) {
     return ItineraryModel(
-      id: json['id'] as String,
-      authorId: json['authorId'] as String,
-      title: json['title'] as String,
-      description: json['description'] as String,
-      startDate: DateTime.parse(json['startDate'] as String),
-      endDate: DateTime.parse(json['endDate'] as String),
-      imageUrls: (json['imageUrls'] as List<dynamic>?)
-              ?.map((e) => e as String)
-              .toList() ??
-          const [],
-      mapData: (json['mapData'] as List<dynamic>?)
-              ?.map((e) => Map<String, double>.from(e as Map))
-              .toList() ??
-          const [],
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      updatedAt: DateTime.parse(json['updatedAt'] as String),
+      id: _toString(json['id']),
+      authorId: _toString(json['authorId']),
+      title: _toString(json['title']),
+      description: _toString(json['description']),
+      startDate: _toDateTime(json['startDate']),
+      endDate: _toDateTime(json['endDate']),
+      imageUrls: _toStringList(json['imageUrls'] as List<dynamic>?),
+      mapData: _toMapDataList(json['mapData'] as List<dynamic>?),
+      createdAt: _toDateTime(json['createdAt']),
+      updatedAt: _toDateTime(json['updatedAt']),
     );
   }
 

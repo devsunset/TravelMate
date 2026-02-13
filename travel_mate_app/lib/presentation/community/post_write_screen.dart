@@ -9,6 +9,7 @@ import 'package:flutter_image_compress/flutter_image_compress.dart'; // For imag
 
 import 'package:travel_mate_app/app/theme.dart';
 import 'package:travel_mate_app/app/constants.dart';
+import 'package:travel_mate_app/presentation/common/app_app_bar.dart';
 import 'package:travel_mate_app/domain/entities/post.dart';
 import 'package:travel_mate_app/domain/usecases/create_post.dart';
 import 'package:travel_mate_app/domain/usecases/update_post.dart';
@@ -60,7 +61,7 @@ class _PostWriteScreenState extends State<PostWriteScreen> {
 
       _titleController.text = fetchedPost.title;
       _contentController.text = fetchedPost.content;
-      _selectedCategory = fetchedPost.category;
+      _selectedCategory = _categories.contains(fetchedPost.category) ? fetchedPost.category : null;
       _existingImageUrls = List.from(fetchedPost.imageUrls);
     } catch (e) {
       setState(() {
@@ -187,11 +188,7 @@ class _PostWriteScreenState extends State<PostWriteScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.postId == null ? 'Create New Post' : 'Edit Post'),
-        backgroundColor: AppColors.primary,
-        elevation: 0,
-      ),
+      appBar: AppAppBar(title: widget.postId == null ? '글쓰기' : '글 수정'),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
@@ -231,7 +228,7 @@ class _PostWriteScreenState extends State<PostWriteScreen> {
                     ),
                     const SizedBox(height: AppConstants.spacingMedium),
                     DropdownButtonFormField<String>(
-                      value: _selectedCategory,
+                      value: _selectedCategory != null && _categories.contains(_selectedCategory) ? _selectedCategory : null,
                       decoration: const InputDecoration(
                         labelText: 'Category',
                         prefixIcon: Icon(Icons.category),

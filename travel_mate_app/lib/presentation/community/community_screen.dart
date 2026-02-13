@@ -7,6 +7,7 @@ import 'package:travel_mate_app/app/theme.dart';
 import 'package:travel_mate_app/app/constants.dart';
 import 'package:travel_mate_app/domain/entities/post.dart';
 import 'package:travel_mate_app/domain/usecases/get_posts.dart';
+import 'package:travel_mate_app/presentation/common/app_app_bar.dart';
 
 /// 커뮤니티 게시글 목록 화면. 글쓰기·상세 이동.
 class CommunityScreen extends StatefulWidget {
@@ -55,16 +56,12 @@ class _CommunityScreenState extends State<CommunityScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Community Board'),
-        backgroundColor: AppColors.primary,
-        elevation: 0,
+      appBar: AppAppBar(
+        title: '커뮤니티',
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
-            onPressed: () {
-              context.go('/community/post/new'); // Navigate to create new post screen
-            },
+            onPressed: () => context.go('/community/post/new'),
           ),
         ],
       ),
@@ -91,7 +88,11 @@ class _CommunityScreenState extends State<CommunityScreen> {
                         margin: const EdgeInsets.symmetric(
                             horizontal: AppConstants.paddingMedium,
                             vertical: AppConstants.paddingSmall),
-                        elevation: 1,
+                        color: AppColors.card,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(AppConstants.cardRadius),
+                          side: BorderSide(color: Colors.white.withOpacity(0.08)),
+                        ),
                         child: ListTile(
                           leading: post.imageUrls.isNotEmpty
                               ? CircleAvatar(

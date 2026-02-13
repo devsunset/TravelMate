@@ -8,6 +8,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:travel_mate_app/app/theme.dart';
 import 'package:travel_mate_app/app/constants.dart';
 import 'package:travel_mate_app/domain/entities/itinerary.dart';
+import 'package:travel_mate_app/presentation/common/app_app_bar.dart';
 import 'package:travel_mate_app/domain/usecases/get_itinerary.dart';
 import 'package:travel_mate_app/domain/usecases/delete_itinerary.dart';
 import 'package:travel_mate_app/presentation/common/report_button_widget.dart';
@@ -132,24 +133,20 @@ class _ItineraryDetailScreenState extends State<ItineraryDetailScreen> {
     final isAuthor = _itinerary?.authorId == currentUserUid;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Itinerary Detail'),
-        backgroundColor: AppColors.primary,
-        elevation: 0,
+      appBar: AppAppBar(
+        title: _itinerary?.title ?? '일정',
         actions: [
           if (isAuthor) ...[
             IconButton(
               icon: const Icon(Icons.edit),
-              onPressed: () {
-                context.go('/itinerary/${widget.itineraryId}/edit'); // Navigate to edit itinerary screen
-              },
+              onPressed: () => context.go('/itinerary/${widget.itineraryId}/edit'),
             ),
             IconButton(
               icon: const Icon(Icons.delete),
               onPressed: _deleteItinerary,
             ),
           ],
-          if (!isAuthor && _itinerary != null) // Allow reporting only if not author
+          if (!isAuthor && _itinerary != null)
             ReportButtonWidget(entityType: ReportEntityType.itinerary, entityId: widget.itineraryId),
         ],
       ),
@@ -161,7 +158,7 @@ class _ItineraryDetailScreenState extends State<ItineraryDetailScreen> {
                     padding: const EdgeInsets.all(AppConstants.paddingMedium),
                     child: Text(
                       _errorMessage!,
-                      style: const TextStyle(color: Colors.red),
+                      style: TextStyle(color: AppColors.error),
                       textAlign: TextAlign.center,
                     ),
                   ),

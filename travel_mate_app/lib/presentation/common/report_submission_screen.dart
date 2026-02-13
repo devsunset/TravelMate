@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:travel_mate_app/app/theme.dart';
 import 'package:travel_mate_app/app/constants.dart';
 import 'package:travel_mate_app/presentation/common/report_button_widget.dart';
+import 'package:travel_mate_app/presentation/common/app_app_bar.dart';
 
 /// 신고 사유 작성·제출 화면.
 class ReportSubmissionScreen extends StatefulWidget {
@@ -94,11 +95,7 @@ class _ReportSubmissionScreenState extends State<ReportSubmissionScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Report Content'),
-        backgroundColor: AppColors.primary,
-        elevation: 0,
-      ),
+      appBar: const AppAppBar(title: '신고하기'),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
@@ -114,7 +111,7 @@ class _ReportSubmissionScreenState extends State<ReportSubmissionScreen> {
                     ),
                     const SizedBox(height: AppConstants.spacingLarge),
                     DropdownButtonFormField<String>(
-                      value: _selectedReportType,
+                      value: _selectedReportType != null && _reportTypes.contains(_selectedReportType) ? _selectedReportType : null,
                       decoration: const InputDecoration(
                         labelText: 'Report Type',
                         prefixIcon: Icon(Icons.report_problem),

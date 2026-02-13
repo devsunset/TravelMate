@@ -1,6 +1,7 @@
 /// 1:1 쪽지 API 호출(백엔드 /api/messages).
 import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:travel_mate_app/app/constants.dart';
 
 class MessageRemoteDataSource {
   final Dio _dio;
@@ -21,7 +22,7 @@ class MessageRemoteDataSource {
       }
 
       final response = await _dio.post(
-        'http://localhost:3000/api/messages/private', // Replace with your backend URL
+        '${AppConstants.apiBaseUrl}/api/messages/private',
         data: {
           'receiverId': receiverId,
           'content': content,
@@ -34,7 +35,7 @@ class MessageRemoteDataSource {
       if (response.statusCode != 201) {
         throw Exception('Failed to send message: ${response.data}');
       }
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       throw Exception('Failed to send message: ${e.message}');
     } catch (e) {
       throw Exception('Failed to send message: ${e.toString()}');

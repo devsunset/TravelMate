@@ -53,6 +53,39 @@ import 'package:travel_mate_app/domain/usecases/upload_itinerary_image.dart';
 /// 앱 진입점: Firebase 초기화 후 FCM 백그라운드 핸들러 등록, Provider 트리 구성 후 runApp.
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // 에러 발생 시 화면 대신 콘솔에 로그 출력. 화면에는 간단 안내만 표시.
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+    debugPrint('═══ FlutterError (콘솔 로그) ═══');
+    debugPrint(details.exceptionAsString());
+    debugPrint(details.stack?.toString() ?? '');
+    debugPrint('══════════════════════════════');
+  };
+  ErrorWidget.builder = (FlutterErrorDetails details) {
+    debugPrint('═══ ErrorWidget (콘솔 로그) ═══');
+    debugPrint(details.exceptionAsString());
+    debugPrint(details.stack?.toString() ?? '');
+    debugPrint('══════════════════════════════');
+    return Material(
+      child: Container(
+        color: Colors.white,
+        alignment: Alignment.center,
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.warning_amber_rounded, size: 48, color: Colors.orange),
+            const SizedBox(height: 16),
+            const Text('오류가 발생했습니다.\n콘솔(개발자 도구)에서 상세 로그를 확인하세요.', textAlign: TextAlign.center, style: TextStyle(fontSize: 14)),
+            const SizedBox(height: 8),
+            SelectableText(details.exceptionAsString(), style: const TextStyle(fontSize: 12, color: Colors.grey)),
+          ],
+        ),
+      ),
+    );
+  };
+
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );

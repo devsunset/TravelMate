@@ -16,7 +16,7 @@ class TravelMateApp extends StatelessWidget {
     final GoRouter appRouter = createRouter(user);
     return MaterialApp.router(
       title: 'TripMate',
-      theme: AppTheme.lightTheme,
+      theme: AppTheme.darkTheme,
       routerConfig: appRouter,
       debugShowCheckedModeBanner: false,
     );

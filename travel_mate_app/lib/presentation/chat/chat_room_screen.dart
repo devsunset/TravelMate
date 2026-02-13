@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:travel_mate_app/app/theme.dart';
 import 'package:travel_mate_app/app/constants.dart';
 import 'package:travel_mate_app/domain/entities/chat_message.dart';
+import 'package:travel_mate_app/presentation/common/app_app_bar.dart';
 import 'package:travel_mate_app/domain/usecases/get_chat_messages.dart';
 import 'package:travel_mate_app/domain/usecases/send_chat_message.dart';
 
@@ -115,11 +116,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     final getChatMessages = Provider.of<GetChatMessages>(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.receiverNickname ?? 'Chat'),
-        backgroundColor: AppColors.primary,
-        elevation: 0,
-      ),
+      appBar: AppAppBar(title: widget.receiverNickname ?? '채팅'),
       body: Column(
         children: [
           Expanded(

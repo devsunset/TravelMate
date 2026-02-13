@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:travel_mate_app/app/theme.dart';
 import 'package:travel_mate_app/app/constants.dart';
 import 'package:travel_mate_app/domain/entities/user_profile.dart';
+import 'package:travel_mate_app/presentation/common/app_app_bar.dart';
 import 'package:travel_mate_app/domain/usecases/get_user_profile.dart';
 
 /// 현재 사용자 프로필 상세·편집 진입 화면.
@@ -58,15 +59,12 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
     final User? currentUser = context.watch<User?>();
     
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('My Profile'),
-        backgroundColor: AppColors.primary,
+      appBar: AppAppBar(
+        title: '내 프로필',
         actions: [
           IconButton(
             icon: const Icon(Icons.edit),
-            onPressed: () {
-              context.go('/profile/edit'); // Navigate to edit profile screen
-            },
+            onPressed: () => context.go('/profile/edit'),
           ),
         ],
       ),
@@ -78,7 +76,7 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                     padding: const EdgeInsets.all(AppConstants.paddingMedium),
                     child: Text(
                       _errorMessage!,
-                      style: const TextStyle(color: Colors.red),
+                      style: TextStyle(color: AppColors.error),
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -110,7 +108,7 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                       _buildProfileDetailCard(
                         context,
                         title: 'About Me',
-                        content: _userProfile?.bio ?? 'No bio provided.',
+                        content: _userProfile?.bio ?? '소개가 없습니다.',
                       ),
                       const SizedBox(height: AppConstants.spacingMedium),
                       _buildProfileDetailCard(
@@ -121,14 +119,14 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                       const SizedBox(height: AppConstants.spacingMedium),
                       _buildProfileDetailCard(
                         context,
-                        title: 'Age Range',
+                        title: '연령대',
                         content: _userProfile?.ageRange ?? 'N/A',
                       ),
                       const SizedBox(height: AppConstants.spacingMedium),
                       _buildProfileDetailCard(
                         context,
-                        title: 'Travel Styles',
-                        content: _userProfile?.travelStyles.join(', ') ?? 'No travel styles selected.',
+                        title: '여행 스타일',
+                        content: _userProfile?.travelStyles.join(', ') ?? '선택된 여행 스타일이 없습니다.',
                       ),
                       const SizedBox(height: AppConstants.spacingMedium),
                       _buildProfileDetailCard(
@@ -139,8 +137,8 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                       const SizedBox(height: AppConstants.spacingMedium),
                       _buildProfileDetailCard(
                         context,
-                        title: 'Preferred Destinations',
-                        content: _userProfile?.preferredDestinations.join(', ') ?? 'No preferred destinations.',
+                        title: '선호 지역',
+                        content: _userProfile?.preferredDestinations.join(', ') ?? '선택된 선호 지역이 없습니다.',
                       ),
                     ],
                   ),

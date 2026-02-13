@@ -14,24 +14,23 @@ class UserProfileModel extends UserProfile {
     super.preferredDestinations,
   });
 
+  /// 백엔드가 userId 등을 int로 보낼 수 있으므로 int/String 모두 허용.
+  static String _toString(dynamic v) => v == null ? '' : (v is int ? v.toString() : v as String);
+  static String? _toStringOrNull(dynamic v) => v == null ? null : (v is int ? v.toString() : v as String);
+  static List<String> _toStringList(List<dynamic>? list) =>
+      list?.map((e) => e == null ? '' : (e is int ? e.toString() : e as String)).toList() ?? const [];
+
   factory UserProfileModel.fromJson(Map<String, dynamic> json) {
     return UserProfileModel(
-      userId: json['userId'] as String,
-      nickname: json['nickname'] as String,
-      bio: json['bio'] as String?,
-      profileImageUrl: json['profileImageUrl'] as String?,
-      gender: json['gender'] as String?,
-      ageRange: json['ageRange'] as String?,
-      travelStyles: (json['travelStyles'] as List<dynamic>?)
-              ?.map((e) => e as String)
-              .toList() ??
-          const [],
-      interests:
-          (json['interests'] as List<dynamic>?)?.map((e) => e as String).toList() ??
-              const [],
-      preferredDestinations:
-          (json['preferredDestinations'] as List<dynamic>?)?.map((e) => e as String).toList() ??
-              const [],
+      userId: _toString(json['userId']),
+      nickname: _toString(json['nickname']),
+      bio: _toStringOrNull(json['bio']),
+      profileImageUrl: _toStringOrNull(json['profileImageUrl']),
+      gender: _toStringOrNull(json['gender']),
+      ageRange: _toStringOrNull(json['ageRange']),
+      travelStyles: _toStringList((json['travelStyles'] as List<dynamic>?) ?? []),
+      interests: _toStringList((json['interests'] as List<dynamic>?) ?? []),
+      preferredDestinations: _toStringList((json['preferredDestinations'] as List<dynamic>?) ?? []),
     );
   }
 

@@ -8,6 +8,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import 'package:travel_mate_app/app/theme.dart';
 import 'package:travel_mate_app/app/constants.dart';
+import 'package:travel_mate_app/presentation/common/app_app_bar.dart';
 import 'package:travel_mate_app/domain/entities/user_profile.dart';
 import 'package:travel_mate_app/domain/usecases/get_user_profile.dart';
 import 'package:travel_mate_app/domain/usecases/update_user_profile.dart';
@@ -38,11 +39,19 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   final List<String> _selectedTravelStyles = [];
   final List<String> _selectedInterests = [];
 
-  final List<String> _genders = ['Male', 'Female', 'Other'];
-  final List<String> _ageRanges = ['10s', '20s', '30s', '40s', '50s+', 'N/A'];
-  final List<String> _availableTravelStyles = ['Adventure', 'Relaxation', 'Cultural', 'Foodie', 'Budget-friendly', 'Luxury', 'Solo Traveler', 'Group Traveler'];
-  final List<String> _availableInterests = ['Nature', 'History', 'Art', 'Beach', 'Mountains', 'City Exploration', 'Photography', 'Shopping', 'Nightlife', 'Wellness'];
+  final List<String> _genders = ['남성', '여성', '기타'];
+  final List<String> _ageRanges = ['10대', '20대', '30대', '40대', '50대 이상', '비공개'];
+  final List<String> _availableTravelStyles = ['모험', '휴양', '문화', '맛집', '저렴한 여행', '럭셔리', '혼자 여행', '그룹 여행'];
+  final List<String> _availableInterests = ['자연', '역사', '예술', '해변', '산', '도시 탐험', '사진', '쇼핑', '나이트라이프', '웰니스'];
 
+  static const Map<String, String> _travelStyleEnToKo = {
+    'Adventure': '모험', 'Relaxation': '휴양', 'Cultural': '문화', 'Foodie': '맛집',
+    'Budget-friendly': '저렴한 여행', 'Luxury': '럭셔리', 'Solo Traveler': '혼자 여행', 'Group Traveler': '그룹 여행',
+  };
+  static const Map<String, String> _interestEnToKo = {
+    'Nature': '자연', 'History': '역사', 'Art': '예술', 'Beach': '해변', 'Mountains': '산',
+    'City Exploration': '도시 탐험', 'Photography': '사진', 'Shopping': '쇼핑', 'Nightlife': '나이트라이프', 'Wellness': '웰니스',
+  };
 
   @override
   void initState() {
@@ -68,13 +77,14 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       _bioController.text = profile.bio ?? '';
       _preferredDestinationsController.text = profile.preferredDestinations.join(', ');
       _currentProfileImageUrl = profile.profileImageUrl;
-      _gender = profile.gender;
-      _ageRange = profile.ageRange;
-      _selectedTravelStyles.addAll(profile.travelStyles);
-      _selectedInterests.addAll(profile.interests);
+      _gender = profile.gender != null && _genders.contains(profile.gender) ? profile.gender! : null;
+      _ageRange = profile.ageRange != null && _ageRanges.contains(profile.ageRange) ? profile.ageRange! : null;
+      _selectedTravelStyles.addAll(profile.travelStyles.map((s) => _travelStyleEnToKo[s] ?? s).where((s) => _availableTravelStyles.contains(s)).toList());
+      _selectedInterests.addAll(profile.interests.map((s) => _interestEnToKo[s] ?? s).where((s) => _availableInterests.contains(s)).toList());
     } catch (e) {
       setState(() {
-        _errorMessage = 'Failed to load profile data: ${e.toString()}';
+        _errorMessage = '프로필 로드 실패: ${e.toString()}';
+        debugPrint('═══ [프로필 수정] 에러 로그 ═══\n$_errorMessage\n${StackTrace.current}\n══════════════════════════════');
       });
     } finally {
       setState(() {
@@ -157,10 +167,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Edit Profile'),
-        backgroundColor: AppColors.primary,
-      ),
+      appBar: const AppAppBar(title: '프로필 수정'),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
@@ -225,7 +232,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                     ),
                     const SizedBox(height: AppConstants.spacingMedium),
                     DropdownButtonFormField<String>(
-                      value: _gender,
+                      value: _gender != null && _genders.contains(_gender) ? _gender : null,
                       decoration: const InputDecoration(
                         labelText: 'Gender',
                         prefixIcon: Icon(Icons.wc),
@@ -245,9 +252,9 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                     ),
                     const SizedBox(height: AppConstants.spacingMedium),
                     DropdownButtonFormField<String>(
-                      value: _ageRange,
+                      value: _ageRange != null && _ageRanges.contains(_ageRange) ? _ageRange : null,
                       decoration: const InputDecoration(
-                        labelText: 'Age Range',
+                        labelText: '연령대',
                         prefixIcon: Icon(Icons.timelapse),
                       ),
                       items: _ageRanges.map((String age) {
@@ -267,13 +274,13 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                     TextFormField(
                       controller: _preferredDestinationsController,
                       decoration: const InputDecoration(
-                        labelText: 'Preferred Destinations (comma-separated)',
+                        labelText: '선호 지역 (쉼표로 구분)',
                         prefixIcon: Icon(Icons.location_on_outlined),
                       ),
                     ),
                     const SizedBox(height: AppConstants.spacingLarge),
                     Text(
-                      'Travel Styles',
+                      '여행 스타일',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
                             color: AppColors.primary,
                           ),
@@ -304,7 +311,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                     ),
                     const SizedBox(height: AppConstants.spacingLarge),
                     Text(
-                      'Interests',
+                      '관심사',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
                             color: AppColors.primary,
                           ),
@@ -337,9 +344,9 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                     if (_errorMessage != null)
                       Padding(
                         padding: const EdgeInsets.only(bottom: AppConstants.paddingMedium),
-                        child: Text(
+                        child: SelectableText(
                           _errorMessage!,
-                          style: const TextStyle(color: Colors.red),
+                          style: const TextStyle(color: Colors.red, fontSize: 14),
                           textAlign: TextAlign.center,
                         ),
                       ),

@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:travel_mate_app/app/theme.dart';
 import 'package:travel_mate_app/app/constants.dart';
+import 'package:travel_mate_app/presentation/common/app_app_bar.dart';
 
 /// 채팅방 목록 화면. 채팅방 생성·진입.
 class ChatListScreen extends StatefulWidget {
@@ -50,11 +51,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Chats'),
-        backgroundColor: AppColors.primary,
-        elevation: 0,
-      ),
+      appBar: const AppAppBar(title: '채팅'),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _errorMessage != null
@@ -63,7 +60,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                     padding: const EdgeInsets.all(AppConstants.paddingMedium),
                     child: Text(
                       _errorMessage!,
-                      style: const TextStyle(color: Colors.red),
+                      style: TextStyle(color: AppColors.error),
                       textAlign: TextAlign.center,
                     ),
                   ),

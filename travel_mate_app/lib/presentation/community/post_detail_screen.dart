@@ -10,6 +10,7 @@ import 'package:travel_mate_app/domain/entities/post.dart';
 import 'package:travel_mate_app/domain/usecases/get_post.dart';
 import 'package:travel_mate_app/domain/usecases/delete_post.dart';
 import 'package:travel_mate_app/presentation/common/report_button_widget.dart';
+import 'package:travel_mate_app/presentation/common/app_app_bar.dart';
 
 /// 게시글 상세 화면. 수정/삭제/신고 버튼.
 class PostDetailScreen extends StatefulWidget {
@@ -111,10 +112,8 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     final isAuthor = _post?.authorId == currentUserUid;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Post Detail'),
-        backgroundColor: AppColors.primary,
-        elevation: 0,
+      appBar: AppAppBar(
+        title: _post?.title ?? '게시글',
         actions: [
           if (isAuthor) ...[
             IconButton(
@@ -140,7 +139,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                     padding: const EdgeInsets.all(AppConstants.paddingMedium),
                     child: Text(
                       _errorMessage!,
-                      style: const TextStyle(color: Colors.red),
+                      style: TextStyle(color: AppColors.error),
                       textAlign: TextAlign.center,
                     ),
                   ),

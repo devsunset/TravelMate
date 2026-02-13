@@ -1,4 +1,5 @@
 /// 게시글 DTO. JSON 직렬화 및 [Post] 엔티티 확장.
+/// 백엔드(Sequelize)는 id, authorId 등을 int로 보낼 수 있으므로 int/String 모두 파싱.
 import 'package:travel_mate_app/domain/entities/post.dart';
 
 class PostModel extends Post {
@@ -13,19 +14,26 @@ class PostModel extends Post {
     required super.updatedAt,
   });
 
+  static String _toString(dynamic v) => v == null ? '' : (v is int ? v.toString() : v as String);
+  static DateTime _toDateTime(dynamic v) {
+    if (v == null) return DateTime.now();
+    if (v is DateTime) return v;
+    return DateTime.parse(v.toString());
+  }
+  static List<String> _toStringList(List<dynamic>? list) =>
+      list?.map((e) => e == null ? '' : (e is int ? e.toString() : e as String)).toList() ?? const [];
+
   factory PostModel.fromJson(Map<String, dynamic> json) {
+    final categoryRaw = json['category'] ?? (json['Category'] is Map ? (json['Category'] as Map)['name'] : null);
     return PostModel(
-      id: json['id'] as String,
-      authorId: json['authorId'] as String,
-      title: json['title'] as String,
-      content: json['content'] as String,
-      category: json['category'] as String,
-      imageUrls: (json['imageUrls'] as List<dynamic>?)
-              ?.map((e) => e as String)
-              .toList() ??
-          const [],
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      updatedAt: DateTime.parse(json['updatedAt'] as String),
+      id: _toString(json['id']),
+      authorId: _toString(json['authorId']),
+      title: _toString(json['title']),
+      content: _toString(json['content']),
+      category: _toString(categoryRaw),
+      imageUrls: _toStringList(json['imageUrls'] as List<dynamic>?),
+      createdAt: _toDateTime(json['createdAt']),
+      updatedAt: _toDateTime(json['updatedAt']),
     );
   }
 

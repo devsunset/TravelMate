@@ -2,6 +2,7 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:dio/dio.dart';
+import 'package:travel_mate_app/app/constants.dart';
 import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
 
 class FcmService {
@@ -80,7 +81,7 @@ class FcmService {
       }
 
       await _dio.post(
-        'http://localhost:3000/api/fcm/token',
+        '${AppConstants.apiBaseUrl}/api/fcm/token',
         data: {
           'token': token,
           'deviceType': deviceType,

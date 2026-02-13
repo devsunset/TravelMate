@@ -6,6 +6,7 @@ import 'package:travel_mate_app/domain/usecases/get_itineraries.dart';
 
 import 'package:travel_mate_app/app/theme.dart';
 import 'package:travel_mate_app/app/constants.dart';
+import 'package:travel_mate_app/presentation/common/app_app_bar.dart';
 
 /// 일정 목록 화면. 일정 생성·상세 이동.
 class ItineraryListScreen extends StatefulWidget {
@@ -54,16 +55,12 @@ class _ItineraryListScreenState extends State<ItineraryListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Travel Itineraries'),
-        backgroundColor: AppColors.primary,
-        elevation: 0,
+      appBar: AppAppBar(
+        title: '일정',
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
-            onPressed: () {
-              context.go('/itinerary/new'); // Navigate to create new itinerary screen
-            },
+            onPressed: () => context.go('/itinerary/new'),
           ),
         ],
       ),
@@ -75,7 +72,7 @@ class _ItineraryListScreenState extends State<ItineraryListScreen> {
                     padding: const EdgeInsets.all(AppConstants.paddingMedium),
                     child: Text(
                       _errorMessage!,
-                      style: const TextStyle(color: Colors.red),
+                      style: TextStyle(color: AppColors.error),
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -90,7 +87,11 @@ class _ItineraryListScreenState extends State<ItineraryListScreen> {
                         margin: const EdgeInsets.symmetric(
                             horizontal: AppConstants.paddingMedium,
                             vertical: AppConstants.paddingSmall),
-                        elevation: 1,
+                        color: AppColors.card,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(AppConstants.cardRadius),
+                          side: BorderSide(color: Colors.white.withOpacity(0.08)),
+                        ),
                         child: ListTile(
                           leading: itinerary.imageUrls.isNotEmpty
                               ? CircleAvatar(

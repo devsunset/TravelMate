@@ -5,6 +5,7 @@ import 'package:travel_mate_app/presentation/auth/signup_screen.dart';
 import 'package:travel_mate_app/app/theme.dart';
 import 'package:travel_mate_app/app/constants.dart';
 import 'package:travel_mate_app/core/services/auth_service.dart';
+import 'package:travel_mate_app/presentation/common/app_app_bar.dart';
 
 /// 로그인 화면. 이메일/비밀번호, Google 로그인 지원.
 class LoginScreen extends StatefulWidget {
@@ -164,7 +165,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     padding: const EdgeInsets.only(bottom: AppConstants.paddingMedium),
                     child: Text(
                       _errorMessage!,
-                      style: const TextStyle(color: Colors.red),
+                      style: TextStyle(color: AppColors.error),
                     ),
                   ),
                 _isLoading

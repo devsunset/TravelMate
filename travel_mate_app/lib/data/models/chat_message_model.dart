@@ -11,17 +11,21 @@ class ChatMessageModel extends ChatMessage {
     required super.sentAt,
   });
 
+  static String _toString(dynamic v) => v == null ? '' : (v is int ? v.toString() : v as String);
+
   factory ChatMessageModel.fromFirestore(
     DocumentSnapshot<Map<String, dynamic>> snapshot,
     SnapshotOptions? options,
   ) {
     final data = snapshot.data();
+    final sentAtRaw = data?['sentAt'];
+    final sentAt = sentAtRaw is Timestamp ? sentAtRaw.toDate() : DateTime.now();
     return ChatMessageModel(
       id: snapshot.id,
-      senderId: data?['senderId'] as String,
-      receiverId: data?['receiverId'] as String,
-      content: data?['content'] as String,
-      sentAt: (data?['sentAt'] as Timestamp).toDate(),
+      senderId: _toString(data?['senderId']),
+      receiverId: _toString(data?['receiverId']),
+      content: _toString(data?['content']),
+      sentAt: sentAt,
     );
   }
 
