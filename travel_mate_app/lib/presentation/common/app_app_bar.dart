@@ -20,17 +20,21 @@ class AppAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    final canPop = Navigator.of(context).canPop();
-    final showBack = showBackButton && canPop;
-
     return AppBar(
       title: Text(title),
       backgroundColor: AppColors.background.withOpacity(0.85),
       scrolledUnderElevation: 8,
-      leading: showBack
+      leading: showBackButton
           ? IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new, size: 20),
-              onPressed: () => context.pop(),
+              icon: const Icon(Icons.arrow_back_ios_new, size: 22, color: AppColors.textPrimary),
+              onPressed: () {
+                if (Navigator.of(context).canPop()) {
+                  context.pop();
+                } else {
+                  context.go('/');
+                }
+              },
+              tooltip: '뒤로가기',
             )
           : null,
       actions: actions,

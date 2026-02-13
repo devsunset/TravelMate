@@ -47,13 +47,13 @@ class _LoginScreenState extends State<LoginScreen> {
           context.go('/'); // Navigate to home on success
         } else {
           setState(() {
-            _errorMessage = 'Login failed. Please check your credentials.';
+            _errorMessage = '로그인에 실패했습니다. 이메일과 비밀번호를 확인해 주세요.';
           });
         }
       } catch (e) {
         setState(() {
           _errorMessage = e.toString().contains('firebase_auth')
-              ? 'Invalid credentials. Please try again.'
+              ? '이메일 또는 비밀번호가 올바르지 않습니다.'
               : 'An unexpected error occurred: ${e.toString()}';
         });
       } finally {
@@ -78,12 +78,12 @@ class _LoginScreenState extends State<LoginScreen> {
         context.go('/'); // Navigate to home on success
       } else {
         setState(() {
-          _errorMessage = 'Google Sign-In cancelled or failed.';
+          _errorMessage = 'Google 로그인이 취소되었거나 실패했습니다.';
         });
       }
     } catch (e) {
       setState(() {
-        _errorMessage = 'Google Sign-In failed: ${e.toString()}';
+        _errorMessage = 'Google 로그인 실패: ${e.toString()}';
       });
     } finally {
       setState(() {
@@ -95,11 +95,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Login'),
-        backgroundColor: AppColors.primary,
-        elevation: 0,
-      ),
+      appBar: const AppAppBar(title: '로그인', showBackButton: false),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(AppConstants.paddingLarge),
@@ -109,7 +105,7 @@ class _LoginScreenState extends State<LoginScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  'Welcome Back!',
+                  '다시 오신 걸 환영해요!',
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                     color: AppColors.primary,
                     fontWeight: FontWeight.bold,
@@ -119,8 +115,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 TextFormField(
                   controller: _emailController,
                   decoration: InputDecoration(
-                    labelText: 'Email',
-                    hintText: 'Enter your email',
+                    labelText: '이메일',
+                    hintText: '이메일을 입력하세요',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(AppConstants.borderRadius),
                     ),
@@ -129,10 +125,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   keyboardType: TextInputType.emailAddress,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your email';
+                      return '이메일을 입력하세요';
                     }
                     if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
-                      return 'Please enter a valid email address';
+                      return '올바른 이메일 주소를 입력하세요';
                     }
                     return null;
                   },
@@ -142,8 +138,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   controller: _passwordController,
                   obscureText: true,
                   decoration: InputDecoration(
-                    labelText: 'Password',
-                    hintText: 'Enter your password',
+                    labelText: '비밀번호',
+                    hintText: '비밀번호를 입력하세요',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(AppConstants.borderRadius),
                     ),
@@ -151,10 +147,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your password';
+                      return '비밀번호를 입력하세요';
                     }
                     if (value.length < 6) {
-                      return 'Password must be at least 6 characters long';
+                      return '비밀번호는 6자 이상이어야 합니다';
                     }
                     return null;
                   },
@@ -182,7 +178,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     child: Text(
-                      'Login',
+                      '로그인',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
@@ -197,7 +193,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     print('Forgot Password?');
                   },
                   child: Text(
-                    'Forgot Password?',
+                    '비밀번호를 잊으셨나요?',
                     style: TextStyle(color: AppColors.accent),
                   ),
                 ),
@@ -208,7 +204,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: AppConstants.paddingMedium),
                       child: Text(
-                        'OR',
+                        '또는',
                         style: TextStyle(color: AppColors.grey),
                       ),
                     ),
@@ -222,7 +218,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     onPressed: _loginWithGoogle,
                     icon: Icon(Icons.g_mobiledata, size: 24, color: AppColors.textPrimary),
                     label: Text(
-                      'Sign in with Google',
+                      'Google로 로그인',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         color: AppColors.textPrimary,
                       ),
@@ -240,13 +236,11 @@ class _LoginScreenState extends State<LoginScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text("Don't have an account?"),
+                    const Text('계정이 없으신가요?'),
                     TextButton(
-                      onPressed: () {
-                        context.go('/signup'); // Navigate to signup screen
-                      },
+                      onPressed: () => context.go('/signup'),
                       child: Text(
-                        'Sign Up',
+                        '회원가입',
                         style: TextStyle(color: AppColors.accent),
                       ),
                     ),

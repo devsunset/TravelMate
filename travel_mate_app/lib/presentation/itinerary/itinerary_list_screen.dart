@@ -7,6 +7,7 @@ import 'package:travel_mate_app/domain/usecases/get_itineraries.dart';
 import 'package:travel_mate_app/app/theme.dart';
 import 'package:travel_mate_app/app/constants.dart';
 import 'package:travel_mate_app/presentation/common/app_app_bar.dart';
+import 'package:travel_mate_app/presentation/common/empty_state_widget.dart';
 
 /// 일정 목록 화면. 일정 생성·상세 이동.
 class ItineraryListScreen extends StatefulWidget {
@@ -19,6 +20,7 @@ class ItineraryListScreen extends StatefulWidget {
 class _ItineraryListScreenState extends State<ItineraryListScreen> {
   bool _isLoading = false;
   String? _errorMessage;
+  bool _isEmpty = false;
   List<Itinerary> _itineraries = [];
 
   @override
@@ -31,6 +33,7 @@ class _ItineraryListScreenState extends State<ItineraryListScreen> {
     setState(() {
       _isLoading = true;
       _errorMessage = null;
+      _isEmpty = false;
     });
 
     try {
@@ -40,14 +43,13 @@ class _ItineraryListScreenState extends State<ItineraryListScreen> {
       setState(() {
         _itineraries = fetchedItineraries;
         _isLoading = false;
-        if (_itineraries.isEmpty) {
-          _errorMessage = 'No itineraries shared yet. Share your travel plans!';
-        }
+        _isEmpty = _itineraries.isEmpty;
       });
     } catch (e) {
       setState(() {
-        _errorMessage = 'Failed to load itineraries: ${e.toString()}';
+        _errorMessage = '일정 목록을 불러오지 못했습니다.';
         _isLoading = false;
+        _isEmpty = false;
       });
     }
   }
@@ -66,18 +68,22 @@ class _ItineraryListScreenState extends State<ItineraryListScreen> {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : _errorMessage != null
-              ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(AppConstants.paddingMedium),
-                    child: Text(
-                      _errorMessage!,
-                      style: TextStyle(color: AppColors.error),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
+          : _isEmpty
+              ? EmptyStateWidget(
+                  icon: Icons.calendar_month_rounded,
+                  title: '아직 공유된 일정이 없어요',
+                  subtitle: '여행 계획을 올려 보세요!',
+                  actionLabel: '일정 만들기',
+                  onAction: () => context.go('/itinerary/new'),
                 )
-              : RefreshIndicator(
+              : _errorMessage != null
+                  ? EmptyStateWidget(
+                      icon: Icons.cloud_off_rounded,
+                      title: _errorMessage!,
+                      isError: true,
+                      onRetry: _loadItineraries,
+                    )
+                  : RefreshIndicator(
                   onRefresh: _loadItineraries,
                   child: ListView.builder(
                     itemCount: _itineraries.length,
@@ -101,7 +107,7 @@ class _ItineraryListScreenState extends State<ItineraryListScreen> {
                                   child: Icon(Icons.travel_explore),
                                 ),
                           title: Text(itinerary.title),
-                          subtitle: Text('Author: ${itinerary.authorId} - ${itinerary.startDate.toLocal().toString().split(' ')[0]} to ${itinerary.endDate.toLocal().toString().split(' ')[0]}'), // TODO: Display author's nickname
+                          subtitle: Text('${itinerary.startDate.toLocal().toString().split(' ')[0]} ~ ${itinerary.endDate.toLocal().toString().split(' ')[0]}'),
                           trailing: const Icon(Icons.arrow_forward_ios),
                           onTap: () {
                             context.go('/itinerary/${itinerary.id}'); // Navigate to itinerary detail

@@ -76,7 +76,7 @@ class _ItineraryWriteScreenState extends State<ItineraryWriteScreen> {
         return Marker(
           markerId: MarkerId(latLng.toString()),
           position: latLng,
-          infoWindow: InfoWindow(title: 'Location: ${latLng.latitude.toStringAsFixed(2)}, ${latLng.longitude.toStringAsFixed(2)}'),
+          infoWindow: InfoWindow(title: '위치: ${latLng.latitude.toStringAsFixed(2)}, ${latLng.longitude.toStringAsFixed(2)}'),
           icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
         );
       }).toSet();
@@ -85,7 +85,7 @@ class _ItineraryWriteScreenState extends State<ItineraryWriteScreen> {
       }
     } catch (e) {
       setState(() {
-        _errorMessage = 'Failed to load itinerary for editing: ${e.toString()}';
+        _errorMessage = '일정을 불러오지 못했습니다: ${e.toString()}';
       });
     } finally {
       setState(() {
@@ -161,7 +161,7 @@ class _ItineraryWriteScreenState extends State<ItineraryWriteScreen> {
         Marker(
           markerId: MarkerId(latLng.toString()),
           position: latLng,
-          infoWindow: InfoWindow(title: 'Location: ${latLng.latitude.toStringAsFixed(2)}, ${latLng.longitude.toStringAsFixed(2)}'),
+          infoWindow: InfoWindow(title: '위치: ${latLng.latitude.toStringAsFixed(2)}, ${latLng.longitude.toStringAsFixed(2)}'),
           icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
         ),
       );
@@ -178,10 +178,10 @@ class _ItineraryWriteScreenState extends State<ItineraryWriteScreen> {
       try {
         final currentUser = FirebaseAuth.instance.currentUser;
         if (currentUser == null) {
-          throw Exception('User not logged in.');
+          throw Exception('로그인이 필요합니다.');
         }
         if (_startDate == null || _endDate == null) {
-          throw Exception('Please select a start and end date.');
+          throw Exception('시작일과 종료일을 선택하세요.');
         }
 
         // 1. 새 이미지를 백엔드에 업로드
@@ -220,13 +220,13 @@ class _ItineraryWriteScreenState extends State<ItineraryWriteScreen> {
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(widget.itineraryId == null ? 'Itinerary created successfully!' : 'Itinerary updated successfully!')),
+            SnackBar(content: Text(widget.itineraryId == null ? '일정이 등록되었습니다.' : '일정이 수정되었습니다.')),
           );
           context.pop(); // Go back to itinerary list screen
         }
       } catch (e) {
         setState(() {
-          _errorMessage = 'Failed to submit itinerary: ${e.toString()}';
+          _errorMessage = '일정 등록/수정 실패: ${e.toString()}';
         });
       } finally {
         setState(() {
@@ -260,12 +260,12 @@ class _ItineraryWriteScreenState extends State<ItineraryWriteScreen> {
                     TextFormField(
                       controller: _titleController,
                       decoration: const InputDecoration(
-                        labelText: 'Title',
+                        labelText: '제목',
                         prefixIcon: Icon(Icons.title),
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Please enter a title';
+                          return '제목을 입력하세요';
                         }
                         return null;
                       },
@@ -274,13 +274,13 @@ class _ItineraryWriteScreenState extends State<ItineraryWriteScreen> {
                     TextFormField(
                       controller: _descriptionController,
                       decoration: const InputDecoration(
-                        labelText: 'Description',
+                        labelText: '설명',
                         prefixIcon: Icon(Icons.description),
                       ),
                       maxLines: 5,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Please enter a description';
+                          return '설명을 입력하세요';
                         }
                         return null;
                       },
@@ -289,7 +289,7 @@ class _ItineraryWriteScreenState extends State<ItineraryWriteScreen> {
                     ListTile(
                       title: Text(
                         _startDate == null && _endDate == null
-                            ? 'Select Date Range'
+                            ? '기간 선택'
                             : '${_startDate!.day}/${_startDate!.month}/${_startDate!.year} - ${_endDate!.day}/${_endDate!.month}/${_endDate!.year}',
                       ),
                       leading: const Icon(Icons.calendar_today),
@@ -298,7 +298,7 @@ class _ItineraryWriteScreenState extends State<ItineraryWriteScreen> {
                     ),
                     const SizedBox(height: AppConstants.spacingLarge),
                     Text(
-                      'Images',
+                      '이미지',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
                             color: AppColors.primary,
                           ),
@@ -366,11 +366,11 @@ class _ItineraryWriteScreenState extends State<ItineraryWriteScreen> {
                     OutlinedButton.icon(
                       onPressed: _pickImages,
                       icon: const Icon(Icons.image),
-                      label: const Text('Add Images'),
+                      label: const Text('이미지 추가'),
                     ),
                     const SizedBox(height: AppConstants.spacingLarge),
                     Text(
-                      'Map Route',
+                      '지도 경로',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
                             color: AppColors.primary,
                           ),
@@ -409,7 +409,7 @@ class _ItineraryWriteScreenState extends State<ItineraryWriteScreen> {
                             child: ElevatedButton(
                               onPressed: _submitItinerary,
                               child: Text(
-                                widget.itineraryId == null ? 'Create Itinerary' : 'Update Itinerary',
+                                widget.itineraryId == null ? '일정 만들기' : '일정 수정',
                                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                                       color: Colors.white,
                                       fontWeight: FontWeight.bold,

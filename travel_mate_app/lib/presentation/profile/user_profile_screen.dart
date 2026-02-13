@@ -47,7 +47,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       });
     } catch (e) {
       setState(() {
-        _errorMessage = 'Failed to load profile: ${e.toString()}';
+        _errorMessage = '프로필을 불러오지 못했습니다: ${e.toString()}';
         _isLoading = false;
       });
     }
@@ -121,7 +121,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                         _userProfile?.gender != null && _userProfile!.gender!.isNotEmpty &&
                         _userProfile?.ageRange != null && _userProfile!.ageRange!.isNotEmpty
                         ? '${_userProfile!.gender}, ${_userProfile!.ageRange}'
-                        : 'No additional info',
+                        : '추가 정보 없음',
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           color: AppColors.textSecondary,
                         ),
@@ -129,7 +129,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       const SizedBox(height: AppConstants.spacingLarge),
                       _buildProfileDetailCard(
                         context,
-                        title: 'About Me',
+                        title: '소개',
                         content: _userProfile?.bio ?? '소개가 없습니다.',
                       ),
                       const SizedBox(height: AppConstants.spacingMedium),

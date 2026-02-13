@@ -24,12 +24,36 @@ import 'package:travel_mate_app/app/constants.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 /// 로그인 후 홈 화면. 히어로 + 기능 카드 + 탐색 버튼 (Travel-Companion-Finder 스타일).
+/// 뷰포트 높이에 맞춰 반응형으로 간격·폰트·그리드 크기 조정.
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     final currentUserUid = FirebaseAuth.instance.currentUser?.uid;
+    final h = MediaQuery.sizeOf(context).height;
+    final isCompact = h < 680;
+    final isMedium = h >= 680 && h < 820;
+
+    // 반응형 값: 작은 화면일수록 여백·폰트·버튼 높이 축소
+    final headerPaddingV = isCompact ? 6.0 : (isMedium ? 10.0 : AppConstants.paddingMedium);
+    final heroTop = isCompact ? 8.0 : (isMedium ? 14.0 : 24.0);
+    final badgePaddingH = isCompact ? 10.0 : 14.0;
+    final badgePaddingV = isCompact ? 5.0 : 8.0;
+    final badgeFontSize = isCompact ? 11.0 : 12.0;
+    final heroTitleSize = isCompact ? 26.0 : (isMedium ? 30.0 : 36.0);
+    final heroSubtitleSize = isCompact ? 12.0 : (isMedium ? 13.0 : 15.0);
+    final heroAfterTitle = isCompact ? 6.0 : 12.0;
+    final heroAfterSubtitle = isCompact ? 12.0 : (isMedium ? 20.0 : 28.0);
+    final buttonPaddingV = isCompact ? 8.0 : (isMedium ? 10.0 : 14.0);
+    final heroBottom = isCompact ? 16.0 : (isMedium ? 24.0 : 40.0);
+    final sectionTitleSize = isCompact ? 16.0 : (isMedium ? 18.0 : 20.0);
+    final sectionTop = isCompact ? 8.0 : 16.0;
+    final gridSpacing = isCompact ? 8.0 : 12.0;
+    // 그리드 카드 높이: 화면이 작을수록 비율을 넓게(카드 납작하게) 해서 한 화면에 들어가도록
+    final gridAspectRatio = isCompact ? 1.45 : (isMedium ? 1.25 : 1.1);
+    final logoutBottom = isCompact ? 16.0 : (isMedium ? 24.0 : 48.0);
+    final logoutButtonHeight = isCompact ? 40.0 : 48.0;
 
     return Scaffold(
       body: Container(
@@ -49,14 +73,14 @@ class HomeScreen extends StatelessWidget {
             slivers: [
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: AppConstants.paddingLarge, vertical: AppConstants.paddingMedium),
+                  padding: EdgeInsets.symmetric(horizontal: AppConstants.paddingLarge, vertical: headerPaddingV),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Row(
                         children: [
                           Container(
-                            padding: const EdgeInsets.all(10),
+                            padding: EdgeInsets.all(isCompact ? 8 : 10),
                             decoration: BoxDecoration(
                               gradient: const LinearGradient(
                                 colors: [AppColors.primary, AppColors.secondary],
@@ -65,22 +89,22 @@ class HomeScreen extends StatelessWidget {
                               ),
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            child: const Icon(Icons.explore, color: Colors.white, size: 24),
+                            child: Icon(Icons.explore, color: Colors.white, size: isCompact ? 20 : 24),
                           ),
-                          const SizedBox(width: 10),
-                          Text('TripMate', style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                          SizedBox(width: isCompact ? 8 : 10),
+                          Text('TripMate', style: GoogleFonts.outfit(fontSize: isCompact ? 18 : 22, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
                         ],
                       ),
                       Row(
                         children: [
                           IconButton(
-                            icon: const Icon(Icons.person_outline, color: AppColors.textPrimary),
+                            icon: Icon(Icons.person_outline, color: AppColors.textPrimary, size: isCompact ? 22 : 24),
                             onPressed: () {
                               if (currentUserUid != null) context.go('/users/$currentUserUid');
                             },
                           ),
                           IconButton(
-                            icon: const Icon(Icons.settings_outlined, color: AppColors.textPrimary),
+                            icon: Icon(Icons.settings_outlined, color: AppColors.textPrimary, size: isCompact ? 22 : 24),
                             onPressed: () => context.go('/settings/account'),
                           ),
                         ],
@@ -95,48 +119,48 @@ class HomeScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SizedBox(height: 24),
+                      SizedBox(height: heroTop),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                        padding: EdgeInsets.symmetric(horizontal: badgePaddingH, vertical: badgePaddingV),
                         decoration: BoxDecoration(
                           color: AppColors.secondary.withOpacity(0.15),
                           borderRadius: BorderRadius.circular(100),
                           border: Border.all(color: AppColors.secondary.withOpacity(0.3)),
                         ),
-                        child: Text('Explore the world together', style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.secondary)),
+                        child: Text('Explore the world together', style: GoogleFonts.plusJakartaSans(fontSize: badgeFontSize, fontWeight: FontWeight.w600, color: AppColors.secondary)),
                       ),
-                      const SizedBox(height: 16),
+                      SizedBox(height: isCompact ? 8 : 16),
                       ShaderMask(
                         shaderCallback: (bounds) => const LinearGradient(
                           colors: [AppColors.primary, AppColors.accent, AppColors.secondary],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ).createShader(bounds),
-                        child: Text('Find Your\nTravel Squad', style: GoogleFonts.outfit(fontSize: 36, fontWeight: FontWeight.bold, height: 1.15, color: Colors.white)),
+                        child: Text('Find Your\nTravel Squad', style: GoogleFonts.outfit(fontSize: heroTitleSize, fontWeight: FontWeight.bold, height: 1.15, color: Colors.white)),
                       ),
-                      const SizedBox(height: 12),
-                      Text('같은 취향의 여행자와 만나고, 일정을 공유하고, 추억을 나눠보세요.', style: GoogleFonts.plusJakartaSans(fontSize: 15, color: AppColors.textSecondary, height: 1.4)),
-                      const SizedBox(height: 28),
+                      SizedBox(height: heroAfterTitle),
+                      Text('같은 취향의 여행자와 만나고, 일정을 공유하고, 추억을 나눠보세요.', style: GoogleFonts.plusJakartaSans(fontSize: heroSubtitleSize, color: AppColors.textSecondary, height: 1.4)),
+                      SizedBox(height: heroAfterSubtitle),
                       Row(
                         children: [
                           Expanded(
                             child: FilledButton.icon(
                               onPressed: () => context.go('/community'),
-                              icon: const Icon(Icons.public, size: 20),
+                              icon: Icon(Icons.public, size: isCompact ? 16 : 20),
                               label: const Text('커뮤니티'),
                               style: FilledButton.styleFrom(
                                 backgroundColor: AppColors.primary,
-                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                padding: EdgeInsets.symmetric(vertical: buttonPaddingV),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
                               ),
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          SizedBox(width: isCompact ? 8 : 12),
                           Expanded(
                             child: OutlinedButton(
                               onPressed: () => context.go('/itinerary'),
                               style: OutlinedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                padding: EdgeInsets.symmetric(vertical: buttonPaddingV),
                                 side: BorderSide(color: Colors.white.withOpacity(0.2)),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
                               ),
@@ -145,7 +169,7 @@ class HomeScreen extends StatelessWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 40),
+                      SizedBox(height: heroBottom),
                     ],
                   ),
                 ),
@@ -153,28 +177,28 @@ class HomeScreen extends StatelessWidget {
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: AppConstants.paddingLarge),
-                  child: Text('바로가기', style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                  child: Text('바로가기', style: GoogleFonts.outfit(fontSize: sectionTitleSize, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                 ),
               ),
-              const SliverToBoxAdapter(child: SizedBox(height: 16)),
+              SliverToBoxAdapter(child: SizedBox(height: sectionTop)),
               SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: AppConstants.paddingLarge),
+                padding: EdgeInsets.symmetric(horizontal: AppConstants.paddingLarge),
                 sliver: SliverGrid(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
-                    mainAxisSpacing: 12,
-                    crossAxisSpacing: 12,
-                    childAspectRatio: 1.1,
+                    mainAxisSpacing: gridSpacing,
+                    crossAxisSpacing: gridSpacing,
+                    childAspectRatio: gridAspectRatio,
                   ),
                   delegate: SliverChildListDelegate([
-                    _NavCard(icon: Icons.search, label: '동행 찾기', color: AppColors.secondary, onTap: () => context.go('/matching/search')),
-                    _NavCard(icon: Icons.chat_bubble_outline, label: '채팅', color: AppColors.primary, onTap: () => context.go('/chat')),
-                    _NavCard(icon: Icons.article_outlined, label: '커뮤니티', color: AppColors.accent, onTap: () => context.go('/community')),
-                    _NavCard(icon: Icons.calendar_month, label: '일정', color: AppColors.secondary, onTap: () => context.go('/itinerary')),
+                    _NavCard(icon: Icons.search, label: '동행 찾기', color: AppColors.secondary, onTap: () => context.go('/matching/search'), compact: isCompact),
+                    _NavCard(icon: Icons.chat_bubble_outline, label: '채팅', color: AppColors.primary, onTap: () => context.go('/chat'), compact: isCompact),
+                    _NavCard(icon: Icons.article_outlined, label: '커뮤니티', color: AppColors.accent, onTap: () => context.go('/community'), compact: isCompact),
+                    _NavCard(icon: Icons.calendar_month, label: '일정', color: AppColors.secondary, onTap: () => context.go('/itinerary'), compact: isCompact),
                   ]),
                 ),
               ),
-              const SliverToBoxAdapter(child: SizedBox(height: 32)),
+              SliverToBoxAdapter(child: SizedBox(height: isCompact ? 16 : 32)),
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: AppConstants.paddingLarge),
@@ -183,17 +207,17 @@ class HomeScreen extends StatelessWidget {
                       await FirebaseAuth.instance.signOut();
                       if (context.mounted) context.go('/login');
                     },
-                    icon: const Icon(Icons.logout, size: 18),
+                    icon: Icon(Icons.logout, size: isCompact ? 16 : 18),
                     label: const Text('로그아웃'),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.textSecondary,
                       side: BorderSide(color: Colors.white.withOpacity(0.1)),
-                      minimumSize: const Size(double.infinity, 48),
+                      minimumSize: Size(double.infinity, logoutButtonHeight),
                     ),
                   ),
                 ),
               ),
-              const SliverToBoxAdapter(child: SizedBox(height: 48)),
+              SliverToBoxAdapter(child: SizedBox(height: logoutBottom)),
             ],
           ),
         ),
@@ -207,18 +231,24 @@ class _NavCard extends StatelessWidget {
   final String label;
   final Color color;
   final VoidCallback onTap;
+  final bool compact;
 
-  const _NavCard({required this.icon, required this.label, required this.color, required this.onTap});
+  const _NavCard({required this.icon, required this.label, required this.color, required this.onTap, this.compact = false});
 
   @override
   Widget build(BuildContext context) {
+    final padding = compact ? 10.0 : AppConstants.paddingMedium;
+    final iconWrap = compact ? 10.0 : 14.0;
+    final iconSize = compact ? 22.0 : 28.0;
+    final gap = compact ? 6.0 : 12.0;
+    final fontSize = compact ? 12.0 : 14.0;
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppConstants.cardRadius),
         child: Container(
-          padding: const EdgeInsets.all(AppConstants.paddingMedium),
+          padding: EdgeInsets.all(padding),
           decoration: BoxDecoration(
             color: AppColors.card.withOpacity(0.8),
             borderRadius: BorderRadius.circular(AppConstants.cardRadius),
@@ -228,15 +258,15 @@ class _NavCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                padding: const EdgeInsets.all(14),
+                padding: EdgeInsets.all(iconWrap),
                 decoration: BoxDecoration(
                   color: color.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(compact ? 10 : 14),
                 ),
-                child: Icon(icon, color: color, size: 28),
+                child: Icon(icon, color: color, size: iconSize),
               ),
-              const SizedBox(height: 12),
-              Text(label, style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+              SizedBox(height: gap),
+              Text(label, style: GoogleFonts.plusJakartaSans(fontSize: fontSize, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
             ],
           ),
         ),

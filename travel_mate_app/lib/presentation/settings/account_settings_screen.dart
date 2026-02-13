@@ -27,19 +27,19 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
     await showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Change Email'),
+        title: const Text('이메일 변경'),
         content: Form(
           key: _formKey,
           child: TextFormField(
             controller: emailController,
-            decoration: const InputDecoration(labelText: 'New Email'),
+            decoration: const InputDecoration(labelText: '새 이메일'),
             keyboardType: TextInputType.emailAddress,
             validator: (value) {
               if (value == null || value.isEmpty) {
-                return 'Please enter your new email';
-              }
-              if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
-                return 'Please enter a valid email address';
+                return '새 이메일을 입력하세요';
+            }
+            if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
+                return '올바른 이메일 주소를 입력하세요';
               }
               return null;
             },
@@ -48,7 +48,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: const Text('취소'),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -61,13 +61,13 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                   await FirebaseAuth.instance.currentUser?.updateEmail(emailController.text.trim());
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Email updated successfully!')),
+                      const SnackBar(content: Text('이메일이 변경되었습니다.')),
                     );
                     Navigator.of(context).pop();
                   }
                 } catch (e) {
                   setState(() {
-                    _errorMessage = 'Failed to update email: ${e.toString()}';
+                    _errorMessage = '이메일 변경 실패: ${e.toString()}';
                   });
                 } finally {
                   setState(() {
@@ -76,7 +76,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                 }
               }
             },
-            child: const Text('Save'),
+            child: const Text('저장'),
           ),
         ],
       ),
@@ -87,19 +87,19 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
     final bool? confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Account'),
+        title: const Text('계정 삭제'),
         content: const Text(
-          'Are you sure you want to delete your account? This action cannot be undone.',
+          '정말 계정을 삭제하시겠습니까? 삭제된 계정은 복구할 수 없습니다.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: const Text('취소'),
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Delete', style: TextStyle(color: Colors.white)),
+            child: const Text('삭제', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -114,7 +114,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
       try {
         final currentUser = FirebaseAuth.instance.currentUser;
         if (currentUser == null) {
-          throw Exception('User not logged in.');
+          throw Exception('로그인이 필요합니다.');
         }
 
         // Call backend API to delete user data
@@ -124,13 +124,13 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Account deleted successfully!')),
+            const SnackBar(content: Text('계정이 삭제되었습니다.')),
           );
           context.go('/login'); // Redirect to login screen after deletion
         }
       } catch (e) {
         setState(() {
-          _errorMessage = 'Failed to delete account: ${e.toString()}';
+          _errorMessage = '계정 삭제 실패: ${e.toString()}';
         });
       } finally {
         setState(() {
@@ -153,24 +153,24 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                 children: [
                   ListTile(
                     leading: const Icon(Icons.email),
-                    title: const Text('Change Email'),
+                    title: const Text('이메일 변경'),
                     onTap: () => _changeEmail(context),
                   ),
                   const Divider(),
                   ListTile(
                     leading: const Icon(Icons.lock),
-                    title: const Text('Change Password'),
+                    title: const Text('비밀번호 변경'),
                     onTap: () {
                       // TODO: Implement change password functionality (Firebase Auth)
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Change Password functionality coming soon!')),
+                        const SnackBar(content: Text('비밀번호 변경 기능은 준비 중입니다.')),
                       );
                     },
                   ),
                   const Divider(),
                   ListTile(
                     leading: const Icon(Icons.exit_to_app),
-                    title: const Text('Logout'),
+                    title: const Text('로그아웃'),
                     onTap: () async {
                       await Provider.of<AuthService>(context, listen: false).signOut();
                       if (mounted) {
@@ -181,7 +181,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                   const Divider(),
                   ListTile(
                     leading: const Icon(Icons.delete_forever, color: Colors.red),
-                    title: const Text('Delete Account', style: TextStyle(color: Colors.red)),
+                    title: const Text('계정 삭제', style: TextStyle(color: Colors.red)),
                     onTap: () => _deleteAccount(context),
                   ),
                   const Spacer(),

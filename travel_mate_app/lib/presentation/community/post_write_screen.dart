@@ -40,6 +40,9 @@ class _PostWriteScreenState extends State<PostWriteScreen> {
   String? _errorMessage;
 
   final List<String> _categories = ['General', 'Tips', 'Stories', 'Questions', 'Meetups'];
+  static const Map<String, String> _categoryLabels = {
+    'General': '일반', 'Tips': '팁', 'Stories': '이야기', 'Questions': '질문', 'Meetups': '밋업',
+  };
 
   @override
   void initState() {
@@ -65,7 +68,7 @@ class _PostWriteScreenState extends State<PostWriteScreen> {
       _existingImageUrls = List.from(fetchedPost.imageUrls);
     } catch (e) {
       setState(() {
-        _errorMessage = 'Failed to load post for editing: ${e.toString()}';
+        _errorMessage = '글을 불러오지 못했습니다: ${e.toString()}';
       });
     } finally {
       setState(() {
@@ -125,7 +128,7 @@ class _PostWriteScreenState extends State<PostWriteScreen> {
       try {
         final currentUser = FirebaseAuth.instance.currentUser;
         if (currentUser == null) {
-          throw Exception('User not logged in.');
+          throw Exception('로그인이 필요합니다.');
         }
 
         // 1. 새 이미지를 백엔드에 업로드
@@ -162,13 +165,13 @@ class _PostWriteScreenState extends State<PostWriteScreen> {
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(widget.postId == null ? 'Post created successfully!' : 'Post updated successfully!')),
+            SnackBar(content: Text(widget.postId == null ? '글이 등록되었습니다.' : '글이 수정되었습니다.')),
           );
           context.pop(); // Go back to community screen
         }
       } catch (e) {
         setState(() {
-          _errorMessage = 'Failed to submit post: ${e.toString()}';
+          _errorMessage = '글 등록/수정 실패: ${e.toString()}';
         });
       } finally {
         setState(() {
@@ -201,12 +204,12 @@ class _PostWriteScreenState extends State<PostWriteScreen> {
                     TextFormField(
                       controller: _titleController,
                       decoration: const InputDecoration(
-                        labelText: 'Title',
+                        labelText: '제목',
                         prefixIcon: Icon(Icons.title),
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Please enter a title';
+                          return '제목을 입력하세요';
                         }
                         return null;
                       },
@@ -215,13 +218,13 @@ class _PostWriteScreenState extends State<PostWriteScreen> {
                     TextFormField(
                       controller: _contentController,
                       decoration: const InputDecoration(
-                        labelText: 'Content',
+                        labelText: '내용',
                         prefixIcon: Icon(Icons.text_fields),
                       ),
                       maxLines: 8,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Please enter content';
+                          return '내용을 입력하세요';
                         }
                         return null;
                       },
@@ -230,13 +233,13 @@ class _PostWriteScreenState extends State<PostWriteScreen> {
                     DropdownButtonFormField<String>(
                       value: _selectedCategory != null && _categories.contains(_selectedCategory) ? _selectedCategory : null,
                       decoration: const InputDecoration(
-                        labelText: 'Category',
+                        labelText: '카테고리',
                         prefixIcon: Icon(Icons.category),
                       ),
                       items: _categories.map((String category) {
                         return DropdownMenuItem<String>(
                           value: category,
-                          child: Text(category),
+                          child: Text(_categoryLabels[category] ?? category),
                         );
                       }).toList(),
                       onChanged: (String? newValue) {
@@ -244,11 +247,11 @@ class _PostWriteScreenState extends State<PostWriteScreen> {
                           _selectedCategory = newValue;
                         });
                       },
-                      validator: (value) => value == null ? 'Please select a category' : null,
+                      validator: (value) => value == null ? '카테고리를 선택하세요' : null,
                     ),
                     const SizedBox(height: AppConstants.spacingLarge),
                     Text(
-                      'Images',
+                      '이미지',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
                             color: AppColors.primary,
                           ),
@@ -318,7 +321,7 @@ class _PostWriteScreenState extends State<PostWriteScreen> {
                     OutlinedButton.icon(
                       onPressed: _pickImages,
                       icon: const Icon(Icons.image),
-                      label: const Text('Add Images'),
+                      label: const Text('이미지 추가'),
                     ),
                     const SizedBox(height: AppConstants.spacingLarge),
                     if (_errorMessage != null)
@@ -337,7 +340,7 @@ class _PostWriteScreenState extends State<PostWriteScreen> {
                             child: ElevatedButton(
                               onPressed: _submitPost,
                               child: Text(
-                                widget.postId == null ? 'Create Post' : 'Update Post',
+                                widget.postId == null ? '글 등록' : '글 수정',
                                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                                       color: Colors.white,
                                       fontWeight: FontWeight.bold,

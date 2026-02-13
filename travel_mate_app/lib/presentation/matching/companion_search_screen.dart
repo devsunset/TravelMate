@@ -7,6 +7,7 @@ import 'package:travel_mate_app/app/constants.dart';
 import 'package:travel_mate_app/domain/entities/user_profile.dart';
 import 'package:travel_mate_app/presentation/common/app_app_bar.dart';
 import 'package:travel_mate_app/domain/usecases/search_companions_usecase.dart';
+import 'package:travel_mate_app/presentation/common/empty_state_widget.dart';
 
 /// 동행 검색 화면. 목적지·성별·연령 등 필터로 프로필 검색.
 class CompanionSearchScreen extends StatefulWidget {
@@ -28,7 +29,8 @@ class _CompanionSearchScreenState extends State<CompanionSearchScreen> {
 
   bool _isLoading = false;
   String? _errorMessage;
-  List<UserProfile> _searchResults = []; // Will store search results
+  bool _noResults = false;
+  List<UserProfile> _searchResults = [];
 
   final List<String> _genders = ['남성', '여성', '기타', '무관'];
   final List<String> _ageRanges = ['10대', '20대', '30대', '40대', '50대 이상', '무관'];
@@ -63,12 +65,12 @@ class _CompanionSearchScreenState extends State<CompanionSearchScreen> {
     setState(() {
       _isLoading = true;
       _errorMessage = null;
+      _noResults = false;
       _searchResults = [];
     });
 
     try {
       // TODO: Implement actual search logic using SearchCompanionsUsecase
-      // For now, simulate some dummy results
       await Future.delayed(const Duration(seconds: 2));
 
       setState(() {
@@ -77,9 +79,9 @@ class _CompanionSearchScreenState extends State<CompanionSearchScreen> {
             userId: 'user123',
             nickname: 'ExplorerJane',
             profileImageUrl: 'https://picsum.photos/200/300?random=1',
-            bio: 'Adventure seeker and hiking enthusiast.',
-            gender: 'Female',
-            ageRange: '20s',
+            bio: '모험과 등산을 좋아해요.',
+            gender: '여성',
+            ageRange: '20대',
             travelStyles: ['모험', '혼자 여행'],
             interests: ['자연', '사진'],
             preferredDestinations: ['Patagonia', 'New Zealand'],
@@ -88,26 +90,22 @@ class _CompanionSearchScreenState extends State<CompanionSearchScreen> {
             userId: 'user456',
             nickname: 'FoodieMark',
             profileImageUrl: 'https://picsum.photos/200/300?random=2',
-            bio: 'Traveling the world one dish at a time.',
-            gender: 'Male',
-            ageRange: '30s',
+            bio: '한 그릇씩 세계를 여행해요.',
+            gender: '남성',
+            ageRange: '30대',
             travelStyles: ['맛집', '문화'],
             interests: ['맛집', '역사'],
             preferredDestinations: ['Italy', 'Thailand'],
           ),
         ];
         _isLoading = false;
-        if (_searchResults.isEmpty) {
-          _errorMessage = 'No companions found for your search criteria.';
-        }
+        _noResults = _searchResults.isEmpty;
       });
     } catch (e) {
       setState(() {
-        _errorMessage = 'Failed to search companions: ${e.toString()}';
-      });
-    } finally {
-      setState(() {
+        _errorMessage = '동행 검색에 실패했습니다.';
         _isLoading = false;
+        _noResults = false;
       });
     }
   }
@@ -133,8 +131,8 @@ class _CompanionSearchScreenState extends State<CompanionSearchScreen> {
                 TextFormField(
                   controller: _destinationController,
                   decoration: const InputDecoration(
-                    labelText: 'Destination',
-                    hintText: 'e.g., Paris, Seoul',
+                    labelText: '목적지',
+                    hintText: '예: 파리, 서울',
                     prefixIcon: Icon(Icons.location_on),
                   ),
                 ),
@@ -142,8 +140,8 @@ class _CompanionSearchScreenState extends State<CompanionSearchScreen> {
                 TextFormField(
                   controller: _searchKeywordController,
                   decoration: const InputDecoration(
-                    labelText: 'Keywords (Nickname, Bio)',
-                    hintText: 'e.g., adventurous, photographer',
+                    labelText: '키워드 (닉네임, 소개)',
+                    hintText: '예: 여행, 사진',
                     prefixIcon: Icon(Icons.text_fields),
                   ),
                 ),
@@ -154,7 +152,7 @@ class _CompanionSearchScreenState extends State<CompanionSearchScreen> {
                       child: DropdownButtonFormField<String>(
                         value: _selectedGender != null && _genders.contains(_selectedGender) ? _selectedGender : null,
                         decoration: const InputDecoration(
-                          labelText: 'Gender',
+                          labelText: '성별',
                           prefixIcon: Icon(Icons.wc),
                         ),
                         items: _genders.map((String gender) {
@@ -175,7 +173,7 @@ class _CompanionSearchScreenState extends State<CompanionSearchScreen> {
                       child: DropdownButtonFormField<String>(
                         value: _selectedAgeRange != null && _ageRanges.contains(_selectedAgeRange) ? _selectedAgeRange : null,
                         decoration: const InputDecoration(
-                          labelText: 'Age Range',
+                          labelText: '연령대',
                           prefixIcon: Icon(Icons.timelapse),
                         ),
                         items: _ageRanges.map((String age) {
@@ -197,7 +195,7 @@ class _CompanionSearchScreenState extends State<CompanionSearchScreen> {
                 ListTile(
                   title: Text(
                     _startDate == null && _endDate == null
-                        ? 'Select Date Range'
+                        ? '여행 기간 선택'
                         : '${_startDate!.day}/${_startDate!.month}/${_startDate!.year} - ${_endDate!.day}/${_endDate!.month}/${_endDate!.year}',
                   ),
                   leading: const Icon(Icons.calendar_today),
@@ -208,7 +206,7 @@ class _CompanionSearchScreenState extends State<CompanionSearchScreen> {
                 Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
-                    'Travel Styles',
+                    '여행 스타일',
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
@@ -267,22 +265,13 @@ class _CompanionSearchScreenState extends State<CompanionSearchScreen> {
                   }).toList(),
                 ),
                 const SizedBox(height: AppConstants.spacingMedium),
-                if (_errorMessage != null)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: AppConstants.paddingMedium),
-                    child: Text(
-                      _errorMessage!,
-                      style: const TextStyle(color: Colors.red),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
                 _isLoading
                     ? const CircularProgressIndicator()
                     : SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: _searchCompanions,
-                          child: const Text('Search'),
+                          child: const Text('검색'),
                         ),
                       ),
               ],
@@ -292,26 +281,26 @@ class _CompanionSearchScreenState extends State<CompanionSearchScreen> {
           Expanded(
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
-                : _searchResults.isEmpty && _errorMessage == null
-                    ? Center(
-                        child: Text(
-                          'No companions found. Try adjusting your search.',
-                          style: Theme.of(context).textTheme.titleMedium,
-                          textAlign: TextAlign.center,
-                        ),
+                : _noResults
+                    ? EmptyStateWidget(
+                        icon: Icons.person_search_rounded,
+                        title: '검색 조건에 맞는 동행이 없어요',
+                        subtitle: '조건을 바꿔 보시거나 잠시 후 다시 검색해 보세요.',
                       )
                     : _errorMessage != null
-                        ? Center(
-                            child: Padding(
-                              padding: const EdgeInsets.all(AppConstants.paddingMedium),
-                              child: Text(
-                                _errorMessage!,
-                                style: const TextStyle(color: Colors.red),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
+                        ? EmptyStateWidget(
+                            icon: Icons.cloud_off_rounded,
+                            title: _errorMessage!,
+                            isError: true,
+                            onRetry: _searchCompanions,
                           )
-                        : ListView.builder(
+                        : _searchResults.isEmpty
+                            ? EmptyStateWidget(
+                                icon: Icons.search_rounded,
+                                title: '동행을 검색해 보세요',
+                                subtitle: '목적지, 성별, 연령대 등을 선택한 뒤 검색 버튼을 눌러 주세요.',
+                              )
+                            : ListView.builder(
                             itemCount: _searchResults.length,
                             itemBuilder: (context, index) {
                               final user = _searchResults[index];

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:travel_mate_app/app/theme.dart';
 import 'package:travel_mate_app/app/constants.dart';
 import 'package:travel_mate_app/presentation/common/app_app_bar.dart';
+import 'package:travel_mate_app/presentation/common/empty_state_widget.dart';
 
 /// 채팅방 목록 화면. 채팅방 생성·진입.
 class ChatListScreen extends StatefulWidget {
@@ -16,7 +17,7 @@ class ChatListScreen extends StatefulWidget {
 class _ChatListScreenState extends State<ChatListScreen> {
   bool _isLoading = false;
   String? _errorMessage;
-  // List<ChatRoom> _chatRooms = []; // Will store chat rooms
+  bool _isEmpty = false;
 
   @override
   void initState() {
@@ -28,6 +29,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
     setState(() {
       _isLoading = true;
       _errorMessage = null;
+      _isEmpty = false;
     });
 
     try {
@@ -35,15 +37,14 @@ class _ChatListScreenState extends State<ChatListScreen> {
       await Future.delayed(const Duration(seconds: 1)); // Simulate network
 
       setState(() {
-        // _chatRooms = fetchedChatRooms;
         _isLoading = false;
-        // Simulate no chat rooms
-        _errorMessage = 'No active chats. Start a conversation with a new mate!';
+        _isEmpty = true; // Simulate no chat rooms
       });
     } catch (e) {
       setState(() {
-        _errorMessage = 'Failed to load chat rooms: ${e.toString()}';
+        _errorMessage = '채팅 목록을 불러오지 못했습니다.';
         _isLoading = false;
+        _isEmpty = false;
       });
     }
   }
@@ -54,18 +55,22 @@ class _ChatListScreenState extends State<ChatListScreen> {
       appBar: const AppAppBar(title: '채팅'),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : _errorMessage != null
-              ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(AppConstants.paddingMedium),
-                    child: Text(
-                      _errorMessage!,
-                      style: TextStyle(color: AppColors.error),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
+          : _isEmpty
+              ? EmptyStateWidget(
+                  icon: Icons.chat_bubble_outline_rounded,
+                  title: '대화 중인 채팅이 없습니다',
+                  subtitle: '동행을 찾아 대화를 시작해 보세요!',
+                  actionLabel: '동행 찾기',
+                  onAction: () => context.go('/matching/search'),
                 )
-              : ListView.builder(
+              : _errorMessage != null
+                  ? EmptyStateWidget(
+                      icon: Icons.cloud_off_rounded,
+                      title: _errorMessage!,
+                      isError: true,
+                      onRetry: _loadChatRooms,
+                    )
+                  : ListView.builder(
                   itemCount: 5, // Simulate 5 chat rooms
                   itemBuilder: (context, index) {
                     return Card(
@@ -77,9 +82,9 @@ class _ChatListScreenState extends State<ChatListScreen> {
                           backgroundImage: NetworkImage(
                               'https://picsum.photos/200/300?random=${index + 1}'),
                         ),
-                        title: Text('Chat with User ${index + 1}'),
-                        subtitle: Text('Last message: Hello there!'),
-                        trailing: Text('1${index} min ago'),
+                        title: Text('사용자 ${index + 1}'),
+                        subtitle: Text('마지막 메시지'),
+                        trailing: Text('${index + 1}분 전'),
                         onTap: () {
                           context.go('/chat/room/chatRoomId${index + 1}'); // Navigate to chat room
                         },

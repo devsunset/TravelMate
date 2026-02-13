@@ -37,7 +37,7 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
     try {
       final currentUser = FirebaseAuth.instance.currentUser;
       if (currentUser == null) {
-        throw Exception('User not logged in.');
+        throw Exception('로그인이 필요합니다.');
       }
       final getUserProfile = Provider.of<GetUserProfile>(context, listen: false);
       final profile = await getUserProfile.execute(currentUser.uid);
@@ -48,7 +48,7 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
       });
     } catch (e) {
       setState(() {
-        _errorMessage = 'Failed to load profile: ${e.toString()}';
+        _errorMessage = '프로필을 불러오지 못했습니다: ${e.toString()}';
         _isLoading = false;
       });
     }
@@ -99,7 +99,7 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                         ),
                       ),
                       Text(
-                        currentUser?.email ?? 'No Email',
+                        currentUser?.email ?? '이메일 없음',
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           color: AppColors.textSecondary,
                         ),
@@ -107,14 +107,14 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                       const SizedBox(height: AppConstants.spacingLarge),
                       _buildProfileDetailCard(
                         context,
-                        title: 'About Me',
+                        title: '소개',
                         content: _userProfile?.bio ?? '소개가 없습니다.',
                       ),
                       const SizedBox(height: AppConstants.spacingMedium),
                       _buildProfileDetailCard(
                         context,
-                        title: 'Gender',
-                        content: _userProfile?.gender ?? 'N/A',
+                        title: '성별',
+                        content: _userProfile?.gender ?? '-',
                       ),
                       const SizedBox(height: AppConstants.spacingMedium),
                       _buildProfileDetailCard(
@@ -131,8 +131,8 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                       const SizedBox(height: AppConstants.spacingMedium),
                       _buildProfileDetailCard(
                         context,
-                        title: 'Interests',
-                        content: _userProfile?.interests.join(', ') ?? 'No interests selected.',
+                        title: '관심사',
+                        content: _userProfile?.interests.join(', ') ?? '선택된 관심사가 없습니다.',
                       ),
                       const SizedBox(height: AppConstants.spacingMedium),
                       _buildProfileDetailCard(

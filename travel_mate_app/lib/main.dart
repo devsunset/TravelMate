@@ -1,5 +1,6 @@
 /// TravelMate 앱 진입점.
 /// Firebase 초기화, FCM 백그라운드 핸들러 등록, Provider 의존성 주입 후 [TravelMateApp] 실행.
+import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -54,19 +55,21 @@ import 'package:travel_mate_app/domain/usecases/upload_itinerary_image.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 에러 발생 시 화면 대신 콘솔에 로그 출력. 화면에는 간단 안내만 표시.
+  // 에러 발생 시 콘솔에 error 레벨로 로그 출력. 화면에는 간단 안내만 표시.
   FlutterError.onError = (FlutterErrorDetails details) {
     FlutterError.presentError(details);
-    debugPrint('═══ FlutterError (콘솔 로그) ═══');
-    debugPrint(details.exceptionAsString());
-    debugPrint(details.stack?.toString() ?? '');
-    debugPrint('══════════════════════════════');
+    developer.log(
+      'FlutterError: ${details.exceptionAsString()}\n${details.stack?.toString() ?? ''}',
+      name: 'FlutterError',
+      level: 1000,
+    );
   };
   ErrorWidget.builder = (FlutterErrorDetails details) {
-    debugPrint('═══ ErrorWidget (콘솔 로그) ═══');
-    debugPrint(details.exceptionAsString());
-    debugPrint(details.stack?.toString() ?? '');
-    debugPrint('══════════════════════════════');
+    developer.log(
+      'ErrorWidget: ${details.exceptionAsString()}\n${details.stack?.toString() ?? ''}',
+      name: 'ErrorWidget',
+      level: 1000,
+    );
     return Material(
       child: Container(
         color: Colors.white,
@@ -260,7 +263,7 @@ class _FCMInitializerState extends State<FCMInitializer> {
       await fcmService.initialize();
       print('FCM 서비스 초기화 완료.');
     } catch (e) {
-      print('FCM 서비스 초기화 오류: $e');
+      developer.log('FCM 서비스 초기화 오류: $e', name: 'FCM', level: 1000);
     }
   }
 

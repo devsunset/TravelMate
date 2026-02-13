@@ -1,4 +1,5 @@
 /// FCM 권한 요청, 토큰 발급/갱신, 백엔드에 토큰 전송, 포그라운드/백그라운드 메시지 수신 처리.
+import 'dart:developer' as developer;
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:dio/dio.dart';
@@ -92,9 +93,9 @@ class FcmService {
       );
       print('FCM 토큰 백엔드 전송 완료.');
     } on DioException catch (e) {
-      print('FCM 토큰 전송 실패: ${e.response?.data ?? e.message}');
+      developer.log('FCM 토큰 전송 실패: ${e.response?.data ?? e.message}', name: 'FCM', level: 1000);
     } catch (e) {
-      print('FCM 토큰 전송 오류: $e');
+      developer.log('FCM 토큰 전송 오류: $e', name: 'FCM', level: 1000);
     }
   }
 }

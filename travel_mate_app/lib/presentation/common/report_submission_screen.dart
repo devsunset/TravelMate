@@ -32,13 +32,13 @@ class _ReportSubmissionScreenState extends State<ReportSubmissionScreen> {
   String? _errorMessage;
 
   final List<String> _reportTypes = [
-    'Spam',
-    'Hate Speech',
-    'Harassment',
-    'Inappropriate Content',
-    'Impersonation',
-    'Self-harm',
-    'Other',
+    '스팸',
+    '혐오 발언',
+    '괴롭힘',
+    '부적절한 콘텐츠',
+    '사칭',
+    '자해·위험',
+    '기타',
   ];
 
   @override
@@ -51,7 +51,7 @@ class _ReportSubmissionScreenState extends State<ReportSubmissionScreen> {
     if (_formKey.currentState?.validate() ?? false) {
       if (_selectedReportType == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please select a report type.')),
+          const SnackBar(content: Text('신고 유형을 선택하세요.')),
         );
         return;
       }
@@ -76,13 +76,13 @@ class _ReportSubmissionScreenState extends State<ReportSubmissionScreen> {
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Report submitted successfully!')),
+            const SnackBar(content: Text('신고가 접수되었습니다.')),
           );
           context.pop(); // Go back after submitting report
         }
       } catch (e) {
         setState(() {
-          _errorMessage = 'Failed to submit report: ${e.toString()}';
+          _errorMessage = '신고 접수 실패: ${e.toString()}';
         });
       } finally {
         setState(() {
@@ -106,14 +106,14 @@ class _ReportSubmissionScreenState extends State<ReportSubmissionScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
-                      'Reporting ${widget.entityType.toString().split('.').last} (ID: ${widget.entityId})',
+                      '신고하기 (대상 ID: ${widget.entityId})',
                       style: Theme.of(context).textTheme.headlineSmall,
                     ),
                     const SizedBox(height: AppConstants.spacingLarge),
                     DropdownButtonFormField<String>(
                       value: _selectedReportType != null && _reportTypes.contains(_selectedReportType) ? _selectedReportType : null,
                       decoration: const InputDecoration(
-                        labelText: 'Report Type',
+                        labelText: '신고 유형',
                         prefixIcon: Icon(Icons.report_problem),
                       ),
                       items: _reportTypes.map((String type) {
@@ -127,13 +127,13 @@ class _ReportSubmissionScreenState extends State<ReportSubmissionScreen> {
                           _selectedReportType = newValue;
                         });
                       },
-                      validator: (value) => value == null ? 'Please select a report type' : null,
+                      validator: (value) => value == null ? '신고 유형을 선택하세요' : null,
                     ),
                     const SizedBox(height: AppConstants.spacingMedium),
                     TextFormField(
                       controller: _reasonController,
                       decoration: const InputDecoration(
-                        labelText: 'Additional Details (Optional)',
+                        labelText: '추가 설명 (선택)',
                         prefixIcon: Icon(Icons.description),
                       ),
                       maxLines: 5,
@@ -160,7 +160,7 @@ class _ReportSubmissionScreenState extends State<ReportSubmissionScreen> {
                           ),
                         ),
                         child: Text(
-                          'Submit Report',
+                          '신고 접수',
                           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,

@@ -1,4 +1,5 @@
 /// Firebase Auth 기반 로그인(이메일/비밀번호, Google), ID 토큰 로컬 저장.
+import 'dart:developer' as developer;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:google_sign_in/google_sign_in.dart';
@@ -38,7 +39,7 @@ class AuthService {
       await _storeIdToken(await result.user?.getIdToken());
       return result.user;
     } catch (e) {
-      print(e.toString());
+      developer.log(e.toString(), name: 'Auth', level: 1000);
       await _storeIdToken(null);
       return null;
     }
@@ -53,7 +54,7 @@ class AuthService {
       await _storeIdToken(await result.user?.getIdToken());
       return result.user;
     } catch (e) {
-      print(e.toString());
+      developer.log(e.toString(), name: 'Auth', level: 1000);
       await _storeIdToken(null);
       return null;
     }
@@ -77,7 +78,7 @@ class AuthService {
       await _storeIdToken(await result.user?.getIdToken());
       return result.user;
     } catch (e) {
-      print(e.toString());
+      developer.log(e.toString(), name: 'Auth', level: 1000);
       await _storeIdToken(null);
       return null;
     }
@@ -90,8 +91,7 @@ class AuthService {
       await _googleSignIn.signOut();
       await _storeIdToken(null);
     } catch (e) {
-      print(e.toString());
-      return null;
+      developer.log(e.toString(), name: 'Auth', level: 1000);
     }
   }
 }

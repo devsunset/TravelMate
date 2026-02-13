@@ -36,7 +36,7 @@ class _NewMessageScreenState extends State<NewMessageScreen> {
   void _sendMessage() async {
     if (_messageController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Message cannot be empty')),
+        const SnackBar(content: Text('메시지를 입력하세요.')),
       );
       return;
     }
@@ -55,14 +55,14 @@ class _NewMessageScreenState extends State<NewMessageScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Message sent successfully!')),
+          const SnackBar(content: Text('쪽지가 전송되었습니다.')),
         );
         _messageController.clear();
         context.pop(); // Go back after sending message
       }
     } catch (e) {
       setState(() {
-        _errorMessage = 'Failed to send message: ${e.toString()}';
+        _errorMessage = '쪽지 전송 실패: ${e.toString()}';
       });
     } finally {
       setState(() {
@@ -84,7 +84,7 @@ class _NewMessageScreenState extends State<NewMessageScreen> {
             Expanded(
               child: Center(
                 child: Text(
-                  'This is where the chat history would be displayed.',
+                  '대화 내역이 여기에 표시됩니다.',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     color: AppColors.textSecondary,
                   ),
@@ -106,7 +106,7 @@ class _NewMessageScreenState extends State<NewMessageScreen> {
                   child: TextField(
                     controller: _messageController,
                     decoration: InputDecoration(
-                      hintText: 'Type your message...',
+                      hintText: '쪽지 내용을 입력하세요...',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(AppConstants.borderRadius),
                         borderSide: BorderSide.none,

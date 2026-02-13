@@ -24,7 +24,7 @@ class ReportButtonWidget extends StatelessWidget {
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('You must be logged in to report content.')),
+        const SnackBar(content: Text('신고하려면 로그인하세요.')),
       );
       return;
     }

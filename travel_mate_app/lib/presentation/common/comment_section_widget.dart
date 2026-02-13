@@ -49,11 +49,11 @@ class _CommentSectionWidgetState extends State<CommentSectionWidget> {
         // _comments = fetchedComments;
         _isLoading = false;
         // Simulate no comments
-        _errorMessage = 'No comments yet. Be the first to comment!';
+        _errorMessage = '아직 댓글이 없습니다. 첫 댓글을 남겨 보세요!';
       });
     } catch (e) {
       setState(() {
-        _errorMessage = 'Failed to load comments: ${e.toString()}';
+        _errorMessage = '댓글을 불러오지 못했습니다: ${e.toString()}';
         _isLoading = false;
       });
     }
@@ -62,7 +62,7 @@ class _CommentSectionWidgetState extends State<CommentSectionWidget> {
   Future<void> _addComment() async {
     if (_commentController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Comment cannot be empty')),
+        const SnackBar(content: Text('댓글을 입력하세요.')),
       );
       return;
     }
@@ -70,7 +70,7 @@ class _CommentSectionWidgetState extends State<CommentSectionWidget> {
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('You must be logged in to comment.')),
+        const SnackBar(content: Text('댓글을 쓰려면 로그인하세요.')),
       );
       return;
     }
@@ -86,14 +86,14 @@ class _CommentSectionWidgetState extends State<CommentSectionWidget> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Comment added successfully!')),
+          const SnackBar(content: Text('댓글이 등록되었습니다.')),
         );
         _commentController.clear();
         _loadComments(); // Reload comments to show the new one
       }
     } catch (e) {
       setState(() {
-        _errorMessage = 'Failed to add comment: ${e.toString()}';
+        _errorMessage = '댓글 등록 실패: ${e.toString()}';
       });
     } finally {
       setState(() {
@@ -114,7 +114,7 @@ class _CommentSectionWidgetState extends State<CommentSectionWidget> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Comments',
+          '댓글',
           style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: AppConstants.spacingMedium),
@@ -136,7 +136,7 @@ class _CommentSectionWidgetState extends State<CommentSectionWidget> {
                 itemBuilder: (context, index) {
                   return CommentItem(
                     author: 'Commenter ${index + 1}',
-                    content: 'This is a sample comment ${index + 1}.',
+                    content: '샘플 댓글 ${index + 1}.',
                     time: '5 min ago',
                     isReply: index == 1, // Simulate a reply
                   );
@@ -146,7 +146,7 @@ class _CommentSectionWidgetState extends State<CommentSectionWidget> {
         TextField(
           controller: _commentController,
           decoration: InputDecoration(
-            hintText: 'Add a comment...',
+            hintText: '댓글을 입력하세요...',
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppConstants.borderRadius),
               borderSide: BorderSide.none,
@@ -225,7 +225,7 @@ class CommentItem extends StatelessWidget {
                     // TODO: Implement reply functionality (e.g., show reply input)
                   },
                   child: Text(
-                    'Reply',
+                    '답글',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.accent, fontWeight: FontWeight.bold),
                   ),
                 ),

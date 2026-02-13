@@ -54,7 +54,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
 
     if (_currentUser == null) {
       setState(() {
-        _errorMessage = 'User not logged in. Cannot send message.';
+        _errorMessage = '로그인한 후 메시지를 보낼 수 있습니다.';
       });
       return;
     }
@@ -85,7 +85,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       }
     } catch (e) {
       setState(() {
-        _errorMessage = 'Failed to send message: ${e.toString()}';
+        _errorMessage = '메시지 전송 실패: ${e.toString()}';
       });
     } finally {
       setState(() {
@@ -220,7 +220,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                   child: TextField(
                     controller: _messageController,
                     decoration: InputDecoration(
-                      hintText: 'Type a message...',
+                      hintText: '메시지를 입력하세요...',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(AppConstants.borderRadius),
                         borderSide: BorderSide.none,

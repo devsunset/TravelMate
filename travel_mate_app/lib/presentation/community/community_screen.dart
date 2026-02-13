@@ -8,6 +8,7 @@ import 'package:travel_mate_app/app/constants.dart';
 import 'package:travel_mate_app/domain/entities/post.dart';
 import 'package:travel_mate_app/domain/usecases/get_posts.dart';
 import 'package:travel_mate_app/presentation/common/app_app_bar.dart';
+import 'package:travel_mate_app/presentation/common/empty_state_widget.dart';
 
 /// 커뮤니티 게시글 목록 화면. 글쓰기·상세 이동.
 class CommunityScreen extends StatefulWidget {
@@ -20,6 +21,7 @@ class CommunityScreen extends StatefulWidget {
 class _CommunityScreenState extends State<CommunityScreen> {
   bool _isLoading = false;
   String? _errorMessage;
+  bool _isEmpty = false;
   List<Post> _posts = [];
 
   @override
@@ -32,6 +34,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
     setState(() {
       _isLoading = true;
       _errorMessage = null;
+      _isEmpty = false;
     });
 
     try {
@@ -41,14 +44,14 @@ class _CommunityScreenState extends State<CommunityScreen> {
       setState(() {
         _posts = fetchedPosts;
         _isLoading = false;
-        if (_posts.isEmpty) {
-          _errorMessage = 'No posts yet. Be the first to share your travel story!';
-        }
+        _errorMessage = null;
+        _isEmpty = _posts.isEmpty;
       });
     } catch (e) {
       setState(() {
-        _errorMessage = 'Failed to load posts: ${e.toString()}';
+        _errorMessage = '글 목록을 불러오지 못했습니다.';
         _isLoading = false;
+        _isEmpty = false;
       });
     }
   }
@@ -67,18 +70,22 @@ class _CommunityScreenState extends State<CommunityScreen> {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : _errorMessage != null
-              ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(AppConstants.paddingMedium),
-                    child: Text(
-                      _errorMessage!,
-                      style: const TextStyle(color: Colors.red),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
+          : _isEmpty
+              ? EmptyStateWidget(
+                  icon: Icons.article_outlined,
+                  title: '아직 글이 없어요',
+                  subtitle: '첫 여행 이야기를 공유해 보세요!',
+                  actionLabel: '글쓰기',
+                  onAction: () => context.go('/community/post/new'),
                 )
-              : RefreshIndicator(
+              : _errorMessage != null
+                  ? EmptyStateWidget(
+                      icon: Icons.cloud_off_rounded,
+                      title: _errorMessage!,
+                      isError: true,
+                      onRetry: _loadPosts,
+                    )
+                  : RefreshIndicator(
                   onRefresh: _loadPosts,
                   child: ListView.builder(
                     itemCount: _posts.length,
@@ -102,7 +109,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                   child: Icon(Icons.image_not_supported),
                                 ),
                           title: Text(post.title),
-                          subtitle: Text('Category: ${post.category} - Posted by ${post.authorId}'), // TODO: Display author's nickname
+                          subtitle: Text('${post.category} · ${post.authorId}'),
                           trailing: const Icon(Icons.arrow_forward_ios),
                           onTap: () {
                             context.go('/community/post/${post.id}'); // Navigate to post detail

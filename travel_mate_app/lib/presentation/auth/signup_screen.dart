@@ -49,14 +49,14 @@ class _SignupScreenState extends State<SignupScreen> {
           context.go('/'); // Redirect to home after successful signup
         } else {
           setState(() {
-            _errorMessage = 'Registration failed. Please try again.';
+            _errorMessage = '회원가입에 실패했습니다. 다시 시도해 주세요.';
           });
         }
       } catch (e) {
         setState(() {
           _errorMessage = e.toString().contains('firebase_auth')
-              ? 'Registration failed. Please try again.'
-              : 'An unexpected error occurred: ${e.toString()}';
+              ? '회원가입에 실패했습니다. 다시 시도해 주세요.'
+              : '오류가 발생했습니다: ${e.toString()}';
         });
       } finally {
         setState(() {
@@ -79,7 +79,7 @@ class _SignupScreenState extends State<SignupScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  'Create Your Account',
+                  '계정 만들기',
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                     color: AppColors.primary,
                     fontWeight: FontWeight.bold,
@@ -89,8 +89,8 @@ class _SignupScreenState extends State<SignupScreen> {
                 TextFormField(
                   controller: _emailController,
                   decoration: InputDecoration(
-                    labelText: 'Email',
-                    hintText: 'Enter your email',
+                    labelText: '이메일',
+                    hintText: '이메일을 입력하세요',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(AppConstants.borderRadius),
                     ),
@@ -99,10 +99,10 @@ class _SignupScreenState extends State<SignupScreen> {
                   keyboardType: TextInputType.emailAddress,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your email';
+                      return '이메일을 입력하세요';
                     }
                     if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
-                      return 'Please enter a valid email address';
+                      return '올바른 이메일 주소를 입력하세요';
                     }
                     return null;
                   },
@@ -112,8 +112,8 @@ class _SignupScreenState extends State<SignupScreen> {
                   controller: _passwordController,
                   obscureText: true,
                   decoration: InputDecoration(
-                    labelText: 'Password',
-                    hintText: 'Enter your password',
+                    labelText: '비밀번호',
+                    hintText: '비밀번호를 입력하세요',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(AppConstants.borderRadius),
                     ),
@@ -121,10 +121,10 @@ class _SignupScreenState extends State<SignupScreen> {
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your password';
+                      return '비밀번호를 입력하세요';
                     }
                     if (value.length < 6) {
-                      return 'Password must be at least 6 characters long';
+                      return '비밀번호는 6자 이상이어야 합니다';
                     }
                     return null;
                   },
@@ -134,8 +134,8 @@ class _SignupScreenState extends State<SignupScreen> {
                   controller: _confirmPasswordController,
                   obscureText: true,
                   decoration: InputDecoration(
-                    labelText: 'Confirm Password',
-                    hintText: 'Re-enter your password',
+                    labelText: '비밀번호 확인',
+                    hintText: '비밀번호를 다시 입력하세요',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(AppConstants.borderRadius),
                     ),
@@ -143,10 +143,10 @@ class _SignupScreenState extends State<SignupScreen> {
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please confirm your password';
+                      return '비밀번호 확인을 입력하세요';
                     }
                     if (value != _passwordController.text) {
-                      return 'Passwords do not match';
+                      return '비밀번호가 일치하지 않습니다';
                     }
                     return null;
                   },
@@ -157,7 +157,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     padding: const EdgeInsets.only(bottom: AppConstants.paddingMedium),
                     child: Text(
                       _errorMessage!,
-                      style: const TextStyle(color: Colors.red),
+                      style: TextStyle(color: AppColors.error),
                     ),
                   ),
                 _isLoading
@@ -174,7 +174,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       ),
                     ),
                     child: Text(
-                      'Sign Up',
+                      '회원가입',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
@@ -186,13 +186,11 @@ class _SignupScreenState extends State<SignupScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text("Already have an account?"),
+                    const Text('이미 계정이 있으신가요?'),
                     TextButton(
-                      onPressed: () {
-                        context.go('/login'); // Navigate back to login
-                      },
+                      onPressed: () => context.go('/login'),
                       child: Text(
-                        'Login',
+                        '로그인',
                         style: TextStyle(color: AppColors.accent),
                       ),
                     ),

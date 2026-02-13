@@ -49,7 +49,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
       });
     } catch (e) {
       setState(() {
-        _errorMessage = 'Failed to load post: ${e.toString()}';
+        _errorMessage = '글을 불러오지 못했습니다: ${e.toString()}';
         _isLoading = false;
       });
     }
@@ -59,19 +59,19 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     final bool? confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Post'),
+        title: const Text('글 삭제'),
         content: const Text(
-          'Are you sure you want to delete this post? This action cannot be undone.',
+          '이 글을 삭제하시겠습니까? 삭제된 글은 복구할 수 없습니다.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: const Text('취소'),
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Delete', style: TextStyle(color: Colors.white)),
+            child: const Text('삭제', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -89,13 +89,13 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Post deleted successfully!')),
+            const SnackBar(content: Text('글이 삭제되었습니다.')),
           );
           context.go('/community'); // Go back to community list
         }
       } catch (e) {
         setState(() {
-          _errorMessage = 'Failed to delete post: ${e.toString()}';
+          _errorMessage = '글 삭제 실패: ${e.toString()}';
         });
       } finally {
         setState(() {
@@ -147,7 +147,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
               : _post == null
                   ? Center(
                       child: Text(
-                        'Post not found.',
+                        '글을 찾을 수 없습니다.',
                         style: Theme.of(context).textTheme.titleLarge,
                       ),
                     )
@@ -200,7 +200,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                             style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: AppConstants.spacingMedium),
-                          Text('No comments yet.', style: Theme.of(context).textTheme.bodyMedium),
+                          Text('아직 댓글이 없습니다.', style: Theme.of(context).textTheme.bodyMedium),
                         ],
                       ),
                     ),

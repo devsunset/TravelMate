@@ -61,7 +61,7 @@ class _ItineraryDetailScreenState extends State<ItineraryDetailScreen> {
             return Marker(
               markerId: MarkerId(latLng.toString()),
               position: latLng,
-              infoWindow: InfoWindow(title: 'Location: ${latLng.latitude.toStringAsFixed(2)}, ${latLng.longitude.toStringAsFixed(2)}'),
+              infoWindow: InfoWindow(title: '위치: ${latLng.latitude.toStringAsFixed(2)}, ${latLng.longitude.toStringAsFixed(2)}'),
             );
           }).toSet();
           if (_markers.isNotEmpty) {
@@ -71,7 +71,7 @@ class _ItineraryDetailScreenState extends State<ItineraryDetailScreen> {
       });
     } catch (e) {
       setState(() {
-        _errorMessage = 'Failed to load itinerary: ${e.toString()}';
+        _errorMessage = '일정을 불러오지 못했습니다: ${e.toString()}';
         _isLoading = false;
       });
     }
@@ -81,19 +81,19 @@ class _ItineraryDetailScreenState extends State<ItineraryDetailScreen> {
     final bool? confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Itinerary'),
+        title: const Text('일정 삭제'),
         content: const Text(
-          'Are you sure you want to delete this itinerary? This action cannot be undone.',
+          '이 일정을 삭제하시겠습니까? 삭제된 일정은 복구할 수 없습니다.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: const Text('취소'),
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Delete', style: TextStyle(color: Colors.white)),
+            child: const Text('삭제', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -111,13 +111,13 @@ class _ItineraryDetailScreenState extends State<ItineraryDetailScreen> {
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Itinerary deleted successfully!')),
+            const SnackBar(content: Text('일정이 삭제되었습니다.')),
           );
           context.go('/itinerary'); // Go back to itinerary list
         }
       } catch (e) {
         setState(() {
-          _errorMessage = 'Failed to delete itinerary: ${e.toString()}';
+          _errorMessage = '일정 삭제 실패: ${e.toString()}';
         });
       } finally {
         setState(() {
@@ -166,7 +166,7 @@ class _ItineraryDetailScreenState extends State<ItineraryDetailScreen> {
               : _itinerary == null
                   ? Center(
                       child: Text(
-                        'Itinerary not found.',
+                        '일정을 찾을 수 없습니다.',
                         style: Theme.of(context).textTheme.titleLarge,
                       ),
                     )
@@ -181,7 +181,7 @@ class _ItineraryDetailScreenState extends State<ItineraryDetailScreen> {
                           ),
                           const SizedBox(height: AppConstants.spacingSmall),
                           Text(
-                            'Author: ${_itinerary!.authorId} - ${_itinerary!.startDate.toLocal().toString().split(' ')[0]} to ${_itinerary!.endDate.toLocal().toString().split(' ')[0]}',
+                            '${_itinerary!.startDate.toLocal().toString().split(' ')[0]} ~ ${_itinerary!.endDate.toLocal().toString().split(' ')[0]}',
                             style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
                           ),
                           const SizedBox(height: AppConstants.spacingMedium),
@@ -215,7 +215,7 @@ class _ItineraryDetailScreenState extends State<ItineraryDetailScreen> {
                           ),
                           const SizedBox(height: AppConstants.spacingLarge),
                           Text(
-                            'Map View',
+                            '지도 보기',
                             style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: AppConstants.spacingMedium),
@@ -236,19 +236,19 @@ class _ItineraryDetailScreenState extends State<ItineraryDetailScreen> {
                           ),
                           const SizedBox(height: AppConstants.spacingLarge),
                           Text(
-                            'Daily Schedule (Placeholder)',
+                            '일별 일정',
                             style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: AppConstants.spacingMedium),
-                          Text('No daily schedule details yet.', style: Theme.of(context).textTheme.bodyLarge),
+                          Text('아직 일별 일정이 없습니다.', style: Theme.of(context).textTheme.bodyLarge),
                           // TODO: Integrate comments section here
                           const SizedBox(height: AppConstants.spacingLarge),
                           Text(
-                            'Comments (Placeholder)',
+                            '댓글',
                             style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: AppConstants.spacingMedium),
-                          Text('No comments yet.', style: Theme.of(context).textTheme.bodyMedium),
+                          Text('아직 댓글이 없습니다.', style: Theme.of(context).textTheme.bodyMedium),
                         ],
                       ),
                     ),

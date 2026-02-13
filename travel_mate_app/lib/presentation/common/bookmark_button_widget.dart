@@ -38,7 +38,7 @@ class _BookmarkButtonWidgetState extends State<BookmarkButtonWidget> {
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('You must be logged in to bookmark content.')),
+        const SnackBar(content: Text('북마크하려면 로그인하세요.')),
       );
       return;
     }
@@ -68,7 +68,7 @@ class _BookmarkButtonWidgetState extends State<BookmarkButtonWidget> {
         _isBookmarked = !_isBookmarked;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to toggle bookmark: ${e.toString()}')),
+        SnackBar(content: Text('북마크 변경 실패: ${e.toString()}')),
       );
     } finally {
       setState(() {

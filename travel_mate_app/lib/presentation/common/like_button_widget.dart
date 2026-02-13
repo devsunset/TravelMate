@@ -42,7 +42,7 @@ class _LikeButtonWidgetState extends State<LikeButtonWidget> {
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('You must be logged in to like content.')),
+        const SnackBar(content: Text('좋아요하려면 로그인하세요.')),
       );
       return;
     }
@@ -74,7 +74,7 @@ class _LikeButtonWidgetState extends State<LikeButtonWidget> {
         _likeCount += _isLiked ? 1 : -1;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to toggle like: ${e.toString()}')),
+        SnackBar(content: Text('좋아요 변경 실패: ${e.toString()}')),
       );
     } finally {
       setState(() {

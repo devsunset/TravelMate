@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -68,7 +69,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     try {
       final currentUser = FirebaseAuth.instance.currentUser;
       if (currentUser == null) {
-        throw Exception('User not logged in.');
+        throw Exception('로그인이 필요합니다.');
       }
       final getUserProfile = Provider.of<GetUserProfile>(context, listen: false);
       final profile = await getUserProfile.execute(currentUser.uid);
@@ -84,7 +85,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     } catch (e) {
       setState(() {
         _errorMessage = '프로필 로드 실패: ${e.toString()}';
-        debugPrint('═══ [프로필 수정] 에러 로그 ═══\n$_errorMessage\n${StackTrace.current}\n══════════════════════════════');
+        developer.log('프로필 수정 에러: $_errorMessage\n${StackTrace.current}', name: 'ProfileEdit', level: 1000);
       });
     } finally {
       setState(() {
@@ -114,7 +115,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       try {
         final currentUser = FirebaseAuth.instance.currentUser;
         if (currentUser == null) {
-          throw Exception('User not logged in.');
+          throw Exception('로그인이 필요합니다.');
         }
 
         String? newImageUrl = _currentProfileImageUrl;
@@ -140,13 +141,13 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Profile updated successfully!')),
+            const SnackBar(content: Text('프로필이 저장되었습니다.')),
           );
           context.pop(); // Go back to profile detail screen
         }
       } catch (e) {
         setState(() {
-          _errorMessage = 'Failed to save profile: ${e.toString()}';
+          _errorMessage = '프로필 저장 실패: ${e.toString()}';
         });
       } finally {
         setState(() {
@@ -211,12 +212,12 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                     TextFormField(
                       controller: _nicknameController,
                       decoration: const InputDecoration(
-                        labelText: 'Nickname',
+                        labelText: '닉네임',
                         prefixIcon: Icon(Icons.person_outline),
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Please enter your nickname';
+                          return '닉네임을 입력하세요';
                         }
                         return null;
                       },
@@ -225,7 +226,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                     TextFormField(
                       controller: _bioController,
                       decoration: const InputDecoration(
-                        labelText: 'Bio',
+                        labelText: '소개',
                         prefixIcon: Icon(Icons.description),
                       ),
                       maxLines: 3,
@@ -234,7 +235,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                     DropdownButtonFormField<String>(
                       value: _gender != null && _genders.contains(_gender) ? _gender : null,
                       decoration: const InputDecoration(
-                        labelText: 'Gender',
+                        labelText: '성별',
                         prefixIcon: Icon(Icons.wc),
                       ),
                       items: _genders.map((String gender) {
@@ -248,7 +249,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                           _gender = newValue;
                         });
                       },
-                      validator: (value) => value == null ? 'Please select your gender' : null,
+                      validator: (value) => value == null ? '성별을 선택하세요' : null,
                     ),
                     const SizedBox(height: AppConstants.spacingMedium),
                     DropdownButtonFormField<String>(
@@ -268,7 +269,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                           _ageRange = newValue;
                         });
                       },
-                      validator: (value) => value == null ? 'Please select your age range' : null,
+                      validator: (value) => value == null ? '연령대를 선택하세요' : null,
                     ),
                     const SizedBox(height: AppConstants.spacingMedium),
                     TextFormField(
@@ -357,7 +358,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                             child: ElevatedButton(
                               onPressed: _saveProfile,
                               child: Text(
-                                'Save Profile',
+                                '프로필 저장',
                                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                                       color: Colors.white,
                                       fontWeight: FontWeight.bold,
