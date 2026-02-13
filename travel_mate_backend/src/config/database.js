@@ -8,7 +8,15 @@ const dotenv = require('dotenv');
 const path = require('path');
 
 // .env 파일에서 환경 변수 로드 (travel_mate_backend 루트 기준)
-dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+const envFile = process.env.NODE_ENV ? `.env.${process.env.NODE_ENV}` : '.env';
+const envPath = path.resolve(__dirname, '../../', envFile);
+dotenv.config({ path: envPath });
+
+// 기본 .env 파일도 로드하여 환경별 파일에 없는 변수는 기본값 사용
+const defaultEnvPath = path.resolve(__dirname, '../../.env');
+if (fs.existsSync(defaultEnvPath)) {
+  dotenv.config({ path: defaultEnvPath, override: true });
+}
 
 const sequelize = new Sequelize(
   process.env.DB_NAME,

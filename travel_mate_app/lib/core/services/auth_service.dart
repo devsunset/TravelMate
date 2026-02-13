@@ -3,7 +3,8 @@ import 'dart:developer' as developer;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // Keep this for now in case other parts use it
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:travel_mate_app/app/constants.dart';
 
 class AuthService {
@@ -11,24 +12,23 @@ class AuthService {
   final GoogleSignIn _googleSignIn = kIsWeb && AppConstants.googleSignInWebClientId != null
       ? GoogleSignIn(clientId: AppConstants.googleSignInWebClientId)
       : GoogleSignIn();
+  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
   /// 인증 상태 스트림(로그인/로그아웃 시 갱신).
   Stream<User?> get user => _firebaseAuth.authStateChanges();
 
-  /// Firebase ID 토큰을 SharedPreferences에 저장 또는 삭제.
+  /// Firebase ID 토큰을 보안 저장소에 저장 또는 삭제.
   Future<void> _storeIdToken(String? token) async {
-    final prefs = await SharedPreferences.getInstance();
     if (token != null) {
-      await prefs.setString('firebase_id_token', token);
+      await _secureStorage.write(key: 'firebase_id_token', value: token);
     } else {
-      await prefs.remove('firebase_id_token');
+      await _secureStorage.delete(key: 'firebase_id_token');
     }
   }
 
-  /// SharedPreferences에 저장된 Firebase ID 토큰 조회.
+  /// 보안 저장소에 저장된 Firebase ID 토큰 조회.
   Future<String?> getIdToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('firebase_id_token');
+    return await _secureStorage.read(key: 'firebase_id_token');
   }
 
   /// 이메일·비밀번호 로그인. 실패 시 null.
@@ -92,6 +92,16 @@ class AuthService {
       await _storeIdToken(null);
     } catch (e) {
       developer.log(e.toString(), name: 'Auth', level: 1000);
+    }
+  }
+
+  /// 비밀번호 재설정 이메일 전송.
+  Future<void> sendPasswordResetEmail(String email) async {
+    try {
+      await _firebaseAuth.sendPasswordResetEmail(email: email);
+    } catch (e) {
+      developer.log(e.toString(), name: 'Auth', level: 1000);
+      rethrow; // 재설정 이메일 실패 시 에러를 다시 던져 UI에서 처리할 수 있도록 함
     }
   }
 }

@@ -18,40 +18,12 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
 
   @override
   Future<void> createUserProfile(UserProfile userProfile) async {
-    if (userProfile is UserProfileModel) {
-      await remoteDataSource.createUserProfile(userProfile);
-    } else {
-      await remoteDataSource.createUserProfile(UserProfileModel(
-        userId: userProfile.userId,
-        nickname: userProfile.nickname,
-        bio: userProfile.bio,
-        profileImageUrl: userProfile.profileImageUrl,
-        gender: userProfile.gender,
-        ageRange: userProfile.ageRange,
-        travelStyles: userProfile.travelStyles,
-        interests: userProfile.interests,
-        preferredDestinations: userProfile.preferredDestinations,
-      ));
-    }
+    await remoteDataSource.createUserProfile(UserProfileModel.fromEntity(userProfile));
   }
 
   @override
   Future<void> updateUserProfile(UserProfile userProfile) async {
-    if (userProfile is UserProfileModel) {
-      await remoteDataSource.updateUserProfile(userProfile);
-    } else {
-      await remoteDataSource.updateUserProfile(UserProfileModel(
-        userId: userProfile.userId,
-        nickname: userProfile.nickname,
-        bio: userProfile.bio,
-        profileImageUrl: userProfile.profileImageUrl,
-        gender: userProfile.gender,
-        ageRange: userProfile.ageRange,
-        travelStyles: userProfile.travelStyles,
-        interests: userProfile.interests,
-        preferredDestinations: userProfile.preferredDestinations,
-      ));
-    }
+    await remoteDataSource.updateUserProfile(UserProfileModel.fromEntity(userProfile));
   }
 
   @override

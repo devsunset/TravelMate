@@ -188,9 +188,31 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: AppConstants.spacingMedium),
                 TextButton(
-                  onPressed: () {
-                    // TODO: Implement forgot password logic
-                    print('Forgot Password?');
+                  onPressed: () async {
+                    if (_emailController.text.isEmpty || !RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(_emailController.text)) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('비밀번호 재설정을 위해 유효한 이메일을 입력해주세요.')),
+                      );
+                      return;
+                    }
+                    try {
+                      setState(() {
+                        _isLoading = true;
+                      });
+                      await Provider.of<AuthService>(context, listen: false)
+                          .sendPasswordResetEmail(_emailController.text.trim());
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('비밀번호 재설정 이메일을 보냈습니다. 이메일을 확인해주세요.')),
+                      );
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('비밀번호 재설정 실패: ${e.toString()}')),
+                      );
+                    } finally {
+                      setState(() {
+                        _isLoading = false;
+                      });
+                    }
                   },
                   child: Text(
                     '비밀번호를 잊으셨나요?',

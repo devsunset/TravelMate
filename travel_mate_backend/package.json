@@ -4,7 +4,13 @@
   "main": "index.js",
   "scripts": {
     "start": "node src/app.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "security:audit": "npm audit"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
   },
   "keywords": [],
   "author": "",

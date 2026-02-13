@@ -34,19 +34,21 @@ class UserProfileModel extends UserProfile {
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'userId': userId,
-      'nickname': nickname,
-      'bio': bio,
-      'profileImageUrl': profileImageUrl,
-      'gender': gender,
-      'ageRange': ageRange,
-      'travelStyles': travelStyles,
-      'interests': interests,
-      'preferredDestinations': preferredDestinations,
-    };
+  factory UserProfileModel.fromEntity(UserProfile entity) {
+    return UserProfileModel(
+      userId: entity.userId,
+      nickname: entity.nickname,
+      bio: entity.bio,
+      profileImageUrl: entity.profileImageUrl,
+      gender: entity.gender,
+      ageRange: entity.ageRange,
+      travelStyles: entity.travelStyles,
+      interests: entity.interests,
+      preferredDestinations: entity.preferredDestinations,
+    );
   }
+
+
 
   @override
   UserProfileModel copyWith({

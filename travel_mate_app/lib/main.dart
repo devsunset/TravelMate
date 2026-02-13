@@ -55,6 +55,13 @@ import 'package:travel_mate_app/domain/usecases/upload_itinerary_image.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // --dart-define을 통해 전달된 환경 변수 설정
+  const String apiUrl = String.fromEnvironment('API_BASE_URL', defaultValue: 'http://localhost:3000');
+  const String? googleClientId = String.fromEnvironment('GOOGLE_SIGN_IN_WEB_CLIENT_ID', defaultValue: null);
+
+  AppConstants.setApiBaseUrl(apiUrl);
+  AppConstants.setGoogleSignInWebClientId(googleClientId);
+
   // 에러 발생 시 콘솔에 error 레벨로 로그 출력. 화면에는 간단 안내만 표시.
   FlutterError.onError = (FlutterErrorDetails details) {
     FlutterError.presentError(details);
@@ -97,18 +104,11 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
-        Provider<Dio>(
-          create: (_) => Dio(),
-        ),
-        Provider<FirebaseMessaging>(
-          create: (_) => FirebaseMessaging.instance,
-        ),
-        Provider<FirebaseFirestore>(
-          create: (_) => FirebaseFirestore.instance,
-        ),
-        Provider<AuthService>(
-          create: (_) => AuthService(),
-        ),
+        // Core Services Providers
+        Provider<Dio>(create: (_) => Dio()),
+        Provider<FirebaseMessaging>(create: (_) => FirebaseMessaging.instance),
+        Provider<FirebaseFirestore>(create: (_) => FirebaseFirestore.instance),
+        Provider<AuthService>(create: (_) => AuthService()),
         StreamProvider<User?>(
           create: (context) => context.read<AuthService>().user,
           initialData: null,
@@ -120,112 +120,58 @@ void main() async {
             dio: context.read<Dio>(),
           ),
         ),
-        Provider<ProfileRemoteDataSource>(
-          create: (context) => ProfileRemoteDataSource(dio: context.read<Dio>()),
-        ),
-        Provider<MessageRemoteDataSource>(
-          create: (context) => MessageRemoteDataSource(dio: context.read<Dio>()),
-        ),
+
+        // Remote Data Source Providers
+        Provider<ProfileRemoteDataSource>(create: (context) => ProfileRemoteDataSource(dio: context.read<Dio>())),
+        Provider<MessageRemoteDataSource>(create: (context) => MessageRemoteDataSource(dio: context.read<Dio>())),
         Provider<ChatRemoteDataSource>(
           create: (context) => ChatRemoteDataSource(
             firestore: context.read<FirebaseFirestore>(),
             firebaseAuth: FirebaseAuth.instance,
           ),
         ),
-        Provider<PostRemoteDataSource>(
-          create: (context) => PostRemoteDataSource(dio: context.read<Dio>()),
-        ),
-        Provider<ItineraryRemoteDataSource>(
-          create: (context) => ItineraryRemoteDataSource(dio: context.read<Dio>()),
-        ),
+        Provider<PostRemoteDataSource>(create: (context) => PostRemoteDataSource(dio: context.read<Dio>())),
+        Provider<ItineraryRemoteDataSource>(create: (context) => ItineraryRemoteDataSource(dio: context.read<Dio>())),
+
+        // Repository Providers
         Provider<UserProfileRepository>(
-          create: (context) => UserProfileRepositoryImpl(
-            remoteDataSource: context.read<ProfileRemoteDataSource>(),
-          ),
+          create: (context) => UserProfileRepositoryImpl(remoteDataSource: context.read<ProfileRemoteDataSource>()),
         ),
-        Provider<TagRepository>(
-          create: (_) => TagRepositoryImpl(),
-        ),
+        Provider<TagRepository>(create: (_) => TagRepositoryImpl()),
         Provider<MessageRepository>(
-          create: (context) => MessageRepositoryImpl(
-            remoteDataSource: context.read<MessageRemoteDataSource>(),
-          ),
+          create: (context) => MessageRepositoryImpl(remoteDataSource: context.read<MessageRemoteDataSource>()),
         ),
         Provider<ChatRepository>(
-          create: (context) => ChatRepositoryImpl(
-            remoteDataSource: context.read<ChatRemoteDataSource>(),
-          ),
+          create: (context) => ChatRepositoryImpl(remoteDataSource: context.read<ChatRemoteDataSource>()),
         ),
         Provider<PostRepository>(
-          create: (context) => PostRepositoryImpl(
-            remoteDataSource: context.read<PostRemoteDataSource>(),
-          ),
+          create: (context) => PostRepositoryImpl(remoteDataSource: context.read<PostRemoteDataSource>()),
         ),
         Provider<ItineraryRepository>(
-          create: (context) => ItineraryRepositoryImpl(
-            remoteDataSource: context.read<ItineraryRemoteDataSource>(),
-          ),
+          create: (context) => ItineraryRepositoryImpl(remoteDataSource: context.read<ItineraryRemoteDataSource>()),
         ),
-        Provider<GetUserProfile>(
-          create: (context) => GetUserProfile(context.read<UserProfileRepository>()),
-        ),
-        Provider<CreateUserProfile>(
-          create: (context) => CreateUserProfile(context.read<UserProfileRepository>()),
-        ),
-        Provider<UpdateUserProfile>(
-          create: (context) => UpdateUserProfile(context.read<UserProfileRepository>()),
-        ),
-        Provider<UploadProfileImage>(
-          create: (context) => UploadProfileImage(context.read<UserProfileRepository>()),
-        ),
-        Provider<GetTags>(
-          create: (context) => GetTags(context.read<TagRepository>()),
-        ),
-        Provider<SendPrivateMessage>(
-          create: (context) => SendPrivateMessage(context.read<MessageRepository>()),
-        ),
-        Provider<GetChatMessages>(
-          create: (context) => GetChatMessages(context.read<ChatRepository>()),
-        ),
-        Provider<SendChatMessage>(
-          create: (context) => SendChatMessage(context.read<ChatRepository>()),
-        ),
-        Provider<GetPosts>(
-          create: (context) => GetPosts(context.read<PostRepository>()),
-        ),
-        Provider<GetPost>(
-          create: (context) => GetPost(context.read<PostRepository>()),
-        ),
-        Provider<CreatePost>(
-          create: (context) => CreatePost(context.read<PostRepository>()),
-        ),
-        Provider<UpdatePost>(
-          create: (context) => UpdatePost(context.read<PostRepository>()),
-        ),
-        Provider<DeletePost>(
-          create: (context) => DeletePost(context.read<PostRepository>()),
-        ),
-        Provider<UploadPostImage>(
-          create: (context) => UploadPostImage(context.read<PostRepository>()),
-        ),
-        Provider<GetItineraries>(
-          create: (context) => GetItineraries(context.read<ItineraryRepository>()),
-        ),
-        Provider<GetItinerary>(
-          create: (context) => GetItinerary(context.read<ItineraryRepository>()),
-        ),
-        Provider<CreateItinerary>(
-          create: (context) => CreateItinerary(context.read<ItineraryRepository>()),
-        ),
-        Provider<UpdateItinerary>(
-          create: (context) => UpdateItinerary(context.read<ItineraryRepository>()),
-        ),
-        Provider<DeleteItinerary>(
-          create: (context) => DeleteItinerary(context.read<ItineraryRepository>()),
-        ),
-        Provider<UploadItineraryImage>(
-          create: (context) => UploadItineraryImage(context.read<ItineraryRepository>()),
-        ),
+
+        // UseCase Providers
+        Provider<GetUserProfile>(create: (context) => GetUserProfile(context.read<UserProfileRepository>())),
+        Provider<CreateUserProfile>(create: (context) => CreateUserProfile(context.read<UserProfileRepository>())),
+        Provider<UpdateUserProfile>(create: (context) => UpdateUserProfile(context.read<UserProfileRepository>())),
+        Provider<UploadProfileImage>(create: (context) => UploadProfileImage(context.read<UserProfileRepository>())),
+        Provider<GetTags>(create: (context) => GetTags(context.read<TagRepository>())),
+        Provider<SendPrivateMessage>(create: (context) => SendPrivateMessage(context.read<MessageRepository>())),
+        Provider<GetChatMessages>(create: (context) => GetChatMessages(context.read<ChatRepository>())),
+        Provider<SendChatMessage>(create: (context) => SendChatMessage(context.read<ChatRepository>())),
+        Provider<GetPosts>(create: (context) => GetPosts(context.read<PostRepository>())),
+        Provider<GetPost>(create: (context) => GetPost(context.read<PostRepository>())),
+        Provider<CreatePost>(create: (context) => CreatePost(context.read<PostRepository>())),
+        Provider<UpdatePost>(create: (context) => UpdatePost(context.read<PostRepository>())),
+        Provider<DeletePost>(create: (context) => DeletePost(context.read<PostRepository>())),
+        Provider<UploadPostImage>(create: (context) => UploadPostImage(context.read<PostRepository>())),
+        Provider<GetItineraries>(create: (context) => GetItineraries(context.read<ItineraryRepository>())),
+        Provider<GetItinerary>(create: (context) => GetItinerary(context.read<ItineraryRepository>())),
+        Provider<CreateItinerary>(create: (context) => CreateItinerary(context.read<ItineraryRepository>())),
+        Provider<UpdateItinerary>(create: (context) => UpdateItinerary(context.read<ItineraryRepository>())),
+        Provider<DeleteItinerary>(create: (context) => DeleteItinerary(context.read<ItineraryRepository>())),
+        Provider<UploadItineraryImage>(create: (context) => UploadItineraryImage(context.read<ItineraryRepository>())),
       ],
       child: const FCMInitializer(child: TravelMateApp()),
     ),

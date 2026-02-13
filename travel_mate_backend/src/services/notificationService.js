@@ -19,6 +19,11 @@ exports.sendFCM = async (receiverFirebaseUid, payload) => {
       return;
     }
 
+    // 페이로드 유효성 검사 및 정제
+    let title = typeof payload.title === 'string' ? payload.title.substring(0, 255) : '새 알림';
+    let body = typeof payload.body === 'string' ? payload.body.substring(0, 1024) : '새 알림이 도착했습니다.';
+    let data = payload.data && typeof payload.data === 'object' ? payload.data : {};
+
     const fcmTokens = await FcmToken.findAll({
       where: { userId: receiver.id },
       attributes: ['token'],
@@ -32,10 +37,10 @@ exports.sendFCM = async (receiverFirebaseUid, payload) => {
 
     const message = {
       notification: {
-        title: payload.title || '새 알림',
-        body: payload.body || '새 알림이 도착했습니다.',
+        title: title,
+        body: body,
       },
-      data: payload.data || {},
+      data: data,
       tokens,
     };
 

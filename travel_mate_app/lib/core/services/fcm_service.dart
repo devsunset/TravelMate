@@ -6,10 +6,13 @@ import 'package:dio/dio.dart';
 import 'package:travel_mate_app/app/constants.dart';
 import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
 
+import 'package:logger/logger.dart';
+
 class FcmService {
   final FirebaseMessaging _firebaseMessaging;
   final FirebaseAuth _firebaseAuth;
   final Dio _dio;
+  final Logger _logger = Logger();
 
   FcmService({FirebaseMessaging? firebaseMessaging, FirebaseAuth? firebaseAuth, Dio? dio})
       : _firebaseMessaging = firebaseMessaging ?? FirebaseMessaging.instance,
@@ -29,11 +32,11 @@ class FcmService {
     );
 
     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-      print('FCM: 알림 권한 허용됨');
+      _logger.i('FCM: 알림 권한 허용됨');
     } else if (settings.authorizationStatus == AuthorizationStatus.provisional) {
-      print('FCM: 임시 알림 권한 허용됨');
+      _logger.i('FCM: 임시 알림 권한 허용됨');
     } else {
-      print('FCM: 알림 권한 거부 또는 미응답');
+      _logger.w('FCM: 알림 권한 거부 또는 미응답');
       return;
     }
 
@@ -43,18 +46,19 @@ class FcmService {
     }
 
     _firebaseMessaging.onTokenRefresh.listen((newToken) async {
+      _logger.i('FCM 토큰 갱신됨: $newToken');
       await _sendFcmTokenToBackend(newToken);
     });
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      print('FCM: 포그라운드 메시지 수신: ${message.data}');
+      _logger.i('FCM: 포그라운드 메시지 수신: ${message.data}');
       if (message.notification != null) {
-        print('FCM: 알림: ${message.notification}');
+        _logger.i('FCM: 알림: ${message.notification}');
       }
     });
 
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      print('FCM: 알림 탭으로 앱 열림: ${message.data}');
+      _logger.i('FCM: 알림 탭으로 앱 열림: ${message.data}');
     });
   }
 
@@ -62,7 +66,7 @@ class FcmService {
   Future<void> _sendFcmTokenToBackend(String token) async {
     final currentUser = _firebaseAuth.currentUser;
     if (currentUser == null) {
-      print('FCM: 로그인되지 않아 토큰 전송 생략.');
+      _logger.w('FCM: 로그인되지 않아 토큰 전송 생략.');
       return;
     }
 
@@ -91,11 +95,11 @@ class FcmService {
           headers: {'Authorization': 'Bearer $idToken'},
         ),
       );
-      print('FCM 토큰 백엔드 전송 완료.');
+      _logger.i('FCM 토큰 백엔드 전송 완료.');
     } on DioException catch (e) {
-      developer.log('FCM 토큰 전송 실패: ${e.response?.data ?? e.message}', name: 'FCM', level: 1000);
+      _logger.e('FCM 토큰 전송 실패: ${e.response?.data ?? e.message}', error: e);
     } catch (e) {
-      developer.log('FCM 토큰 전송 오류: $e', name: 'FCM', level: 1000);
+      _logger.e('FCM 토큰 전송 오류: $e', error: e);
     }
   }
 }
