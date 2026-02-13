@@ -47,7 +47,7 @@ class _PostWriteScreenState extends State<PostWriteScreen> {
   @override
   void initState() {
     super.initState();
-    if (widget.postId != null) {
+    if (widget.postId != null && widget.postId!.isNotEmpty) {
       _loadPostForEditing();
     }
   }

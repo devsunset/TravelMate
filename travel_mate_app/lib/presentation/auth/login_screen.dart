@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
-import 'package:travel_mate_app/presentation/auth/signup_screen.dart';
 import 'package:travel_mate_app/app/theme.dart';
 import 'package:travel_mate_app/app/constants.dart';
 import 'package:travel_mate_app/core/services/auth_service.dart';
@@ -44,7 +43,7 @@ class _LoginScreenState extends State<LoginScreen> {
         );
 
         if (user != null) {
-          context.go('/'); // Navigate to home on success
+          if (mounted) context.go('/');
         } else {
           setState(() {
             _errorMessage = '로그인에 실패했습니다. 이메일과 비밀번호를 확인해 주세요.';
@@ -54,7 +53,7 @@ class _LoginScreenState extends State<LoginScreen> {
         setState(() {
           _errorMessage = e.toString().contains('firebase_auth')
               ? '이메일 또는 비밀번호가 올바르지 않습니다.'
-              : 'An unexpected error occurred: ${e.toString()}';
+              : '오류가 발생했습니다: ${e.toString()}';
         });
       } finally {
         setState(() {
@@ -75,7 +74,7 @@ class _LoginScreenState extends State<LoginScreen> {
       final user = await authService.signInWithGoogle();
 
       if (user != null) {
-        context.go('/'); // Navigate to home on success
+        if (mounted) context.go('/');
       } else {
         setState(() {
           _errorMessage = 'Google 로그인이 취소되었거나 실패했습니다.';

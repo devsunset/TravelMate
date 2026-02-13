@@ -43,6 +43,13 @@ class _ItineraryDetailScreenState extends State<ItineraryDetailScreen> {
   }
 
   Future<void> _loadItineraryDetails() async {
+    if (widget.itineraryId.isEmpty) {
+      setState(() {
+        _errorMessage = '일정을 찾을 수 없습니다.';
+        _isLoading = false;
+      });
+      return;
+    }
     setState(() {
       _isLoading = true;
       _errorMessage = null;
@@ -56,14 +63,23 @@ class _ItineraryDetailScreenState extends State<ItineraryDetailScreen> {
         _itinerary = fetchedItinerary;
         _isLoading = false;
         if (_itinerary != null && _itinerary!.mapData.isNotEmpty) {
-          _markers = _itinerary!.mapData.map((data) {
-            final latLng = LatLng(data['latitude']!, data['longitude']!);
-            return Marker(
-              markerId: MarkerId(latLng.toString()),
-              position: latLng,
-              infoWindow: InfoWindow(title: '위치: ${latLng.latitude.toStringAsFixed(2)}, ${latLng.longitude.toStringAsFixed(2)}'),
-            );
-          }).toSet();
+          _markers = _itinerary!.mapData
+              .where((data) {
+                final lat = data['latitude'];
+                final lng = data['longitude'];
+                return lat != null && lng != null;
+              })
+              .map((data) {
+                final lat = data['latitude']!;
+                final lng = data['longitude']!;
+                final latLng = LatLng(lat, lng);
+                return Marker(
+                  markerId: MarkerId(latLng.toString()),
+                  position: latLng,
+                  infoWindow: InfoWindow(title: '위치: ${latLng.latitude.toStringAsFixed(2)}, ${latLng.longitude.toStringAsFixed(2)}'),
+                );
+              })
+              .toSet();
           if (_markers.isNotEmpty) {
             _center = _markers.first.position; // Center map on the first marker
           }

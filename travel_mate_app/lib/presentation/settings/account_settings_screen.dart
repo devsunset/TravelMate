@@ -157,9 +157,6 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const surface = Color(0xFF16162A);
-    const surfaceLight = Color(0xFF1C1C34);
-
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: const AppAppBar(title: '계정 설정'),

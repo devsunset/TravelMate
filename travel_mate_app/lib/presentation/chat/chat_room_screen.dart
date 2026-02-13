@@ -66,11 +66,16 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
 
     try {
       final sendChatMessage = Provider.of<SendChatMessage>(context, listen: false);
-      // We need the actual receiver ID, not just the nickname.
-      // For now, we'll extract it from chatRoomId. This needs to be more robust.
-      // Assuming chatRoomId is like 'senderId_receiverId' or 'receiverId_senderId'
       final ids = widget.chatRoomId.split('_');
-      final receiverId = ids.firstWhere((id) => id != _currentUser!.uid);
+      final receiverId = ids.where((id) => id != _currentUser!.uid).isEmpty
+          ? (ids.isNotEmpty ? ids.first : '')
+          : ids.firstWhere((id) => id != _currentUser!.uid);
+      if (receiverId.isEmpty) {
+        setState(() {
+          _errorMessage = '대화 상대를 확인할 수 없습니다.';
+        });
+        return;
+      }
 
       await sendChatMessage.execute(
         chatRoomId: widget.chatRoomId,

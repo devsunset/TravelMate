@@ -50,7 +50,7 @@ class _ItineraryWriteScreenState extends State<ItineraryWriteScreen> {
   @override
   void initState() {
     super.initState();
-    if (widget.itineraryId != null) {
+    if (widget.itineraryId != null && widget.itineraryId!.isNotEmpty) {
       _loadItineraryForEditing();
     }
   }
@@ -71,7 +71,9 @@ class _ItineraryWriteScreenState extends State<ItineraryWriteScreen> {
       _startDate = fetchedItinerary.startDate;
       _endDate = fetchedItinerary.endDate;
       _existingImageUrls = List.from(fetchedItinerary.imageUrls);
-      _markers = fetchedItinerary.mapData.map((data) {
+      _markers = fetchedItinerary.mapData
+          .where((data) => data['latitude'] != null && data['longitude'] != null)
+          .map((data) {
         final latLng = LatLng(data['latitude']!, data['longitude']!);
         return Marker(
           markerId: MarkerId(latLng.toString()),
@@ -98,7 +100,7 @@ class _ItineraryWriteScreenState extends State<ItineraryWriteScreen> {
     final picker = ImagePicker();
     final pickedFiles = await picker.pickMultiImage();
 
-    if (pickedFiles != null && pickedFiles.isNotEmpty) {
+    if (pickedFiles.isNotEmpty) {
       List<File> compressedFiles = [];
       for (XFile image in pickedFiles) {
         final filePath = image.path;

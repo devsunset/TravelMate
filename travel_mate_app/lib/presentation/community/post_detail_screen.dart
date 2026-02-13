@@ -34,6 +34,13 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
   }
 
   Future<void> _loadPostDetails() async {
+    if (widget.postId.isEmpty) {
+      setState(() {
+        _errorMessage = '글을 찾을 수 없습니다.';
+        _isLoading = false;
+      });
+      return;
+    }
     setState(() {
       _isLoading = true;
       _errorMessage = null;

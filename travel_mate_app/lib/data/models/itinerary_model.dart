@@ -33,7 +33,9 @@ class ItineraryModel extends Itinerary {
     if (list == null) return const [];
     return list.map((e) {
       if (e is! Map) return <String, double>{};
-      return (e as Map).map((k, v) => MapEntry(k.toString(), _toDouble(v)));
+      return Map<String, double>.from(
+        e.map((k, v) => MapEntry(k.toString(), _toDouble(v))),
+      );
     }).toList();
   }
 
@@ -67,7 +69,6 @@ class ItineraryModel extends Itinerary {
     };
   }
 
-  @override
   ItineraryModel copyWith({
     String? id,
     String? authorId,

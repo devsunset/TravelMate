@@ -4,8 +4,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:travel_mate_app/app/theme.dart';
 import 'package:travel_mate_app/app/constants.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:travel_mate_app/presentation/common/report_button_widget.dart'; // Add this import
-
 /// 로그인 후 홈 화면. 히어로 + 기능 카드 + 탐색 버튼 (Travel-Companion-Finder 스타일).
 /// 뷰포트 높이에 맞춰 반응형으로 간격·폰트·그리드 크기 조정.
 class HomeScreen extends StatelessWidget {
@@ -165,9 +163,9 @@ class _NavCard extends StatelessWidget {
     final iconSize = compact ? 30.0 : 38.0;
     final gap = compact ? 6.0 : 10.0;
     final fontSize = compact ? 12.0 : 14.0;
-    // 다크 배경과 구분: 글래스 느낌 + 네온 테두리/글로우
-    const cardSurfaceLight = Color(0xFF16162A);
-    const cardSurfaceLighter = Color(0xFF1C1C34);
+    // 밝은 톤: 배경보다 확실히 밝게 + 테마색 틴트로 구분
+    const cardSurfaceLight = Color(0xFF28284A);
+    const cardSurfaceLighter = Color(0xFF32325C);
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -177,18 +175,18 @@ class _NavCard extends StatelessWidget {
           padding: EdgeInsets.symmetric(horizontal: padding, vertical: padding + 6),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: color.withOpacity(0.6), width: 1.5),
+            border: Border.all(color: color.withOpacity(0.65), width: 1.5),
             boxShadow: [
               BoxShadow(
-                color: color.withOpacity(0.18),
+                color: color.withOpacity(0.22),
                 blurRadius: 20,
                 spreadRadius: 0,
-                offset: const Offset(0, 6),
+                offset: const Offset(0, 5),
               ),
               BoxShadow(
-                color: Colors.black.withOpacity(0.25),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
+                color: Colors.black.withOpacity(0.15),
+                blurRadius: 10,
+                offset: const Offset(0, 3),
               ),
             ],
             gradient: LinearGradient(
@@ -197,9 +195,9 @@ class _NavCard extends StatelessWidget {
               colors: [
                 cardSurfaceLight,
                 cardSurfaceLighter,
-                color.withOpacity(0.06),
+                color.withOpacity(0.18),
               ],
-              stops: const [0.0, 0.6, 1.0],
+              stops: const [0.0, 0.5, 1.0],
             ),
           ),
           child: Column(
@@ -212,20 +210,20 @@ class _NavCard extends StatelessWidget {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      color.withOpacity(0.35),
-                      color.withOpacity(0.2),
+                      color.withOpacity(0.5),
+                      color.withOpacity(0.28),
                     ],
                   ),
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: color.withOpacity(0.25),
-                      blurRadius: 12,
+                      color: color.withOpacity(0.35),
+                      blurRadius: 14,
                       spreadRadius: 0,
                     ),
                   ],
                 ),
-                child: Icon(icon, color: color, size: iconSize),
+                child: Icon(icon, color: Colors.white, size: iconSize),
               ),
               SizedBox(height: gap),
               Text(

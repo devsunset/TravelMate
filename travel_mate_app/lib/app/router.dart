@@ -19,10 +19,6 @@ import 'package:travel_mate_app/presentation/common/report_button_widget.dart';
 import 'package:travel_mate_app/presentation/itinerary/itinerary_list_screen.dart';
 import 'package:travel_mate_app/presentation/itinerary/itinerary_detail_screen.dart';
 import 'package:travel_mate_app/presentation/itinerary/itinerary_write_screen.dart';
-import 'package:travel_mate_app/app/theme.dart';
-import 'package:travel_mate_app/app/constants.dart';
-import 'package:google_fonts/google_fonts.dart';
-
 import 'package:travel_mate_app/presentation/home/home_screen.dart';
 
 
@@ -83,7 +79,7 @@ GoRouter createRouter(User? user) {
       GoRoute(
         path: '/users/:userId',
         builder: (BuildContext context, GoRouterState state) {
-          final userId = state.pathParameters['userId']!;
+          final userId = state.pathParameters['userId'] ?? '';
           return UserProfileScreen(userId: userId);
         },
       ),
@@ -96,8 +92,9 @@ GoRouter createRouter(User? user) {
       GoRoute(
         path: '/chat/room/:chatRoomId',
         builder: (BuildContext context, GoRouterState state) {
-          final chatRoomId = state.pathParameters['chatRoomId']!;
-          final receiverNickname = state.extra as String?;
+          final chatRoomId = state.pathParameters['chatRoomId'] ?? '';
+          final extra = state.extra;
+          final receiverNickname = extra is String ? extra : null;
           return ChatRoomScreen(chatRoomId: chatRoomId, receiverNickname: receiverNickname);
         },
       ),
@@ -116,25 +113,35 @@ GoRouter createRouter(User? user) {
       GoRoute(
         path: '/community/post/:postId',
         builder: (BuildContext context, GoRouterState state) {
-          final postId = state.pathParameters['postId']!;
+          final postId = state.pathParameters['postId'] ?? '';
           return PostDetailScreen(postId: postId);
         },
       ),
       GoRoute(
         path: '/community/post/:postId/edit',
         builder: (BuildContext context, GoRouterState state) {
-          final postId = state.pathParameters['postId']!;
+          final postId = state.pathParameters['postId'] ?? '';
           return PostWriteScreen(postId: postId);
         },
       ),
       GoRoute(
         path: '/report',
         builder: (BuildContext context, GoRouterState state) {
-          final args = state.extra as Map<String, dynamic>;
+          final extra = state.extra;
+          if (extra is! Map<String, dynamic>) {
+            return const _RedirectToHome();
+          }
+          final args = extra;
+          final entityType = args['entityType'];
+          final entityId = args['entityId'];
+          final reporterUserId = args['reporterUserId'];
+          if (entityType is! ReportEntityType || entityId is! String || reporterUserId is! String) {
+            return const _RedirectToHome();
+          }
           return ReportSubmissionScreen(
-            entityType: args['entityType'] as ReportEntityType,
-            entityId: args['entityId'] as String,
-            reporterUserId: args['reporterUserId'] as String,
+            entityType: entityType,
+            entityId: entityId,
+            reporterUserId: reporterUserId,
           );
         },
       ),
@@ -149,14 +156,14 @@ GoRouter createRouter(User? user) {
       GoRoute(
         path: '/itinerary/:itineraryId',
         builder: (BuildContext context, GoRouterState state) {
-          final id = state.pathParameters['itineraryId']!;
+          final id = state.pathParameters['itineraryId'] ?? '';
           return ItineraryDetailScreen(itineraryId: id);
         },
       ),
       GoRoute(
         path: '/itinerary/:itineraryId/edit',
         builder: (BuildContext context, GoRouterState state) {
-          final id = state.pathParameters['itineraryId']!;
+          final id = state.pathParameters['itineraryId'] ?? '';
           return ItineraryWriteScreen(itineraryId: id);
         },
       ),
@@ -187,4 +194,29 @@ GoRouter createRouter(User? user) {
       return null;
     },
   );
+}
+
+/// 신고 화면으로 잘못 진입했을 때(extra 없음) 홈으로 보냄.
+class _RedirectToHome extends StatefulWidget {
+  const _RedirectToHome();
+
+  @override
+  State<_RedirectToHome> createState() => _RedirectToHomeState();
+}
+
+class _RedirectToHomeState extends State<_RedirectToHome> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) GoRouter.of(context).go('/');
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      body: Center(child: CircularProgressIndicator()),
+    );
+  }
 }

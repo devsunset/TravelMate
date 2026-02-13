@@ -50,7 +50,6 @@ class PostModel extends Post {
     };
   }
 
-  @override
   PostModel copyWith({
     String? id,
     String? authorId,

@@ -34,6 +34,13 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   }
 
   Future<void> _loadUserProfile() async {
+    if (widget.userId.isEmpty) {
+      setState(() {
+        _errorMessage = '프로필을 찾을 수 없습니다.';
+        _isLoading = false;
+      });
+      return;
+    }
     setState(() {
       _isLoading = true;
       _errorMessage = null;
@@ -212,21 +219,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   Widget _buildSettingsRow(BuildContext context) {
     return Column(
       children: [
-        SizedBox(
-          width: double.infinity,
-          child: OutlinedButton.icon(
-            onPressed: () => context.go('/settings/account'),
-            icon: const Icon(Icons.settings_outlined, size: 20),
-            label: const Text('계정 설정'),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: AppColors.textPrimary,
-              side: BorderSide(color: AppColors.primary.withOpacity(0.5)),
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-            ),
-          ),
-        ),
-        const SizedBox(height: 12),
         SizedBox(
           width: double.infinity,
           child: TextButton.icon(

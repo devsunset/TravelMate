@@ -1,34 +1,65 @@
 /// Firebase Auth 기반 로그인(이메일/비밀번호, Google), ID 토큰 로컬 저장.
+/// 웹에서는 SharedPreferences, 모바일에서는 FlutterSecureStorage 사용(웹에서 secure_storage 미지원/오류 방지).
 import 'dart:developer' as developer;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // Keep this for now in case other parts use it
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:travel_mate_app/app/constants.dart';
 
 class AuthService {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = kIsWeb && AppConstants.googleSignInWebClientId != null
+  final GoogleSignIn _googleSignIn = kIsWeb && AppConstants.googleSignInWebClientId != null && AppConstants.googleSignInWebClientId!.isNotEmpty
       ? GoogleSignIn(clientId: AppConstants.googleSignInWebClientId)
       : GoogleSignIn();
-  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
+  static const String _tokenKey = 'firebase_id_token';
 
   /// 인증 상태 스트림(로그인/로그아웃 시 갱신).
   Stream<User?> get user => _firebaseAuth.authStateChanges();
 
-  /// Firebase ID 토큰을 보안 저장소에 저장 또는 삭제.
+  /// 토큰 저장(실패해도 예외 전파하지 않음 — 로그인 성공을 깨지 않도록).
   Future<void> _storeIdToken(String? token) async {
-    if (token != null) {
-      await _secureStorage.write(key: 'firebase_id_token', value: token);
-    } else {
-      await _secureStorage.delete(key: 'firebase_id_token');
+    try {
+      if (kIsWeb) {
+        final prefs = await SharedPreferences.getInstance();
+        if (token != null) {
+          await prefs.setString(_tokenKey, token);
+        } else {
+          await prefs.remove(_tokenKey);
+        }
+      } else {
+        const storage = FlutterSecureStorage();
+        if (token != null) {
+          await storage.write(key: _tokenKey, value: token);
+        } else {
+          await storage.delete(key: _tokenKey);
+        }
+      }
+    } catch (e) {
+      developer.log('Token storage failed (non-fatal): $e', name: 'Auth', level: 1000);
     }
   }
 
-  /// 보안 저장소에 저장된 Firebase ID 토큰 조회.
+  /// 저장된 Firebase ID 토큰 조회. 없으면 Firebase 현재 유저에서 갱신 시도.
   Future<String?> getIdToken() async {
-    return await _secureStorage.read(key: 'firebase_id_token');
+    try {
+      if (kIsWeb) {
+        final prefs = await SharedPreferences.getInstance();
+        final stored = prefs.getString(_tokenKey);
+        if (stored != null && stored.isNotEmpty) return stored;
+      } else {
+        const storage = FlutterSecureStorage();
+        final stored = await storage.read(key: _tokenKey);
+        if (stored != null && stored.isNotEmpty) return stored;
+      }
+      final token = await _firebaseAuth.currentUser?.getIdToken();
+      if (token != null) await _storeIdToken(token);
+      return token;
+    } catch (e) {
+      developer.log('getIdToken failed: $e', name: 'Auth', level: 1000);
+      return _firebaseAuth.currentUser?.getIdToken();
+    }
   }
 
   /// 이메일·비밀번호 로그인. 실패 시 null.
