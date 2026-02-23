@@ -12,10 +12,10 @@ const Itinerary = require('./itinerary');
 
 const Like = sequelize.define('Like', {
   userId: {
-    type: DataTypes.STRING(255),
+    type: DataTypes.STRING(32),
     allowNull: false,
     primaryKey: true,
-    references: { model: User, key: 'email' },
+    references: { model: User, key: 'id' },
     onDelete: 'CASCADE',
   },
   postId: {

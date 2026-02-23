@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import 'package:travel_mate_app/app/theme.dart';
 import 'package:travel_mate_app/app/constants.dart';
@@ -10,7 +10,7 @@ import 'package:travel_mate_app/presentation/common/app_app_bar.dart';
 import 'package:travel_mate_app/core/services/auth_service.dart';
 import 'package:travel_mate_app/domain/usecases/delete_user_account.dart';
 
-/// 계정 설정 화면. 비밀번호 변경, 로그아웃, 계정 삭제. (아이디=이메일, 변경 불가)
+/// 계정 설정 화면. 로그아웃, 계정 삭제. 사용자 식별은 백엔드 id만 사용(이메일 미수집).
 class AccountSettingsScreen extends StatefulWidget {
   const AccountSettingsScreen({Key? key}) : super(key: key);
 
@@ -52,9 +52,9 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
     });
 
     try {
-      final currentUser = FirebaseAuth.instance.currentUser;
-      if (currentUser == null) throw Exception('로그인이 필요합니다.');
-      final userId = currentUser.email ?? currentUser.uid;
+      final authService = Provider.of<AuthService>(context, listen: false);
+      final userId = await authService.getCurrentBackendUserId();
+      if (userId == null || userId.isEmpty) throw Exception('로그인이 필요합니다.');
       final deleteUserAccount = Provider.of<DeleteUserAccount>(context, listen: false);
       await deleteUserAccount.execute(userId);
       await Provider.of<AuthService>(context, listen: false).signOut();

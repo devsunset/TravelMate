@@ -23,10 +23,10 @@ class ChatRemoteDataSource {
   }) async {
     try {
       final currentUser = _firebaseAuth.currentUser;
-      final myId = currentUser?.email ?? currentUser?.uid ?? '';
-      if (currentUser == null || myId != senderId) {
-        throw Exception('Unauthorized message send attempt.');
+      if (currentUser == null) {
+        throw Exception('Unauthorized: 로그인이 필요합니다.');
       }
+      // senderId는 호출 측에서 백엔드 사용자 ID로 전달됨. 검증은 백엔드/보안 규칙에서 수행.
 
       final sentAt = DateTime.now();
       final message = ChatMessageModel(

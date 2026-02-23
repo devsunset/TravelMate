@@ -1,4 +1,4 @@
-/// Firebase Auth 기반 로그인(이메일/비밀번호, Google), ID 토큰 로컬 저장.
+/// Firebase Auth 기반 로그인(Google만). 사용자 식별은 백엔드 랜덤 id만 사용(이메일 미수집·미저장).
 /// 웹에서는 SharedPreferences, 모바일에서는 FlutterSecureStorage 사용(웹에서 secure_storage 미지원/오류 방지).
 import 'dart:developer' as developer;
 import 'package:firebase_auth/firebase_auth.dart';
@@ -6,14 +6,18 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:dio/dio.dart';
 import 'package:travel_mate_app/app/constants.dart';
 
 class AuthService {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+  final Dio? _dio;
   final GoogleSignIn _googleSignIn = kIsWeb && AppConstants.googleSignInWebClientId != null && AppConstants.googleSignInWebClientId!.isNotEmpty
       ? GoogleSignIn(clientId: AppConstants.googleSignInWebClientId)
       : GoogleSignIn();
   static const String _tokenKey = 'firebase_id_token';
+
+  AuthService({Dio? dio}) : _dio = dio;
 
   /// 인증 상태 스트림(로그인/로그아웃 시 갱신).
   Stream<User?> get user => _firebaseAuth.authStateChanges();
@@ -62,48 +66,7 @@ class AuthService {
     }
   }
 
-  /// 이메일·비밀번호 로그인. 실패 시 null.
-  Future<User?> signInWithEmailAndPassword(String email, String password) async {
-    try {
-      UserCredential result = await _firebaseAuth.signInWithEmailAndPassword(
-          email: email, password: password);
-      await _storeIdToken(await result.user?.getIdToken());
-      return result.user;
-    } catch (e) {
-      developer.log(e.toString(), name: 'Auth', level: 1000);
-      await _storeIdToken(null);
-      return null;
-    }
-  }
-
-  /// 이메일이 이미 가입된 계정에 사용 중인지 확인.
-  /// Firebase fetchSignInMethodsForEmail 사용. true면 이미 사용 중.
-  Future<bool> isEmailAlreadyInUse(String email) async {
-    try {
-      final methods = await _firebaseAuth.fetchSignInMethodsForEmail(email);
-      return methods.isNotEmpty;
-    } catch (e) {
-      developer.log('isEmailAlreadyInUse failed: $e', name: 'Auth', level: 1000);
-      rethrow;
-    }
-  }
-
-  /// 이메일·비밀번호로 회원가입 후 토큰 저장.
-  Future<User?> registerWithEmailAndPassword(
-      String email, String password) async {
-    try {
-      UserCredential result = await _firebaseAuth.createUserWithEmailAndPassword(
-          email: email, password: password);
-      await _storeIdToken(await result.user?.getIdToken());
-      return result.user;
-    } catch (e) {
-      developer.log(e.toString(), name: 'Auth', level: 1000);
-      await _storeIdToken(null);
-      return null;
-    }
-  }
-
-  /// Google 로그인. 취소 또는 실패 시 null.
+  /// Google 로그인. 취소 또는 실패 시 null. (이메일·비밀번호 로그인 미지원)
   Future<User?> signInWithGoogle() async {
     try {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
@@ -138,13 +101,4 @@ class AuthService {
     }
   }
 
-  /// 비밀번호 재설정 이메일 전송.
-  Future<void> sendPasswordResetEmail(String email) async {
-    try {
-      await _firebaseAuth.sendPasswordResetEmail(email: email);
-    } catch (e) {
-      developer.log(e.toString(), name: 'Auth', level: 1000);
-      rethrow; // 재설정 이메일 실패 시 에러를 다시 던져 UI에서 처리할 수 있도록 함
-    }
-  }
 }

@@ -89,7 +89,7 @@ exports.searchCompanions = async (req, res, next) => {
       include: includeConditions,
       limit: parseInt(limit),
       offset: parseInt(offset),
-      attributes: ['firebase_uid', 'email'], // Select specific user attributes
+      attributes: ['firebase_uid', 'id'],
     });
 
     // Remap the results to a more user-friendly format, flattening UserProfile
@@ -98,8 +98,7 @@ exports.searchCompanions = async (req, res, next) => {
       const profileJson = userJson.UserProfile;
       
       return {
-        userId: userJson.email,
-        email: userJson.email,
+        userId: userJson.id,
         nickname: profileJson.nickname,
         bio: profileJson.bio,
         profileImageUrl: profileJson.profileImageUrl,

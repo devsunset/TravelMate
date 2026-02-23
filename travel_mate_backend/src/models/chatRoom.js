@@ -20,23 +20,23 @@ const ChatRoom = sequelize.define('ChatRoom', {
     unique: true, // Firestore에서 사용하는 채팅방 ID (예: 'user1Id_user2Id')
   },
   user1Id: {
-    type: DataTypes.STRING(255),
+    type: DataTypes.STRING(32),
     allowNull: false,
-    references: { model: User, key: 'email' },
+    references: { model: User, key: 'id' },
     onDelete: 'CASCADE',
   },
   user2Id: {
-    type: DataTypes.STRING(255),
+    type: DataTypes.STRING(32),
     allowNull: false,
-    references: { model: User, key: 'email' },
+    references: { model: User, key: 'id' },
     onDelete: 'CASCADE',
   },
   createdByUserId: {
-    type: DataTypes.STRING(255),
+    type: DataTypes.STRING(32),
     allowNull: true,
-    references: { model: User, key: 'email' },
+    references: { model: User, key: 'id' },
     onDelete: 'SET NULL',
-    comment: '채팅을 신청한 사용자 이메일',
+    comment: '채팅을 신청한 사용자 ID',
   },
   lastMessage: {
     type: DataTypes.TEXT,

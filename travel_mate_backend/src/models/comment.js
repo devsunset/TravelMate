@@ -17,9 +17,9 @@ const Comment = sequelize.define('Comment', {
     primaryKey: true,
   },
   authorId: {
-    type: DataTypes.STRING(255),
+    type: DataTypes.STRING(32),
     allowNull: false,
-    references: { model: User, key: 'email' },
+    references: { model: User, key: 'id' },
     onDelete: 'CASCADE',
   },
   postId: {

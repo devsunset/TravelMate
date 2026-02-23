@@ -6,7 +6,7 @@ abstract class ChatRepository {
   Stream<List<ChatMessage>> getChatMessages(String chatRoomId);
   /// 내가 참여한 채팅방 목록(신청한/신청받은). API 기반.
   Future<List<ChatRoomInfo>> getChatRooms(String currentUserId);
-  /// 채팅 요청(상대 이메일로 방 생성 또는 기존 반환).
+  /// 채팅 요청(상대 사용자 ID로 방 생성 또는 기존 반환).
   Future<ChatRoomInfo> createChatRoom(String partnerId);
   Future<void> sendMessage({
     required String chatRoomId,

@@ -5,9 +5,8 @@ import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io' if (dart.library.html) 'package:travel_mate_app/core/io_stub/file_stub.dart';
 import 'package:travel_mate_app/core/io_stub/picked_image_provider_io.dart' if (dart.library.html) 'package:travel_mate_app/core/io_stub/picked_image_provider_web.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-
 import 'package:travel_mate_app/app/theme.dart';
+import 'package:travel_mate_app/core/services/auth_service.dart';
 import 'package:travel_mate_app/app/constants.dart';
 import 'package:travel_mate_app/presentation/common/app_app_bar.dart';
 import 'package:travel_mate_app/domain/entities/user_profile.dart';
@@ -67,13 +66,13 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     });
 
     try {
-      final currentUser = FirebaseAuth.instance.currentUser;
-      if (currentUser == null) {
+      final authService = Provider.of<AuthService>(context, listen: false);
+      final userId = await authService.getCurrentBackendUserId();
+      if (userId == null || userId.isEmpty) {
         throw Exception('로그인이 필요합니다.');
       }
-      final userEmail = currentUser.email ?? currentUser.uid;
       final getUserProfile = Provider.of<GetUserProfile>(context, listen: false);
-      final profile = await getUserProfile.execute(userEmail);
+      final profile = await getUserProfile.execute(userId);
 
       _nicknameController.text = profile.nickname;
       _bioController.text = profile.bio ?? '';
@@ -114,20 +113,20 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       });
 
       try {
-        final currentUser = FirebaseAuth.instance.currentUser;
-        if (currentUser == null) {
+        final authService = Provider.of<AuthService>(context, listen: false);
+        final userId = await authService.getCurrentBackendUserId();
+        if (userId == null || userId.isEmpty) {
           throw Exception('로그인이 필요합니다.');
         }
 
         String? newImageUrl = _currentProfileImageUrl;
-        final userEmail = currentUser.email ?? currentUser.uid;
         if (_pickedImage != null) {
           final uploadProfileImage = Provider.of<UploadProfileImage>(context, listen: false);
-          newImageUrl = await uploadProfileImage.execute(userEmail, _pickedImage!.path);
+          newImageUrl = await uploadProfileImage.execute(userId, _pickedImage!.path);
         }
 
         final updatedProfile = UserProfileModel( // Using UserProfileModel to leverage toJson
-          userId: userEmail,
+          userId: userId,
           nickname: _nicknameController.text.trim(),
           bio: _bioController.text.trim(),
           gender: _gender,

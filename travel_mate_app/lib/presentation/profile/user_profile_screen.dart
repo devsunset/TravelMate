@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:travel_mate_app/app/theme.dart';
@@ -25,6 +24,7 @@ class UserProfileScreen extends StatefulWidget {
 
 class _UserProfileScreenState extends State<UserProfileScreen> {
   UserProfile? _userProfile;
+  String? _currentUserId;
   bool _isLoading = true;
   String? _errorMessage;
 
@@ -48,24 +48,30 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     });
 
     try {
+      final authService = Provider.of<AuthService>(context, listen: false);
+      _currentUserId = await authService.getCurrentBackendUserId();
       final getUserProfile = Provider.of<GetUserProfile>(context, listen: false);
       final profile = await getUserProfile.execute(widget.userId);
 
-      setState(() {
-        _userProfile = profile;
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _userProfile = profile;
+          _isLoading = false;
+        });
+      }
     } catch (e) {
-      setState(() {
-        _errorMessage = '프로필을 불러오지 못했습니다.';
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _errorMessage = '프로필을 불러오지 못했습니다.';
+          _isLoading = false;
+        });
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final currentUserId = FirebaseAuth.instance.currentUser?.email ?? FirebaseAuth.instance.currentUser?.uid ?? '';
+    final currentUserId = _currentUserId ?? '';
     final isMyProfile = currentUserId == widget.userId;
 
     // 메인 화면 카드와 동일한 밝은 톤 색상 (티얼, 스카이, 앰버, 에메랄드)

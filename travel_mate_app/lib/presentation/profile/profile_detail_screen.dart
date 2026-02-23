@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-
 import 'package:travel_mate_app/app/theme.dart';
+import 'package:travel_mate_app/core/services/auth_service.dart';
 import 'package:travel_mate_app/app/constants.dart';
 import 'package:travel_mate_app/core/utils/mask_utils.dart';
 import 'package:travel_mate_app/domain/entities/user_profile.dart';
@@ -38,13 +37,13 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
     });
 
     try {
-      final currentUser = FirebaseAuth.instance.currentUser;
-      if (currentUser == null) {
+      final authService = Provider.of<AuthService>(context, listen: false);
+      final userId = await authService.getCurrentBackendUserId();
+      if (userId == null || userId.isEmpty) {
         throw Exception('로그인이 필요합니다.');
       }
-      final userEmail = currentUser.email ?? currentUser.uid;
       final getUserProfile = Provider.of<GetUserProfile>(context, listen: false);
-      final profile = await getUserProfile.execute(userEmail);
+      final profile = await getUserProfile.execute(userId);
       
       setState(() {
         _userProfile = profile;
@@ -60,8 +59,6 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final User? currentUser = context.watch<User?>();
-    
     final hasImage = _userProfile?.profileImageUrl != null && _userProfile!.profileImageUrl!.isNotEmpty;
 
     const sectionColors = [

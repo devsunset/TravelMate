@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import 'package:travel_mate_app/app/theme.dart';
 import 'package:travel_mate_app/app/constants.dart';
+import 'package:travel_mate_app/core/services/auth_service.dart';
 import 'package:travel_mate_app/domain/entities/itinerary.dart';
 import 'package:travel_mate_app/presentation/common/app_app_bar.dart';
 import 'package:travel_mate_app/domain/usecases/get_itinerary.dart';
@@ -26,7 +26,8 @@ class ItineraryDetailScreen extends StatefulWidget {
 class _ItineraryDetailScreenState extends State<ItineraryDetailScreen> {
   bool _isLoading = false;
   String? _errorMessage;
-  Itinerary? _itinerary; // Will store itinerary details
+  Itinerary? _itinerary;
+  String? _currentUserId;
 
   late GoogleMapController mapController;
   Set<Marker> _markers = {};
@@ -56,11 +57,14 @@ class _ItineraryDetailScreenState extends State<ItineraryDetailScreen> {
     });
 
     try {
+      final authService = Provider.of<AuthService>(context, listen: false);
+      _currentUserId = await authService.getCurrentBackendUserId();
       final getItinerary = Provider.of<GetItinerary>(context, listen: false);
       final fetchedItinerary = await getItinerary.execute(widget.itineraryId);
 
-      setState(() {
-        _itinerary = fetchedItinerary;
+      if (mounted) {
+        setState(() {
+          _itinerary = fetchedItinerary;
         _isLoading = false;
         if (_itinerary != null && _itinerary!.mapData.isNotEmpty) {
           _markers = _itinerary!.mapData
@@ -81,10 +85,11 @@ class _ItineraryDetailScreenState extends State<ItineraryDetailScreen> {
               })
               .toSet();
           if (_markers.isNotEmpty) {
-            _center = _markers.first.position; // Center map on the first marker
+            _center = _markers.first.position;
           }
         }
-      });
+        });
+      }
     } catch (e) {
       setState(() {
         _errorMessage = '일정을 불러오지 못했습니다: ${e.toString()}';
@@ -145,8 +150,8 @@ class _ItineraryDetailScreenState extends State<ItineraryDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final currentUserUid = FirebaseAuth.instance.currentUser?.uid;
-    final isAuthor = _itinerary?.authorId == currentUserUid;
+    final currentUserId = _currentUserId;
+    final isAuthor = _itinerary?.authorId == currentUserId;
 
     return Scaffold(
       appBar: AppAppBar(

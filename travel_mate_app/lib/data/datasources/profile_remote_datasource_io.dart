@@ -154,7 +154,7 @@ class ProfileRemoteDataSource {
     }
   }
 
-  /// 계정 삭제(백엔드 DB + Firebase Auth). 본인 userId(이메일) 필요.
+  /// 계정 삭제(백엔드 DB + Firebase Auth). 본인 userId(백엔드 사용자 ID) 필요.
   Future<void> deleteUserAccount(String userId) async {
     try {
       final idToken = await _firebaseAuth.currentUser?.getIdToken();

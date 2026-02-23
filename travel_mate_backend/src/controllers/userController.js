@@ -5,19 +5,23 @@ const admin = require('firebase-admin');
 const User = require('../models/user');
 const UserProfile = require('../models/userProfile');
 
-/** 계정 삭제: params.userId는 이메일(URL 인코딩됨). 본인만 삭제 가능. user_profiles 선 삭제 후 users 삭제, Firebase Auth 삭제 */
+/** 계정 삭제: params.userId는 사용자 ID(URL 인코딩됨). 본인만 삭제 가능. user_profiles 선 삭제 후 users 삭제, Firebase Auth 삭제 */
 exports.deleteUser = async (req, res, next) => {
   try {
-    const userEmail = req.params.userId ? decodeURIComponent(req.params.userId) : req.user?.email;
-    if (!userEmail || req.user?.email !== userEmail) {
-      return res.status(403).json({ message: '본인 계정만 삭제할 수 있습니다.' });
+    const paramUserId = req.params.userId ? decodeURIComponent(req.params.userId) : null;
+    const firebaseUid = req.user?.uid;
+    if (!firebaseUid) {
+      return res.status(401).json({ message: '인증이 필요합니다.' });
     }
-    const user = await User.findOne({ where: { email: userEmail } });
+    const user = await User.findOne({ where: { firebase_uid: firebaseUid } });
     if (!user) {
       return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
     }
-    await UserProfile.destroy({ where: { userId: user.email } });
-    const deletedRows = await User.destroy({ where: { email: user.email } });
+    if (paramUserId && paramUserId !== user.id) {
+      return res.status(403).json({ message: '본인 계정만 삭제할 수 있습니다.' });
+    }
+    await UserProfile.destroy({ where: { userId: user.id } });
+    const deletedRows = await User.destroy({ where: { id: user.id } });
     if (deletedRows === 0) {
       return res.status(404).json({ message: '데이터베이스에서 사용자를 찾을 수 없습니다.' });
     }

@@ -7,6 +7,7 @@ const User = require('../models/user');
 const Post = require('../models/post');
 const Itinerary = require('../models/itinerary');
 const NotificationService = require('../services/notificationService');
+const { generateUserId } = require('../utils/generateUserId');
 const { LIMITS, checkMaxLength } = require('../utils/fieldLimits');
 
 /** 댓글 목록: 쿼리 postId 또는 itineraryId, 최상위 댓글+대댓글 포함 */
@@ -26,12 +27,12 @@ exports.getComments = async (req, res, next) => {
     const comments = await Comment.findAll({
       where: whereConditions,
       include: [
-        { model: User, as: 'Author', attributes: ['firebase_uid', 'email'] },
+        { model: User, as: 'Author', attributes: ['firebase_uid', 'id'] },
         {
           model: Comment,
           as: 'Replies',
           include: [
-            { model: User, as: 'Author', attributes: ['firebase_uid', 'email'] },
+            { model: User, as: 'Author', attributes: ['firebase_uid', 'id'] },
           ],
         },
       ],
@@ -61,11 +62,7 @@ exports.addComment = async (req, res, next) => {
 
     let author = await User.findOne({ where: { firebase_uid: authorFirebaseUid } });
     if (!author) {
-      const firebaseEmail = req.user.email || '';
-      author = await User.create({
-        firebase_uid: authorFirebaseUid,
-        email: firebaseEmail || `user_${authorFirebaseUid}@temp`,
-      });
+      author = await User.create({ id: generateUserId(), firebase_uid: authorFirebaseUid });
     }
 
     // Ensure content exists
@@ -80,7 +77,7 @@ exports.addComment = async (req, res, next) => {
     }
 
     const comment = await Comment.create({
-      authorId: author.email,
+      authorId: author.id,
       postId: postId || null,
       itineraryId: itineraryId || null,
       parentCommentId: parentCommentId || null,
@@ -98,12 +95,12 @@ exports.addComment = async (req, res, next) => {
       });
       if (parentComment && parentComment.Author.firebase_uid !== authorFirebaseUid) {
         receiverFirebaseUid = parentComment.Author.firebase_uid;
-        notificationTitle = `New reply from ${author.email}`; // TODO: Use author nickname
+        notificationTitle = `New reply from user`; // TODO: Use author nickname
         notificationBody = content;
       }
     } else if (parentContent.Author.firebase_uid !== authorFirebaseUid) { // New comment on a post/itinerary
       receiverFirebaseUid = parentContent.Author.firebase_uid;
-      notificationTitle = `New comment on your ${postId ? 'post' : 'itinerary'} from ${author.email}`; // TODO: Use author nickname
+      notificationTitle = `New comment on your ${postId ? 'post' : 'itinerary'}`; // TODO: Use author nickname
       notificationBody = content;
     }
 

@@ -19,7 +19,7 @@ class FcmService {
         _dio = dio ?? Dio();
 
   /// 알림 권한 요청, FCM 토큰 획득·갱신, 백엔드 전송, 포그라운드/백그라운드 메시지 리스너 등록.
-  /// 로그인 상태 변경 시에도 토큰을 백엔드에 전송(구글/이메일·비밀번호 공통).
+  /// 로그인 상태 변경 시에도 토큰을 백엔드에 전송(Google 로그인 등).
   Future<void> initialize() async {
     NotificationSettings settings = await _firebaseMessaging.requestPermission(
       alert: true,

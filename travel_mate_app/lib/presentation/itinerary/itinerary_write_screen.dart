@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io' if (dart.library.html) 'package:travel_mate_app/core/io_stub/file_stub.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:travel_mate_app/core/services/auth_service.dart';
 import 'package:travel_mate_app/core/io_stub/picked_image_widget_io.dart' if (dart.library.html) 'package:travel_mate_app/core/io_stub/picked_image_widget_web.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -178,8 +178,9 @@ class _ItineraryWriteScreenState extends State<ItineraryWriteScreen> {
       });
 
       try {
-        final currentUser = FirebaseAuth.instance.currentUser;
-        if (currentUser == null) {
+        final authService = Provider.of<AuthService>(context, listen: false);
+        final userId = await authService.getCurrentBackendUserId();
+        if (userId == null || userId.isEmpty) {
           throw Exception('로그인이 필요합니다.');
         }
         if (_startDate == null || _endDate == null) {
@@ -190,7 +191,7 @@ class _ItineraryWriteScreenState extends State<ItineraryWriteScreen> {
         List<String> uploadedImageUrls = [];
         final uploadItineraryImage = Provider.of<UploadItineraryImage>(context, listen: false);
         for (File image in _pickedImages) {
-          final imageUrl = await uploadItineraryImage.execute(widget.itineraryId ?? currentUser.uid, image.path); // Use itineraryId or current user UID for path
+          final imageUrl = await uploadItineraryImage.execute(userId, image.path);
           uploadedImageUrls.add(imageUrl);
         }
 
@@ -199,8 +200,8 @@ class _ItineraryWriteScreenState extends State<ItineraryWriteScreen> {
 
         // 2. Create Itinerary entity
         final ItineraryModel itinerary = ItineraryModel(
-          id: widget.itineraryId ?? '', // If new, backend will assign ID
-          authorId: currentUser.uid,
+          id: widget.itineraryId ?? '',
+          authorId: userId,
           title: _titleController.text.trim(),
           description: _descriptionController.text.trim(),
           startDate: _startDate!,

@@ -120,7 +120,7 @@ void main() async {
         Provider<Dio>(create: (_) => Dio()),
         Provider<FirebaseMessaging>(create: (_) => FirebaseMessaging.instance),
         Provider<FirebaseFirestore>(create: (_) => FirebaseFirestore.instance),
-        Provider<AuthService>(create: (_) => AuthService()),
+        Provider<AuthService>(create: (context) => AuthService(dio: context.read<Dio>())),
         StreamProvider<User?>(
           create: (context) => context.read<AuthService>().user,
           initialData: null,

@@ -6,7 +6,7 @@ abstract class UserProfileRepository {
   Future<void> createUserProfile(UserProfile userProfile);
   Future<void> updateUserProfile(UserProfile userProfile);
   Future<void> deleteUserProfile(String userId);
-  /// 계정 삭제(백엔드 DB·Firebase Auth). userId는 이메일.
+  /// 계정 삭제(백엔드 DB·Firebase Auth). userId는 백엔드 사용자 ID.
   Future<void> deleteUserAccount(String userId);
   /// 업로드된 이미지 URL 반환
   Future<String> uploadProfileImage(String userId, String imagePath);

@@ -15,10 +15,10 @@ const UserProfile = sequelize.define('UserProfile', {
     primaryKey: true,
   },
   userId: {
-    type: DataTypes.STRING(255),
+    type: DataTypes.STRING(32),
     allowNull: false,
     unique: true,
-    references: { model: User, key: 'email' },
+    references: { model: User, key: 'id' },
     onDelete: 'CASCADE',
   },
   nickname: {

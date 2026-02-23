@@ -4,14 +4,14 @@
  */
 const FcmToken = require('../models/fcmToken');
 const User = require('../models/user');
+const { generateUserId } = require('../utils/generateUserId');
 const { LIMITS, checkMaxLength } = require('../utils/fieldLimits');
 
-/** FCM 토큰 등록(있으면 deviceType 갱신). User 없으면 자동 생성(구글/이메일·비밀번호 로그인 직후 대응) */
+/** FCM 토큰 등록(있으면 deviceType 갱신). User 없으면 랜덤 id로 자동 생성 */
 exports.registerFcmToken = async (req, res, next) => {
   try {
     const { token, deviceType } = req.body;
     const firebaseUid = req.user.uid;
-    const firebaseEmail = req.user.email || '';
     if (!token) {
       return res.status(400).json({ message: 'FCM 토큰이 필요합니다.' });
     }
@@ -23,13 +23,10 @@ exports.registerFcmToken = async (req, res, next) => {
     }
     let user = await User.findOne({ where: { firebase_uid: firebaseUid } });
     if (!user) {
-      user = await User.create({
-        firebase_uid: firebaseUid,
-        email: firebaseEmail || `user_${firebaseUid}@temp`,
-      });
+      user = await User.create({ id: generateUserId(), firebase_uid: firebaseUid });
     }
     const [fcmToken, created] = await FcmToken.findOrCreate({
-      where: { userId: user.email, token: token },
+      where: { userId: user.id, token: token },
       defaults: { deviceType: deviceType },
     });
     if (!created) {
@@ -55,7 +52,7 @@ exports.deleteFcmToken = async (req, res, next) => {
     if (!user) {
       return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
     }
-    const deletedRows = await FcmToken.destroy({ where: { userId: user.email, token: token } });
+    const deletedRows = await FcmToken.destroy({ where: { userId: user.id, token: token } });
     if (deletedRows === 0) {
       return res.status(404).json({ message: '해당 사용자의 FCM 토큰을 찾을 수 없습니다.' });
     }

@@ -7,6 +7,7 @@ import 'package:travel_mate_app/app/theme.dart';
 import 'package:travel_mate_app/app/constants.dart';
 import 'package:travel_mate_app/domain/entities/chat_message.dart';
 import 'package:travel_mate_app/presentation/common/app_app_bar.dart';
+import 'package:travel_mate_app/core/services/auth_service.dart';
 import 'package:travel_mate_app/domain/usecases/get_chat_messages.dart';
 import 'package:travel_mate_app/domain/usecases/send_chat_message.dart';
 
@@ -32,12 +33,17 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   String? _errorMessage;
 
   User? _currentUser;
+  String? _myBackendId;
 
   @override
   void initState() {
     super.initState();
     _currentUser = FirebaseAuth.instance.currentUser;
-    // Add a listener to scroll to the bottom when new messages arrive
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final authService = context.read<AuthService>();
+      final id = await authService.getCurrentBackendUserId();
+      if (mounted) setState(() => _myBackendId = id);
+    });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _scrollController.addListener(() {
         if (_scrollController.position.pixels == _scrollController.position.maxScrollExtent) {
@@ -65,8 +71,12 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     });
 
     try {
+      final myId = _myBackendId;
+      if (myId == null || myId.isEmpty) {
+        setState(() => _errorMessage = '사용자 정보를 불러오는 중입니다. 잠시 후 다시 시도해 주세요.');
+        return;
+      }
       final sendChatMessage = Provider.of<SendChatMessage>(context, listen: false);
-      final myId = _currentUser!.email ?? _currentUser!.uid;
       final ids = widget.chatRoomId.split('_');
       final receiverId = ids.where((id) => id != myId).isEmpty
           ? (ids.isNotEmpty ? ids.first : '')
@@ -168,7 +178,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                   itemCount: messages.length,
                   itemBuilder: (context, index) {
                     final message = messages[index];
-                    final bool isMe = message.senderId == _currentUser?.uid;
+                    final bool isMe = message.senderId == _myBackendId;
                     return Align(
                       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
                       child: Container(

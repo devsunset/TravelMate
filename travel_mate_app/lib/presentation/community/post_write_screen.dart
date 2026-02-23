@@ -13,6 +13,7 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 
 import 'package:travel_mate_app/app/theme.dart';
 import 'package:travel_mate_app/app/constants.dart';
+import 'package:travel_mate_app/core/services/auth_service.dart';
 import 'package:travel_mate_app/presentation/common/app_app_bar.dart';
 import 'package:travel_mate_app/domain/entities/post.dart';
 import 'package:travel_mate_app/domain/usecases/create_post.dart';
@@ -164,15 +165,16 @@ class _PostWriteScreenState extends State<PostWriteScreen> {
       });
 
       try {
-        final currentUser = FirebaseAuth.instance.currentUser;
-        if (currentUser == null) {
+        final authService = Provider.of<AuthService>(context, listen: false);
+        final userId = await authService.getCurrentBackendUserId();
+        if (userId == null || userId.isEmpty) {
           throw Exception('로그인이 필요합니다.');
         }
 
         List<String> uploadedImageUrls = [];
         final uploadPostImage = Provider.of<UploadPostImage>(context, listen: false);
         for (File image in _pickedImages) {
-          final imageUrl = await uploadPostImage.execute(widget.postId ?? currentUser.uid, image.path);
+          final imageUrl = await uploadPostImage.execute(userId, image.path);
           uploadedImageUrls.add(imageUrl);
         }
 
@@ -181,7 +183,7 @@ class _PostWriteScreenState extends State<PostWriteScreen> {
 
         final PostModel post = PostModel(
           id: widget.postId ?? '',
-          authorId: currentUser.uid,
+          authorId: userId,
           title: _titleController.text.trim(),
           content: contentString,
           category: _selectedCategory!,

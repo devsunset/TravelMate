@@ -69,7 +69,7 @@ class ChatApiDataSource {
     }
     return ChatRoomInfo(
       chatRoomId: json['chatRoomId'] as String? ?? '',
-      otherParticipantId: json['partnerEmail'] as String? ?? '',
+      otherParticipantId: json['partnerId'] as String? ?? json['partnerEmail'] as String? ?? '',
       lastMessage: json['lastMessage'] as String? ?? '',
       lastMessageAt: lastMessageAt,
       isRequestedByMe: json['isRequestedByMe'] as bool? ?? false,

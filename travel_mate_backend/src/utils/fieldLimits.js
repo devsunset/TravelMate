@@ -5,8 +5,8 @@
 
 /** DB 컬럼 최대 길이 상수 (VARCHAR/문자열 필드) */
 const LIMITS = {
-  // users
-  email: 255,
+  // users (id = 랜덤 영숫자, 이메일 미사용)
+  userId: 32,
   firebase_uid: 255,
 
   // user_profiles

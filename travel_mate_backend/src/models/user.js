@@ -1,14 +1,14 @@
 /**
  * 사용자 모델 (users 테이블)
- * 이메일을 Primary Key로 사용하며, 서비스 내 사용자 아이디가 이메일입니다.
+ * PK는 랜덤 영문·숫자 조합 id입니다. 이메일은 수집·저장하지 않습니다.
  */
 
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
 const User = sequelize.define('User', {
-  email: {
-    type: DataTypes.STRING(255),
+  id: {
+    type: DataTypes.STRING(32),
     allowNull: false,
     primaryKey: true,
   },

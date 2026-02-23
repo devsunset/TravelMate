@@ -33,7 +33,7 @@ exports.getAllPosts = async (req, res, next) => {
     const posts = await Post.findAndCountAll({
       where: whereConditions,
       include: [
-        { model: User, as: 'Author', attributes: ['firebase_uid', 'email'] }, // Include author info
+        { model: User, as: 'Author', attributes: ['firebase_uid', 'id'] }, // Include author info
         { model: PostCategory, as: 'Category', attributes: ['name'] }, // Include category name
       ],
       limit: parseInt(limit),
@@ -59,7 +59,7 @@ exports.getPostById = async (req, res, next) => {
 
     const post = await Post.findByPk(postId, {
       include: [
-        { model: User, as: 'Author', attributes: ['firebase_uid', 'email'] },
+        { model: User, as: 'Author', attributes: ['firebase_uid', 'id'] },
         { model: PostCategory, as: 'Category', attributes: ['name'] },
       ],
     });
@@ -90,11 +90,7 @@ exports.createPost = async (req, res, next) => {
 
     let author = await User.findOne({ where: { firebase_uid: authorFirebaseUid } });
     if (!author) {
-      const firebaseEmail = req.user.email || '';
-      author = await User.create({
-        firebase_uid: authorFirebaseUid,
-        email: firebaseEmail || `user_${authorFirebaseUid}@temp`,
-      });
+      author = await User.create({ id: generateUserId(), firebase_uid: authorFirebaseUid });
     }
 
     const postCategory = await PostCategory.findOne({ where: { name: category } });
@@ -103,7 +99,7 @@ exports.createPost = async (req, res, next) => {
     }
 
     const post = await Post.create({
-      authorId: author.email,
+      authorId: author.id,
       categoryId: postCategory.id,
       title,
       content,

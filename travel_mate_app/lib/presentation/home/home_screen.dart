@@ -1,20 +1,46 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
 import 'package:travel_mate_app/app/theme.dart';
+import 'package:travel_mate_app/core/services/auth_service.dart';
 import 'package:travel_mate_app/app/constants.dart';
 import 'package:google_fonts/google_fonts.dart';
 /// 로그인 후 홈 화면. 히어로 + 기능 카드 + 탐색 버튼 (Travel-Companion-Finder 스타일).
-/// 뷰포트 높이에 맞춰 반응형으로 간격·폰트·그리드 크기 조정.
+/// 뷰포트 높이에 맞춰 반응형으로 간격·폰트·그리드 크기 조정. 사용자 식별은 백엔드 id만 사용.
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final currentUser = FirebaseAuth.instance.currentUser;
-    final profileUserId = currentUser != null
-        ? (currentUser.email?.isNotEmpty == true ? Uri.encodeComponent(currentUser.email!) : currentUser.uid)
-        : null;
+    return const _HomeScreenBody();
+  }
+}
+
+class _HomeScreenBody extends StatefulWidget {
+  const _HomeScreenBody();
+
+  @override
+  State<_HomeScreenBody> createState() => _HomeScreenBodyState();
+}
+
+class _HomeScreenBodyState extends State<_HomeScreenBody> {
+  String? _profileUserId;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfileUserId();
+  }
+
+  Future<void> _loadProfileUserId() async {
+    final authService = context.read<AuthService>();
+    final userId = await authService.getCurrentBackendUserId();
+    if (mounted) setState(() => _profileUserId = userId != null && userId.isNotEmpty ? Uri.encodeComponent(userId) : null);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final profileUserId = _profileUserId;
     final h = MediaQuery.sizeOf(context).height;
     final isCompact = h < 680;
     final isMedium = h >= 680 && h < 820;

@@ -5,10 +5,10 @@ import 'package:flutter_quill/flutter_quill.dart' as quill;
 import 'package:flutter_quill/quill_delta.dart' as quill_delta;
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 import 'package:travel_mate_app/app/theme.dart';
+import 'package:travel_mate_app/core/services/auth_service.dart';
 import 'package:travel_mate_app/app/constants.dart';
 import 'package:travel_mate_app/domain/entities/post.dart';
 import 'package:travel_mate_app/domain/usecases/get_post.dart';
@@ -31,6 +31,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
   bool _isLoading = false;
   String? _errorMessage;
   Post? _post;
+  String? _currentUserId;
   quill.QuillController? _quillViewController;
   final FocusNode _viewFocusNode = FocusNode();
   final ScrollController _viewScrollController = ScrollController();
@@ -81,6 +82,8 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     });
 
     try {
+      final authService = Provider.of<AuthService>(context, listen: false);
+      _currentUserId = await authService.getCurrentBackendUserId();
       final getPost = Provider.of<GetPost>(context, listen: false);
       final fetchedPost = await getPost.execute(widget.postId);
 
@@ -161,8 +164,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final currentUser = FirebaseAuth.instance.currentUser;
-    final currentUserId = currentUser?.email ?? currentUser?.uid ?? '';
+    final currentUserId = _currentUserId ?? '';
     final isAuthor = _post != null && _post!.authorId == currentUserId;
 
     return Scaffold(

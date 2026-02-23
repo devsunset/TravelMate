@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import 'package:travel_mate_app/app/theme.dart';
+import 'package:travel_mate_app/core/services/auth_service.dart';
 import 'package:travel_mate_app/app/constants.dart';
 import 'package:travel_mate_app/domain/entities/chat_room_info.dart';
 import 'package:travel_mate_app/domain/usecases/get_chat_rooms.dart';
@@ -32,7 +33,8 @@ class _ChatListScreenState extends State<ChatListScreen> {
   }
 
   Future<void> _loadRooms() async {
-    final currentUserId = FirebaseAuth.instance.currentUser?.email ?? FirebaseAuth.instance.currentUser?.uid;
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final currentUserId = await authService.getCurrentBackendUserId();
     if (currentUserId == null || currentUserId.isEmpty) return;
     setState(() {
       _loading = true;
@@ -61,8 +63,8 @@ class _ChatListScreenState extends State<ChatListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final currentUserId = FirebaseAuth.instance.currentUser?.email ?? FirebaseAuth.instance.currentUser?.uid;
-    if (currentUserId == null || currentUserId.isEmpty) {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null) {
       return Scaffold(
         appBar: const AppAppBar(title: '채팅'),
         body: const Center(child: Text('로그인이 필요합니다.')),

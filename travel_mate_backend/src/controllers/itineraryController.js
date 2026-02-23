@@ -7,6 +7,7 @@ const Itinerary = require('../models/itinerary');
 const ItineraryDay = require('../models/itineraryDay');
 const ItineraryActivity = require('../models/itineraryActivity');
 const User = require('../models/user');
+const { generateUserId } = require('../utils/generateUserId');
 const { LIMITS, checkMaxLength } = require('../utils/fieldLimits');
 
 /** 일정 목록: 쿼리 search, limit, offset */
@@ -25,7 +26,7 @@ exports.getAllItineraries = async (req, res, next) => {
     const itineraries = await Itinerary.findAndCountAll({
       where: whereConditions,
       include: [
-        { model: User, as: 'Author', attributes: ['firebase_uid', 'email'] },
+        { model: User, as: 'Author', attributes: ['firebase_uid', 'id'] },
         {
           model: ItineraryDay,
           as: 'Days',
@@ -57,7 +58,7 @@ exports.getItineraryById = async (req, res, next) => {
 
     const itinerary = await Itinerary.findByPk(itineraryId, {
       include: [
-        { model: User, as: 'Author', attributes: ['firebase_uid', 'email'] },
+        { model: User, as: 'Author', attributes: ['firebase_uid', 'id'] },
         {
           model: ItineraryDay,
           as: 'Days',
@@ -94,15 +95,11 @@ exports.createItinerary = async (req, res, next) => {
 
     let author = await User.findOne({ where: { firebase_uid: authorFirebaseUid } });
     if (!author) {
-      const firebaseEmail = req.user.email || '';
-      author = await User.create({
-        firebase_uid: authorFirebaseUid,
-        email: firebaseEmail || `user_${authorFirebaseUid}@temp`,
-      });
+      author = await User.create({ id: generateUserId(), firebase_uid: authorFirebaseUid });
     }
 
     const itinerary = await Itinerary.create({
-      authorId: author.email,
+      authorId: author.id,
       title,
       description,
       startDate,

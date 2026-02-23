@@ -37,9 +37,9 @@ exports.submitReport = async (req, res, next) => {
 
     switch (entityType) {
       case 'user':
-        const reportedUser = await User.findOne({ where: { email: entityId } });
+        const reportedUser = await User.findOne({ where: { id: entityId } });
         if (!reportedUser) return res.status(404).json({ message: '신고 대상 사용자를 찾을 수 없습니다.' });
-        reportedUserId = reportedUser.email;
+        reportedUserId = reportedUser.id;
         break;
       case 'post':
         const reportedPost = await Post.findByPk(entityId);
@@ -63,7 +63,7 @@ exports.submitReport = async (req, res, next) => {
     const reportedEntityId = entityType === 'user' ? reportedUserId : entityId;
     const existingReport = await Report.findOne({
       where: {
-        reporterUserId: reporter.email,
+        reporterUserId: reporter.id,
         [entityType === 'user' ? 'reportedUserId' :
          entityType === 'post' ? 'reportedPostId' :
          entityType === 'itinerary' ? 'reportedItineraryId' :
@@ -76,7 +76,7 @@ exports.submitReport = async (req, res, next) => {
     }
 
     const report = await Report.create({
-      reporterUserId: reporter.email,
+      reporterUserId: reporter.id,
       reportedUserId,
       reportedPostId,
       reportedItineraryId,

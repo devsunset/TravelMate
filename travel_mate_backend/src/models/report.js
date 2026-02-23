@@ -16,20 +16,20 @@ const Report = sequelize.define('Report', {
     primaryKey: true,
   },
   reporterUserId: {
-    type: DataTypes.STRING(255),
+    type: DataTypes.STRING(32),
     allowNull: false,
     references: {
       model: User,
-      key: 'email',
+      key: 'id',
     },
     onDelete: 'CASCADE',
   },
   reportedUserId: {
-    type: DataTypes.STRING(255),
+    type: DataTypes.STRING(32),
     allowNull: true,
     references: {
       model: User,
-      key: 'email',
+      key: 'id',
     },
     onDelete: 'CASCADE',
   },

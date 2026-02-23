@@ -1,8 +1,11 @@
 /// GoRouter 설정. 로그인 여부에 따라 보호 경로 리다이렉트, 홈/로그인/프로필/채팅/커뮤니티/신고 등 경로 정의.
+/// 사용자 식별은 백엔드 랜덤 id만 사용(이메일 미수집·미저장).
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+import 'package:travel_mate_app/core/services/auth_service.dart';
 import 'package:travel_mate_app/presentation/auth/login_screen.dart';
 import 'package:travel_mate_app/presentation/auth/signup_screen.dart';
 import 'package:travel_mate_app/presentation/profile/profile_edit_screen.dart';
@@ -52,14 +55,8 @@ GoRouter createRouter(User? user) {
       ),
       GoRoute(
         path: '/profile',
-        redirect: (BuildContext context, GoRouterState state) {
-          final currentUser = FirebaseAuth.instance.currentUser;
-          if (currentUser == null) return '/login';
-          // 백엔드가 사용자 식별에 이메일을 사용하므로 이메일 우선(구글 로그인 시 자동 계정·프로필 생성)
-          final userId = currentUser.email?.isNotEmpty == true
-              ? Uri.encodeComponent(currentUser.email!)
-              : currentUser.uid;
-          return '/users/$userId';
+        builder: (BuildContext context, GoRouterState state) {
+          return const _ProfileRedirectScreen();
         },
       ),
       GoRoute(
@@ -200,6 +197,41 @@ GoRouter createRouter(User? user) {
       return null;
     },
   );
+}
+
+/// /profile 접근 시 백엔드에서 현재 사용자 id를 조회한 뒤 /users/:userId로 리다이렉트.
+class _ProfileRedirectScreen extends StatefulWidget {
+  const _ProfileRedirectScreen();
+
+  @override
+  State<_ProfileRedirectScreen> createState() => _ProfileRedirectScreenState();
+}
+
+class _ProfileRedirectScreenState extends State<_ProfileRedirectScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _redirect());
+  }
+
+  Future<void> _redirect() async {
+    if (!mounted) return;
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final userId = await authService.getCurrentBackendUserId();
+    if (!mounted) return;
+    if (userId != null && userId.isNotEmpty) {
+      GoRouter.of(context).go('/users/${Uri.encodeComponent(userId)}');
+    } else {
+      GoRouter.of(context).go('/login');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      body: Center(child: CircularProgressIndicator()),
+    );
+  }
 }
 
 /// 신고 화면으로 잘못 진입했을 때(extra 없음) 홈으로 보냄.
