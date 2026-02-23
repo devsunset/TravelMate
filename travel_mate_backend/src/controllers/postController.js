@@ -88,9 +88,13 @@ exports.createPost = async (req, res, next) => {
     err = checkMaxLength(content, LIMITS.postContent, '본문');
     if (err) return res.status(400).json({ message: err });
 
-    const author = await User.findOne({ where: { firebase_uid: authorFirebaseUid } });
+    let author = await User.findOne({ where: { firebase_uid: authorFirebaseUid } });
     if (!author) {
-      return res.status(404).json({ message: '작성자를 찾을 수 없습니다.' });
+      const firebaseEmail = req.user.email || '';
+      author = await User.create({
+        firebase_uid: authorFirebaseUid,
+        email: firebaseEmail || `user_${authorFirebaseUid}@temp`,
+      });
     }
 
     const postCategory = await PostCategory.findOne({ where: { name: category } });

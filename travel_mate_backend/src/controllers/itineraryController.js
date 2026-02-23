@@ -92,9 +92,13 @@ exports.createItinerary = async (req, res, next) => {
     e = checkMaxLength(description, LIMITS.itineraryDescription, '일정 설명');
     if (e) return res.status(400).json({ message: e });
 
-    const author = await User.findOne({ where: { firebase_uid: authorFirebaseUid } });
+    let author = await User.findOne({ where: { firebase_uid: authorFirebaseUid } });
     if (!author) {
-      return res.status(404).json({ message: '작성자를 찾을 수 없습니다.' });
+      const firebaseEmail = req.user.email || '';
+      author = await User.create({
+        firebase_uid: authorFirebaseUid,
+        email: firebaseEmail || `user_${authorFirebaseUid}@temp`,
+      });
     }
 
     const itinerary = await Itinerary.create({
