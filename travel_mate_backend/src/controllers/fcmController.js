@@ -6,11 +6,12 @@ const FcmToken = require('../models/fcmToken');
 const User = require('../models/user');
 const { LIMITS, checkMaxLength } = require('../utils/fieldLimits');
 
-/** FCM 토큰 등록(있으면 deviceType 갱신) */
+/** FCM 토큰 등록(있으면 deviceType 갱신). User 없으면 자동 생성(구글/이메일·비밀번호 로그인 직후 대응) */
 exports.registerFcmToken = async (req, res, next) => {
   try {
     const { token, deviceType } = req.body;
     const firebaseUid = req.user.uid;
+    const firebaseEmail = req.user.email || '';
     if (!token) {
       return res.status(400).json({ message: 'FCM 토큰이 필요합니다.' });
     }
@@ -20,9 +21,12 @@ exports.registerFcmToken = async (req, res, next) => {
       err = checkMaxLength(deviceType, LIMITS.deviceType, '기기 유형');
       if (err) return res.status(400).json({ message: err });
     }
-    const user = await User.findOne({ where: { firebase_uid: firebaseUid } });
+    let user = await User.findOne({ where: { firebase_uid: firebaseUid } });
     if (!user) {
-      return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
+      user = await User.create({
+        firebase_uid: firebaseUid,
+        email: firebaseEmail || `user_${firebaseUid}@temp`,
+      });
     }
     const [fcmToken, created] = await FcmToken.findOrCreate({
       where: { userId: user.email, token: token },

@@ -75,7 +75,8 @@ class ProfileRemoteDataSource {
         ),
       );
 
-      if (response.statusCode == 200) {
+      // 200: 기존 프로필, 201: 최초 로그인 시 백엔드가 자동 생성한 프로필
+      if (response.statusCode == 200 || response.statusCode == 201) {
         return UserProfileModel.fromJson(response.data['userProfile']);
       } else {
         throw Exception('Failed to load user profile: ${response.data}');
@@ -150,6 +151,25 @@ class ProfileRemoteDataSource {
       }
     } catch (e) {
       throw Exception('Failed to delete user profile: ${e.toString()}');
+    }
+  }
+
+  /// 계정 삭제(백엔드 DB + Firebase Auth). 본인 userId(이메일) 필요.
+  Future<void> deleteUserAccount(String userId) async {
+    try {
+      final idToken = await _firebaseAuth.currentUser?.getIdToken();
+      if (idToken == null) throw Exception('User not authenticated.');
+
+      final response = await _dio.delete(
+        '${AppConstants.apiBaseUrl}/api/users/${Uri.encodeComponent(userId)}',
+        options: Options(headers: {'Authorization': 'Bearer $idToken'}),
+      );
+
+      if (response.statusCode != 204) {
+        throw Exception('Failed to delete account: ${response.data}');
+      }
+    } catch (e) {
+      throw Exception('Failed to delete account: ${e.toString()}');
     }
   }
 }

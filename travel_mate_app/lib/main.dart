@@ -39,6 +39,7 @@ import 'package:travel_mate_app/domain/usecases/get_user_profile.dart';
 import 'package:travel_mate_app/domain/usecases/create_user_profile.dart';
 import 'package:travel_mate_app/domain/usecases/update_user_profile.dart';
 import 'package:travel_mate_app/domain/usecases/upload_profile_image.dart';
+import 'package:travel_mate_app/domain/usecases/delete_user_account.dart';
 import 'package:travel_mate_app/domain/usecases/get_tags.dart';
 import 'package:travel_mate_app/domain/usecases/send_private_message.dart';
 import 'package:travel_mate_app/domain/usecases/get_chat_messages.dart';
@@ -182,6 +183,7 @@ void main() async {
         Provider<CreateUserProfile>(create: (context) => CreateUserProfile(context.read<UserProfileRepository>())),
         Provider<UpdateUserProfile>(create: (context) => UpdateUserProfile(context.read<UserProfileRepository>())),
         Provider<UploadProfileImage>(create: (context) => UploadProfileImage(context.read<UserProfileRepository>())),
+        Provider<DeleteUserAccount>(create: (context) => DeleteUserAccount(context.read<UserProfileRepository>())),
         Provider<GetTags>(create: (context) => GetTags(context.read<TagRepository>())),
         Provider<SendPrivateMessage>(create: (context) => SendPrivateMessage(context.read<MessageRepository>())),
         Provider<GetChatMessages>(create: (context) => GetChatMessages(context.read<ChatRepository>())),

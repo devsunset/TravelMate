@@ -8,6 +8,7 @@ import 'package:travel_mate_app/app/theme.dart';
 import 'package:travel_mate_app/app/constants.dart';
 import 'package:travel_mate_app/presentation/common/app_app_bar.dart';
 import 'package:travel_mate_app/core/services/auth_service.dart';
+import 'package:travel_mate_app/domain/usecases/delete_user_account.dart';
 
 /// 계정 설정 화면. 비밀번호 변경, 로그아웃, 계정 삭제. (아이디=이메일, 변경 불가)
 class AccountSettingsScreen extends StatefulWidget {
@@ -53,7 +54,10 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
     try {
       final currentUser = FirebaseAuth.instance.currentUser;
       if (currentUser == null) throw Exception('로그인이 필요합니다.');
-      await currentUser.delete();
+      final userId = currentUser.email ?? currentUser.uid;
+      final deleteUserAccount = Provider.of<DeleteUserAccount>(context, listen: false);
+      await deleteUserAccount.execute(userId);
+      await Provider.of<AuthService>(context, listen: false).signOut();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('계정이 삭제되었습니다.'), backgroundColor: AppColors.textSecondary));
         context.go('/login');
@@ -67,6 +71,9 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    final hasPasswordProvider = currentUser?.providerData.any((p) => p.providerId == 'password') ?? false;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: const AppAppBar(title: '계정 설정'),
@@ -77,17 +84,19 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  _SettingsTile(
-                    icon: Icons.lock_outline_rounded,
-                    label: '비밀번호 변경',
-                    color: AppColors.accent,
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('비밀번호 변경 기능은 준비 중입니다.'), backgroundColor: AppColors.surface),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 12),
+                  if (hasPasswordProvider) ...[
+                    _SettingsTile(
+                      icon: Icons.lock_outline_rounded,
+                      label: '비밀번호 변경',
+                      color: AppColors.accent,
+                      onTap: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('비밀번호 변경 기능은 준비 중입니다.'), backgroundColor: AppColors.surface),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                  ],
                   _SettingsTile(
                     icon: Icons.logout_rounded,
                     label: '로그아웃',

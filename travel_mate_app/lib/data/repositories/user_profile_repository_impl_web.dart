@@ -58,6 +58,11 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
   }
 
   @override
+  Future<void> deleteUserAccount(String userId) async {
+    await remoteDataSource.deleteUserAccount(userId);
+  }
+
+  @override
   Future<String> uploadProfileImage(String userId, String imagePath) async {
     return await remoteDataSource.uploadProfileImage(userId, imagePath);
   }

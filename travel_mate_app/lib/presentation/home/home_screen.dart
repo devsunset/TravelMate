@@ -11,7 +11,10 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final currentUserUid = FirebaseAuth.instance.currentUser?.uid;
+    final currentUser = FirebaseAuth.instance.currentUser;
+    final profileUserId = currentUser != null
+        ? (currentUser.email?.isNotEmpty == true ? Uri.encodeComponent(currentUser.email!) : currentUser.uid)
+        : null;
     final h = MediaQuery.sizeOf(context).height;
     final isCompact = h < 680;
     final isMedium = h >= 680 && h < 820;
@@ -80,7 +83,7 @@ class HomeScreen extends StatelessWidget {
                         IconButton(
                           icon: Icon(Icons.person_outline, color: AppColors.textPrimary, size: isCompact ? 22 : 24),
                           onPressed: () {
-                            if (currentUserUid != null) context.go('/users/$currentUserUid');
+                            if (profileUserId != null) context.go('/users/$profileUserId');
                           },
                         ),
                         IconButton(

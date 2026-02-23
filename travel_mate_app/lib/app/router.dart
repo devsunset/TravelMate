@@ -53,9 +53,13 @@ GoRouter createRouter(User? user) {
       GoRoute(
         path: '/profile',
         redirect: (BuildContext context, GoRouterState state) {
-          final currentUserUid = FirebaseAuth.instance.currentUser?.uid;
-          if (currentUserUid != null) return '/users/$currentUserUid';
-          return '/login';
+          final currentUser = FirebaseAuth.instance.currentUser;
+          if (currentUser == null) return '/login';
+          // 백엔드가 사용자 식별에 이메일을 사용하므로 이메일 우선(구글 로그인 시 자동 계정·프로필 생성)
+          final userId = currentUser.email?.isNotEmpty == true
+              ? Uri.encodeComponent(currentUser.email!)
+              : currentUser.uid;
+          return '/users/$userId';
         },
       ),
       GoRoute(

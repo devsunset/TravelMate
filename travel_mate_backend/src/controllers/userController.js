@@ -3,8 +3,9 @@
  */
 const admin = require('firebase-admin');
 const User = require('../models/user');
+const UserProfile = require('../models/userProfile');
 
-/** 계정 삭제: params.userId는 이메일(URL 인코딩됨). 본인만 삭제 가능. Firebase Auth + MariaDB 삭제 */
+/** 계정 삭제: params.userId는 이메일(URL 인코딩됨). 본인만 삭제 가능. user_profiles 선 삭제 후 users 삭제, Firebase Auth 삭제 */
 exports.deleteUser = async (req, res, next) => {
   try {
     const userEmail = req.params.userId ? decodeURIComponent(req.params.userId) : req.user?.email;
@@ -15,12 +16,12 @@ exports.deleteUser = async (req, res, next) => {
     if (!user) {
       return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
     }
-    await admin.auth().deleteUser(user.firebase_uid);
+    await UserProfile.destroy({ where: { userId: user.email } });
     const deletedRows = await User.destroy({ where: { email: user.email } });
     if (deletedRows === 0) {
       return res.status(404).json({ message: '데이터베이스에서 사용자를 찾을 수 없습니다.' });
     }
-    // UserProfile CASCADE로 함께 삭제됨
+    await admin.auth().deleteUser(user.firebase_uid);
     res.status(204).send();
   } catch (error) {
     console.error('deleteUser 오류:', error);
