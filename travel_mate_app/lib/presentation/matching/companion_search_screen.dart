@@ -70,43 +70,40 @@ class _CompanionSearchScreenState extends State<CompanionSearchScreen> {
     });
 
     try {
-      // TODO: Implement actual search logic using SearchCompanionsUsecase
-      await Future.delayed(const Duration(seconds: 2));
+      final usecase = Provider.of<SearchCompanionsUsecase>(context, listen: false);
+      final destination = _destinationController.text.trim();
+      final keyword = _searchKeywordController.text.trim();
+      final gender = _selectedGender != null && _selectedGender != '무관' ? _selectedGender : null;
+      final ageRange = _selectedAgeRange != null && _selectedAgeRange != '무관' ? _selectedAgeRange : null;
+      final travelStyles = _selectedTravelStyles.isEmpty ? null : List<String>.from(_selectedTravelStyles);
+      final interests = _selectedInterests.isEmpty ? null : List<String>.from(_selectedInterests);
 
-      setState(() {
-        _searchResults = [
-          UserProfile(
-            userId: 'user123',
-            nickname: 'ExplorerJane',
-            profileImageUrl: 'https://picsum.photos/200/300?random=1',
-            bio: '모험과 등산을 좋아해요.',
-            gender: '여성',
-            ageRange: '20대',
-            travelStyles: ['모험', '혼자 여행'],
-            interests: ['자연', '사진'],
-            preferredDestinations: ['Patagonia', 'New Zealand'],
-          ),
-          UserProfile(
-            userId: 'user456',
-            nickname: 'FoodieMark',
-            profileImageUrl: 'https://picsum.photos/200/300?random=2',
-            bio: '한 그릇씩 세계를 여행해요.',
-            gender: '남성',
-            ageRange: '30대',
-            travelStyles: ['맛집', '문화'],
-            interests: ['맛집', '역사'],
-            preferredDestinations: ['Italy', 'Thailand'],
-          ),
-        ];
-        _isLoading = false;
-        _noResults = _searchResults.isEmpty;
-      });
+      final list = await usecase.execute(
+        destination: destination.isEmpty ? null : destination,
+        keyword: keyword.isEmpty ? null : keyword,
+        gender: gender,
+        ageRange: ageRange,
+        travelStyles: travelStyles,
+        interests: interests,
+        limit: 50,
+        offset: 0,
+      );
+
+      if (mounted) {
+        setState(() {
+          _searchResults = list;
+          _isLoading = false;
+          _noResults = list.isEmpty;
+        });
+      }
     } catch (e) {
-      setState(() {
-        _errorMessage = '동행 검색에 실패했습니다.';
-        _isLoading = false;
-        _noResults = false;
-      });
+      if (mounted) {
+        setState(() {
+          _errorMessage = '동행 검색에 실패했습니다. 다시 시도해 주세요.';
+          _isLoading = false;
+          _noResults = false;
+        });
+      }
     }
   }
 
@@ -304,18 +301,26 @@ class _CompanionSearchScreenState extends State<CompanionSearchScreen> {
                             itemCount: _searchResults.length,
                             itemBuilder: (context, index) {
                               final user = _searchResults[index];
+                              final imageUrl = user.profileImageUrl;
                               return Card(
                                 margin: const EdgeInsets.symmetric(horizontal: AppConstants.paddingMedium, vertical: AppConstants.paddingSmall),
                                 elevation: 1,
                                 child: ListTile(
                                   leading: CircleAvatar(
-                                    backgroundImage: NetworkImage(user.profileImageUrl ?? 'https://www.gravatar.com/avatar/?d=mp'),
+                                    backgroundImage: (imageUrl != null && imageUrl.isNotEmpty)
+                                        ? NetworkImage(imageUrl)
+                                        : null,
+                                    child: (imageUrl == null || imageUrl.isEmpty)
+                                        ? const Icon(Icons.person, color: Colors.grey)
+                                        : null,
                                   ),
                                   title: Text(user.nickname),
-                                  subtitle: Text('${user.gender ?? ''}, ${user.ageRange ?? ''}\n${user.bio ?? ''}'),
+                                  subtitle: Text('${user.gender ?? ''} ${user.ageRange ?? ''}\n${user.bio ?? ''}'.trim()),
                                   isThreeLine: true,
                                   onTap: () {
-                                    context.go('/users/${user.userId}'); // Navigate to user's profile
+                                    if (user.userId.isNotEmpty) {
+                                      context.push('/users/${user.userId}');
+                                    }
                                   },
                                 ),
                               );

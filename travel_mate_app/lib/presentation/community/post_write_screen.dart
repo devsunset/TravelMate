@@ -1,11 +1,15 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_quill/flutter_quill.dart' as quill;
+import 'package:flutter_quill/quill_delta.dart' as quill_delta;
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io' if (dart.library.html) 'package:travel_mate_app/core/io_stub/file_stub.dart';
 import 'package:travel_mate_app/core/io_stub/picked_image_widget_io.dart' if (dart.library.html) 'package:travel_mate_app/core/io_stub/picked_image_widget_web.dart';
-import 'package:firebase_auth/firebase_auth.dart'; // Import for current user
-import 'package:flutter_image_compress/flutter_image_compress.dart'; // For image compression
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 
 import 'package:travel_mate_app/app/theme.dart';
 import 'package:travel_mate_app/app/constants.dart';
@@ -15,7 +19,7 @@ import 'package:travel_mate_app/domain/usecases/create_post.dart';
 import 'package:travel_mate_app/domain/usecases/update_post.dart';
 import 'package:travel_mate_app/domain/usecases/upload_post_image.dart';
 import 'package:travel_mate_app/domain/usecases/get_post.dart';
-import 'package:travel_mate_app/data/models/post_model.dart'; // Import PostModel for instantiation
+import 'package:travel_mate_app/data/models/post_model.dart';
 
 class PostWriteScreen extends StatefulWidget {
   final String? postId; // Null for new post, provided for editing existing post
@@ -29,12 +33,14 @@ class PostWriteScreen extends StatefulWidget {
 class _PostWriteScreenState extends State<PostWriteScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _titleController = TextEditingController();
-  final TextEditingController _contentController = TextEditingController();
+  quill.QuillController? _quillController;
+  final FocusNode _editorFocusNode = FocusNode();
+  final ScrollController _editorScrollController = ScrollController();
 
   String? _selectedCategory;
   List<File> _pickedImages = [];
-  List<String> _existingImageUrls = []; // For editing existing post
-  Post? _loadedPost; // 수정 시 로드된 게시글 (createdAt 등 유지용)
+  List<String> _existingImageUrls = [];
+  Post? _loadedPost;
 
   bool _isLoading = false;
   String? _errorMessage;
@@ -44,10 +50,37 @@ class _PostWriteScreenState extends State<PostWriteScreen> {
     'General': '일반', 'Tips': '팁', 'Stories': '이야기', 'Questions': '질문', 'Meetups': '밋업',
   };
 
+  static quill.Document _documentFromContent(String content) {
+    if (content.trim().isEmpty) {
+      return quill.Document();
+    }
+    try {
+      final s = content.trim();
+      if (s.startsWith('[')) {
+        final list = jsonDecode(content) as List;
+        return quill.Document.fromDelta(quill_delta.Delta.fromJson(list));
+      }
+    } catch (_) {}
+    return quill.Document.fromDelta(quill_delta.Delta()..insert(content));
+  }
+
+  static String _contentFromDocument(quill.Document document) {
+    return jsonEncode(document.toDelta().toJson());
+  }
+
+  quill.QuillController _createController(quill.Document doc) {
+    return quill.QuillController(
+      document: doc,
+      selection: const TextSelection.collapsed(offset: 0),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
-    if (widget.postId != null && widget.postId!.isNotEmpty) {
+    if (widget.postId == null || widget.postId!.isEmpty) {
+      _quillController = _createController(quill.Document());
+    } else {
       _loadPostForEditing();
     }
   }
@@ -61,11 +94,11 @@ class _PostWriteScreenState extends State<PostWriteScreen> {
     try {
       final getPost = Provider.of<GetPost>(context, listen: false);
       final fetchedPost = await getPost.execute(widget.postId!);
-
+      _loadedPost = fetchedPost;
       _titleController.text = fetchedPost.title;
-      _contentController.text = fetchedPost.content;
       _selectedCategory = _categories.contains(fetchedPost.category) ? fetchedPost.category : null;
       _existingImageUrls = List.from(fetchedPost.imageUrls);
+      _quillController = _createController(_documentFromContent(fetchedPost.content));
     } catch (e) {
       setState(() {
         _errorMessage = '글을 불러오지 못했습니다: ${e.toString()}';
@@ -119,6 +152,11 @@ class _PostWriteScreenState extends State<PostWriteScreen> {
   }
 
   Future<void> _submitPost() async {
+    if (_quillController == null) return;
+    if (_quillController!.document.toPlainText().trim().isEmpty) {
+      setState(() => _errorMessage = '내용을 입력하세요.');
+      return;
+    }
     if (_formKey.currentState?.validate() ?? false) {
       setState(() {
         _isLoading = true;
@@ -131,26 +169,24 @@ class _PostWriteScreenState extends State<PostWriteScreen> {
           throw Exception('로그인이 필요합니다.');
         }
 
-        // 1. 새 이미지를 백엔드에 업로드
         List<String> uploadedImageUrls = [];
         final uploadPostImage = Provider.of<UploadPostImage>(context, listen: false);
         for (File image in _pickedImages) {
-          final imageUrl = await uploadPostImage.execute(widget.postId ?? currentUser.uid, image.path); // Use postId or current user UID for path
+          final imageUrl = await uploadPostImage.execute(widget.postId ?? currentUser.uid, image.path);
           uploadedImageUrls.add(imageUrl);
         }
 
-        // Combine existing and new image URLs
         List<String> allImageUrls = [..._existingImageUrls, ...uploadedImageUrls];
+        final contentString = _contentFromDocument(_quillController!.document);
 
-        // 2. Create or Update Post entity
         final PostModel post = PostModel(
-          id: widget.postId ?? '', // If new, backend will assign ID
+          id: widget.postId ?? '',
           authorId: currentUser.uid,
           title: _titleController.text.trim(),
-          content: _contentController.text.trim(),
+          content: contentString,
           category: _selectedCategory!,
           imageUrls: allImageUrls,
-          createdAt: _loadedPost?.createdAt ?? DateTime.now(), // Preserve createdAt for existing post
+          createdAt: _loadedPost?.createdAt ?? DateTime.now(),
           updatedAt: DateTime.now(),
         );
 
@@ -184,7 +220,9 @@ class _PostWriteScreenState extends State<PostWriteScreen> {
   @override
   void dispose() {
     _titleController.dispose();
-    _contentController.dispose();
+    _quillController?.dispose();
+    _editorFocusNode.dispose();
+    _editorScrollController.dispose();
     super.dispose();
   }
 
@@ -192,7 +230,7 @@ class _PostWriteScreenState extends State<PostWriteScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppAppBar(title: widget.postId == null ? '글쓰기' : '글 수정'),
-      body: _isLoading
+      body: _isLoading && _quillController == null
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
               padding: const EdgeInsets.all(AppConstants.paddingLarge),
@@ -215,20 +253,51 @@ class _PostWriteScreenState extends State<PostWriteScreen> {
                       },
                     ),
                     const SizedBox(height: AppConstants.spacingMedium),
-                    TextFormField(
-                      controller: _contentController,
-                      decoration: const InputDecoration(
-                        labelText: '내용',
-                        prefixIcon: Icon(Icons.text_fields),
+                    const Text('내용', style: TextStyle(fontWeight: FontWeight.w500)),
+                    const SizedBox(height: AppConstants.spacingSmall),
+                    if (_quillController != null) ...[
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).cardColor,
+                          border: Border.all(color: AppColors.textSecondary.withOpacity(0.3)),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            quill.QuillSimpleToolbar(
+                              configurations: quill.QuillSimpleToolbarConfigurations(
+                                controller: _quillController!,
+                                showFontFamily: false,
+                                showFontSize: false,
+                                showAlignmentButtons: false,
+                                showLeftAlignment: false,
+                                showCenterAlignment: false,
+                                showRightAlignment: false,
+                                showJustifyAlignment: false,
+                                showDirection: false,
+                                showSearchButton: false,
+                                showSubscript: false,
+                                showSuperscript: false,
+                              ),
+                            ),
+                            Divider(height: 1, color: AppColors.textSecondary.withOpacity(0.3)),
+                            ConstrainedBox(
+                              constraints: const BoxConstraints(minHeight: 160),
+                              child: quill.QuillEditor.basic(
+                                configurations: quill.QuillEditorConfigurations(
+                                  controller: _quillController!,
+                                  placeholder: '내용을 입력하세요...',
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                ),
+                                focusNode: _editorFocusNode,
+                                scrollController: _editorScrollController,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                      maxLines: 8,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return '내용을 입력하세요';
-                        }
-                        return null;
-                      },
-                    ),
+                    ],
                     const SizedBox(height: AppConstants.spacingMedium),
                     DropdownButtonFormField<String>(
                       value: _selectedCategory != null && _categories.contains(_selectedCategory) ? _selectedCategory : null,

@@ -1,13 +1,16 @@
-/// 동행 검색 유스케이스
+/// 동행 검색 레포지토리 구현. API 호출 후 UserProfile 리스트 반환.
 import 'package:travel_mate_app/domain/entities/user_profile.dart';
 import 'package:travel_mate_app/domain/repositories/companion_repository.dart';
+import 'package:travel_mate_app/data/datasources/companion_search_remote_datasource.dart';
 
-class SearchCompanionsUsecase {
-  final CompanionRepository _repository;
+class CompanionRepositoryImpl implements CompanionRepository {
+  final CompanionSearchRemoteDataSource _remoteDataSource;
 
-  SearchCompanionsUsecase(this._repository);
+  CompanionRepositoryImpl({required CompanionSearchRemoteDataSource remoteDataSource})
+      : _remoteDataSource = remoteDataSource;
 
-  Future<List<UserProfile>> execute({
+  @override
+  Future<List<UserProfile>> searchCompanions({
     String? destination,
     String? keyword,
     String? gender,
@@ -17,7 +20,7 @@ class SearchCompanionsUsecase {
     int limit = 20,
     int offset = 0,
   }) async {
-    return _repository.searchCompanions(
+    final list = await _remoteDataSource.searchCompanions(
       destination: destination,
       keyword: keyword,
       gender: gender,
@@ -27,5 +30,6 @@ class SearchCompanionsUsecase {
       limit: limit,
       offset: offset,
     );
+    return list;
   }
 }

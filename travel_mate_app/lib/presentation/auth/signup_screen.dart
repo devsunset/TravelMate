@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
@@ -20,7 +21,10 @@ class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
   bool _isLoading = false;
+  bool _isCheckingEmail = false;
   String? _errorMessage;
+  /// null: 미확인, true: 사용 가능, false: 이미 사용 중
+  bool? _emailDuplicateChecked;
 
   @override
   void dispose() {
@@ -30,8 +34,49 @@ class _SignupScreenState extends State<SignupScreen> {
     super.dispose();
   }
 
+  Future<void> _checkEmailDuplicate() async {
+    final email = _emailController.text.trim();
+    if (email.isEmpty) {
+      setState(() => _errorMessage = '이메일을 입력한 뒤 중복 확인해 주세요.');
+      return;
+    }
+    if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(email)) {
+      setState(() => _errorMessage = '올바른 이메일 주소를 입력해 주세요.');
+      return;
+    }
+    setState(() {
+      _isCheckingEmail = true;
+      _errorMessage = null;
+      _emailDuplicateChecked = null;
+    });
+    try {
+      final authService = Provider.of<AuthService>(context, listen: false);
+      final inUse = await authService.isEmailAlreadyInUse(email);
+      if (mounted) {
+        setState(() {
+          _emailDuplicateChecked = !inUse;
+          _isCheckingEmail = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(inUse ? '이미 사용 중인 이메일입니다.' : '사용 가능한 이메일입니다.'),
+            backgroundColor: inUse ? AppColors.error : null,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isCheckingEmail = false;
+          _errorMessage = '중복 확인에 실패했습니다. 다시 시도해 주세요.';
+        });
+      }
+    }
+  }
+
   void _signup() async {
     if (_formKey.currentState?.validate() ?? false) {
+      final email = _emailController.text.trim();
       setState(() {
         _isLoading = true;
         _errorMessage = null;
@@ -39,19 +84,34 @@ class _SignupScreenState extends State<SignupScreen> {
 
       try {
         final authService = Provider.of<AuthService>(context, listen: false);
+        final inUse = await authService.isEmailAlreadyInUse(email);
+        if (inUse && mounted) {
+          setState(() {
+            _emailDuplicateChecked = false;
+            _errorMessage = '이미 사용 중인 이메일입니다. 다른 이메일을 사용해 주세요.';
+            _isLoading = false;
+          });
+          return;
+        }
+
+        if (!mounted) return;
         final user = await authService.registerWithEmailAndPassword(
-          _emailController.text.trim(),
+          email,
           _passwordController.text,
         );
 
         if (user != null) {
-          // Signup successful, navigate to home or show success message
-          context.go('/'); // Redirect to home after successful signup
+          context.go('/');
         } else {
           setState(() {
             _errorMessage = '회원가입에 실패했습니다. 다시 시도해 주세요.';
           });
         }
+      } on FirebaseAuthException catch (e) {
+        final message = e.code == 'email-already-in-use'
+            ? '이미 사용 중인 이메일입니다. 다른 이메일을 사용해 주세요.'
+            : '회원가입에 실패했습니다. 다시 시도해 주세요.';
+        setState(() => _errorMessage = message);
       } catch (e) {
         setState(() {
           _errorMessage = e.toString().contains('firebase_auth')
@@ -59,9 +119,7 @@ class _SignupScreenState extends State<SignupScreen> {
               : '오류가 발생했습니다: ${e.toString()}';
         });
       } finally {
-        setState(() {
-          _isLoading = false;
-        });
+        if (mounted) setState(() => _isLoading = false);
       }
     }
   }
@@ -88,6 +146,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 const SizedBox(height: AppConstants.spacingLarge),
                 TextFormField(
                   controller: _emailController,
+                  onChanged: (_) => setState(() => _emailDuplicateChecked = null),
                   decoration: InputDecoration(
                     labelText: '이메일',
                     hintText: '이메일을 입력하세요',
@@ -95,6 +154,11 @@ class _SignupScreenState extends State<SignupScreen> {
                       borderRadius: BorderRadius.circular(AppConstants.borderRadius),
                     ),
                     prefixIcon: const Icon(Icons.email),
+                    suffixIcon: _emailDuplicateChecked == true
+                        ? const Icon(Icons.check_circle, color: Colors.green)
+                        : _emailDuplicateChecked == false
+                            ? const Icon(Icons.cancel, color: AppColors.error)
+                            : null,
                   ),
                   keyboardType: TextInputType.emailAddress,
                   validator: (value) {
@@ -106,6 +170,21 @@ class _SignupScreenState extends State<SignupScreen> {
                     }
                     return null;
                   },
+                ),
+                const SizedBox(height: AppConstants.spacingSmall),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: _isCheckingEmail ? null : _checkEmailDuplicate,
+                    icon: _isCheckingEmail
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.search, size: 20),
+                    label: Text(_isCheckingEmail ? '확인 중...' : '이메일 중복 확인'),
+                  ),
                 ),
                 const SizedBox(height: AppConstants.spacingMedium),
                 TextFormField(

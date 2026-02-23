@@ -1,6 +1,7 @@
 /// 채팅 레포지토리 구현. Firestore 데이터소스 위임.
 import 'package:travel_mate_app/data/datasources/chat_remote_datasource.dart';
 import 'package:travel_mate_app/domain/entities/chat_message.dart';
+import 'package:travel_mate_app/domain/entities/chat_room_info.dart';
 import 'package:travel_mate_app/domain/repositories/chat_repository.dart';
 
 class ChatRepositoryImpl implements ChatRepository {
@@ -11,6 +12,11 @@ class ChatRepositoryImpl implements ChatRepository {
   @override
   Stream<List<ChatMessage>> getChatMessages(String chatRoomId) {
     return remoteDataSource.getChatMessages(chatRoomId);
+  }
+
+  @override
+  Stream<List<ChatRoomInfo>> getChatRooms(String currentUserId) {
+    return remoteDataSource.getChatRooms(currentUserId);
   }
 
   @override

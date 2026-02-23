@@ -51,6 +51,7 @@ dependencies:
   google_maps_flutter: ^2.6.1
   google_fonts: ^6.2.1
   logger: ^2.0.0
+  flutter_quill: ^9.2.3
 
 dev_dependencies:
   flutter_test:

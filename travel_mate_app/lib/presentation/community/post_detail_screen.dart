@@ -1,4 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_quill/flutter_quill.dart' as quill;
+import 'package:flutter_quill/quill_delta.dart' as quill_delta;
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -25,12 +29,41 @@ class PostDetailScreen extends StatefulWidget {
 class _PostDetailScreenState extends State<PostDetailScreen> {
   bool _isLoading = false;
   String? _errorMessage;
-  Post? _post; // Will store post details
+  Post? _post;
+  quill.QuillController? _quillViewController;
+  final FocusNode _viewFocusNode = FocusNode();
+  final ScrollController _viewScrollController = ScrollController();
+
+  static bool _isQuillContent(String content) {
+    return content.trim().startsWith('[');
+  }
+
+  static quill.Document _documentFromContent(String content) {
+    if (content.trim().isEmpty) {
+      return quill.Document();
+    }
+    try {
+      final s = content.trim();
+      if (s.startsWith('[')) {
+        final list = jsonDecode(content) as List;
+        return quill.Document.fromDelta(quill_delta.Delta.fromJson(list));
+      }
+    } catch (_) {}
+    return quill.Document.fromDelta(quill_delta.Delta()..insert(content));
+  }
 
   @override
   void initState() {
     super.initState();
     _loadPostDetails();
+  }
+
+  @override
+  void dispose() {
+    _quillViewController?.dispose();
+    _viewFocusNode.dispose();
+    _viewScrollController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadPostDetails() async {
@@ -50,10 +83,22 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
       final getPost = Provider.of<GetPost>(context, listen: false);
       final fetchedPost = await getPost.execute(widget.postId);
 
-      setState(() {
-        _post = fetchedPost;
-        _isLoading = false;
-      });
+      quill.QuillController? viewController;
+      if (_isQuillContent(fetchedPost.content)) {
+        viewController = quill.QuillController(
+          document: _documentFromContent(fetchedPost.content),
+          selection: const TextSelection.collapsed(offset: 0),
+        );
+      }
+
+      if (mounted) {
+        setState(() {
+          _post = fetchedPost;
+          _quillViewController?.dispose();
+          _quillViewController = viewController;
+          _isLoading = false;
+        });
+      }
     } catch (e) {
       setState(() {
         _errorMessage = '글을 불러오지 못했습니다: ${e.toString()}';
@@ -197,10 +242,26 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                               ),
                             ),
                           const SizedBox(height: AppConstants.spacingMedium),
-                          Text(
-                            _post!.content,
-                            style: Theme.of(context).textTheme.bodyLarge,
-                          ),
+                          if (_quillViewController != null)
+                            Container(
+                              width: double.infinity,
+                              alignment: Alignment.topLeft,
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              child: quill.QuillEditor.basic(
+                                configurations: quill.QuillEditorConfigurations(
+                                  controller: _quillViewController!,
+                                  readOnly: true,
+                                  padding: EdgeInsets.zero,
+                                ),
+                                focusNode: _viewFocusNode,
+                                scrollController: _viewScrollController,
+                              ),
+                            )
+                          else
+                            Text(
+                              _post!.content,
+                              style: Theme.of(context).textTheme.bodyLarge,
+                            ),
                           const SizedBox(height: AppConstants.spacingLarge),
                           Text(
                             'Comments (Placeholder)',

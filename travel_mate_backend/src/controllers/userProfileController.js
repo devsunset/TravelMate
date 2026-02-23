@@ -5,6 +5,7 @@
 
 const UserProfile = require('../models/userProfile');
 const User = require('../models/user');
+const { generateUniqueRandomNickname, isNicknameTakenByOther } = require('../utils/randomNickname');
 
 /**
  * 프로필 조회
@@ -24,9 +25,10 @@ exports.getUserProfile = async (req, res, next) => {
     let userProfile = await UserProfile.findOne({ where: { userId: user.id } });
 
     if (!userProfile) {
+      const nickname = await generateUniqueRandomNickname();
       userProfile = await UserProfile.create({
         userId: user.id,
-        nickname: `user_${user.firebase_uid.substring(0, 8)}`,
+        nickname,
         bio: '',
         profileImageUrl: '',
         gender: '',
@@ -67,21 +69,37 @@ exports.updateUserProfile = async (req, res, next) => {
     let userProfile = await UserProfile.findOne({ where: { userId: user.id } });
 
     if (!userProfile) {
+      const newNick = (nickname && nickname.trim()) ? nickname.trim() : await generateUniqueRandomNickname();
+      if (nickname && nickname.trim()) {
+        const taken = await isNicknameTakenByOther(newNick, user.id);
+        if (taken) {
+          return res.status(409).json({ message: '이미 사용 중인 닉네임입니다.' });
+        }
+      }
       userProfile = await UserProfile.create({
         userId: user.id,
-        nickname,
-        bio,
-        profileImageUrl,
-        gender,
-        ageRange,
-        travelStyles,
-        interests,
-        preferredDestinations,
+        nickname: newNick,
+        bio: bio ?? '',
+        profileImageUrl: profileImageUrl ?? '',
+        gender: gender ?? '',
+        ageRange: ageRange ?? '',
+        travelStyles: travelStyles ?? [],
+        interests: interests ?? [],
+        preferredDestinations: preferredDestinations ?? [],
       });
       return res.status(201).json({ message: '프로필이 생성·수정되었습니다.', userProfile });
     }
 
-    userProfile.nickname = nickname;
+    // 닉네임 변경 시 기존 등록된 닉네임인지 체크 (본인 닉네임은 그대로 허용)
+    if (nickname != null && String(nickname).trim() !== '' && String(nickname).trim() !== userProfile.nickname) {
+      const newNick = String(nickname).trim();
+      const taken = await isNicknameTakenByOther(newNick, user.id);
+      if (taken) {
+        return res.status(409).json({ message: '이미 사용 중인 닉네임입니다.' });
+      }
+    }
+
+    userProfile.nickname = nickname != null && String(nickname).trim() !== '' ? String(nickname).trim() : userProfile.nickname;
     userProfile.bio = bio;
     userProfile.profileImageUrl = profileImageUrl;
     userProfile.gender = gender;
@@ -119,9 +137,10 @@ exports.updateProfileImage = async (req, res, next) => {
     let userProfile = await UserProfile.findOne({ where: { userId: user.id } });
 
     if (!userProfile) {
+      const nickname = await generateUniqueRandomNickname();
       userProfile = await UserProfile.create({
         userId: user.id,
-        nickname: `user_${user.firebase_uid.substring(0, 8)}`,
+        nickname,
         profileImageUrl: profileImageUrl,
       });
     } else {

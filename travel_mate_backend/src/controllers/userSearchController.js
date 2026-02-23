@@ -12,7 +12,13 @@ exports.searchCompanions = async (req, res, next) => {
   try {
     const { destination, gender, ageRange, travelStyles, interests, startDate, endDate, keyword, limit = 10, offset = 0 } = req.query;
 
-    const whereConditions = {};
+    // travelStyles, interests: 배열 또는 쉼표 구분 문자열 지원
+    const travelStylesArr = !travelStyles ? [] : Array.isArray(travelStyles) ? travelStyles : String(travelStyles).split(',').map(s => s.trim()).filter(Boolean);
+    const interestsArr = !interests ? [] : Array.isArray(interests) ? interests : String(interests).split(',').map(s => s.trim()).filter(Boolean);
+
+    // 본인 제외: 등록된 다른 사용자만 표시
+    const currentUid = req.user?.uid;
+    const whereConditions = currentUid ? { firebase_uid: { [Op.ne]: currentUid } } : {};
     const includeConditions = [
       {
         model: UserProfile,
@@ -49,27 +55,27 @@ exports.searchCompanions = async (req, res, next) => {
     }
 
     // Filter by travel styles (many-to-many relationship via Tags)
-    if (travelStyles && travelStyles.length > 0) {
+    if (travelStylesArr.length > 0) {
       includeConditions[0].include.push({
         model: Tag,
         as: 'Tags',
-        through: { attributes: [] }, // Don't retrieve junction table attributes
+        through: { attributes: [] },
         where: {
-          name: { [Op.in]: travelStyles },
+          name: { [Op.in]: travelStylesArr },
           type: 'travel_style',
         },
-        required: true, // INNER JOIN to ensure matching tags
+        required: true,
       });
     }
 
     // Filter by interests (many-to-many relationship via Tags)
-    if (interests && interests.length > 0) {
+    if (interestsArr.length > 0) {
       includeConditions[0].include.push({
         model: Tag,
-        as: 'Interests', // Use a different alias if filtering by both travelStyles and interests in separate includes
+        as: 'Interests',
         through: { attributes: [] },
         where: {
-          name: { [Op.in]: interests },
+          name: { [Op.in]: interestsArr },
           type: 'interest',
         },
         required: true,

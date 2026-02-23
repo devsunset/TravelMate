@@ -27,9 +27,14 @@ class HomeScreen extends StatelessWidget {
     final heroAfterTitle = isCompact ? 6.0 : 12.0;
     final heroBottom = isCompact ? 12.0 : (isMedium ? 18.0 : 24.0);
     final gridSpacing = isCompact ? 8.0 : 10.0;
-    // 카드에 큰 아이콘 넣을 수 있도록 비율 (세로 여유)
-    final gridAspectRatio = isCompact ? 1.55 : (isMedium ? 1.45 : 1.35);
     final bottomPadding = isCompact ? 24.0 : 32.0;
+
+    final navCards = [
+      (Icons.person_search_rounded, '동행 찾기', AppColors.secondary, () => context.go('/matching/search')),
+      (Icons.chat_bubble_outline_rounded, '채팅', AppColors.primary, () => context.go('/chat')),
+      (Icons.article_outlined, '커뮤니티', AppColors.accent, () => context.go('/community')),
+      (Icons.calendar_month_rounded, '일정', AppColors.secondary, () => context.go('/itinerary')),
+    ];
 
     return Scaffold(
       body: Container(
@@ -45,100 +50,108 @@ class HomeScreen extends StatelessWidget {
           ),
         ),
         child: SafeArea(
-          child: CustomScrollView(
-            slivers: [
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: AppConstants.paddingLarge, vertical: headerPaddingV),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: EdgeInsets.all(isCompact ? 8 : 10),
-                            decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                colors: [AppColors.primary, AppColors.secondary],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                              borderRadius: BorderRadius.circular(12),
+          child: Column(
+            children: [
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: AppConstants.paddingLarge, vertical: headerPaddingV),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: EdgeInsets.all(isCompact ? 8 : 10),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [AppColors.primary, AppColors.secondary],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
                             ),
-                            child: Icon(Icons.explore, color: Colors.white, size: isCompact ? 20 : 24),
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                          SizedBox(width: isCompact ? 8 : 10),
-                          Text('TripMate', style: GoogleFonts.outfit(fontSize: isCompact ? 18 : 22, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-                        ],
-                      ),
-                      Row(
-                        children: [
-                          IconButton(
-                            icon: Icon(Icons.person_outline, color: AppColors.textPrimary, size: isCompact ? 22 : 24),
-                            onPressed: () {
-                              if (currentUserUid != null) context.go('/users/$currentUserUid');
-                            },
-                          ),
-                          IconButton(
-                            icon: Icon(Icons.settings_outlined, color: AppColors.textPrimary, size: isCompact ? 22 : 24),
-                            onPressed: () => context.go('/settings/account'),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: AppConstants.paddingLarge),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(height: heroTop),
-                      Container(
-                        padding: EdgeInsets.symmetric(horizontal: badgePaddingH, vertical: badgePaddingV),
-                        decoration: BoxDecoration(
-                          color: AppColors.secondary.withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(100),
-                          border: Border.all(color: AppColors.secondary.withOpacity(0.3)),
+                          child: Icon(Icons.explore, color: Colors.white, size: isCompact ? 20 : 24),
                         ),
-                        child: Text('Explore the world together', style: GoogleFonts.plusJakartaSans(fontSize: badgeFontSize, fontWeight: FontWeight.w600, color: AppColors.secondary)),
-                      ),
-                      SizedBox(height: isCompact ? 8 : 16),
-                      ShaderMask(
-                        shaderCallback: (bounds) => const LinearGradient(
-                          colors: [AppColors.primary, AppColors.accent, AppColors.secondary],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ).createShader(bounds),
-                        child: Text('Find Your\nTravel Squad', style: GoogleFonts.outfit(fontSize: heroTitleSize, fontWeight: FontWeight.bold, height: 1.15, color: Colors.white)),
-                      ),
-                      SizedBox(height: heroAfterTitle),
-                      Text('같은 취향의 여행자와 만나고, 일정을 공유하고, 추억을 나눠보세요.', style: GoogleFonts.plusJakartaSans(fontSize: heroSubtitleSize, color: AppColors.textSecondary, height: 1.4)),
-                      SizedBox(height: heroBottom),
-                    ],
-                  ),
+                        SizedBox(width: isCompact ? 8 : 10),
+                        Text('TripMate', style: GoogleFonts.outfit(fontSize: isCompact ? 18 : 22, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.person_outline, color: AppColors.textPrimary, size: isCompact ? 22 : 24),
+                          onPressed: () {
+                            if (currentUserUid != null) context.go('/users/$currentUserUid');
+                          },
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.settings_outlined, color: AppColors.textPrimary, size: isCompact ? 22 : 24),
+                          onPressed: () => context.go('/settings/account'),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
-              SliverPadding(
-                padding: EdgeInsets.symmetric(horizontal: AppConstants.paddingLarge),
-                sliver: SliverGrid(
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    mainAxisSpacing: gridSpacing,
-                    crossAxisSpacing: gridSpacing,
-                    childAspectRatio: gridAspectRatio,
-                  ),
-                  delegate: SliverChildListDelegate([
-                    _NavCard(icon: Icons.person_search_rounded, label: '동행 찾기', color: AppColors.secondary, onTap: () => context.go('/matching/search'), compact: isCompact),
-                    _NavCard(icon: Icons.chat_bubble_outline_rounded, label: '채팅', color: AppColors.primary, onTap: () => context.go('/chat'), compact: isCompact),
-                    _NavCard(icon: Icons.article_outlined, label: '커뮤니티', color: AppColors.accent, onTap: () => context.go('/community'), compact: isCompact),
-                    _NavCard(icon: Icons.calendar_month_rounded, label: '일정', color: AppColors.secondary, onTap: () => context.go('/itinerary'), compact: isCompact),
-                  ]),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppConstants.paddingLarge),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(height: heroTop),
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: badgePaddingH, vertical: badgePaddingV),
+                      decoration: BoxDecoration(
+                        color: AppColors.secondary.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(100),
+                        border: Border.all(color: AppColors.secondary.withOpacity(0.3)),
+                      ),
+                      child: Text('Explore the world together', style: GoogleFonts.plusJakartaSans(fontSize: badgeFontSize, fontWeight: FontWeight.w600, color: AppColors.secondary)),
+                    ),
+                    SizedBox(height: isCompact ? 8 : 16),
+                    ShaderMask(
+                      shaderCallback: (bounds) => const LinearGradient(
+                        colors: [AppColors.primary, AppColors.accent, AppColors.secondary],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ).createShader(bounds),
+                      child: Text('Find Your\nTravel Squad', style: GoogleFonts.outfit(fontSize: heroTitleSize, fontWeight: FontWeight.bold, height: 1.15, color: Colors.white)),
+                    ),
+                    SizedBox(height: heroAfterTitle),
+                    Text('같은 취향의 여행자와 만나고, 일정을 공유하고, 추억을 나눠보세요.', style: GoogleFonts.plusJakartaSans(fontSize: heroSubtitleSize, color: AppColors.textSecondary, height: 1.4)),
+                    SizedBox(height: heroBottom),
+                  ],
                 ),
               ),
-              SliverToBoxAdapter(child: SizedBox(height: bottomPadding)),
+              Expanded(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final availableHeight = constraints.maxHeight - bottomPadding;
+                    final w = MediaQuery.sizeOf(context).width;
+                    final pad = AppConstants.paddingLarge;
+                    final cellWidth = (w - 2 * pad - gridSpacing) / 2;
+                    final rowHeight = (availableHeight - gridSpacing) / 2;
+                    final aspectRatio = cellWidth / rowHeight.clamp(40.0, double.infinity);
+                    return Padding(
+                      padding: EdgeInsets.only(left: pad, right: pad, bottom: bottomPadding),
+                      child: GridView.builder(
+                        physics: const NeverScrollableScrollPhysics(),
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          mainAxisSpacing: gridSpacing,
+                          crossAxisSpacing: gridSpacing,
+                          childAspectRatio: aspectRatio,
+                        ),
+                        itemCount: 4,
+                        itemBuilder: (context, index) {
+                          final item = navCards[index];
+                          return _NavCard(icon: item.$1, label: item.$2, color: item.$3, onTap: item.$4, compact: isCompact);
+                        },
+                      ),
+                    );
+                  },
+                ),
+              ),
             ],
           ),
         ),

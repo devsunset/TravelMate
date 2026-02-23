@@ -76,6 +76,18 @@ class AuthService {
     }
   }
 
+  /// 이메일이 이미 가입된 계정에 사용 중인지 확인.
+  /// Firebase fetchSignInMethodsForEmail 사용. true면 이미 사용 중.
+  Future<bool> isEmailAlreadyInUse(String email) async {
+    try {
+      final methods = await _firebaseAuth.fetchSignInMethodsForEmail(email);
+      return methods.isNotEmpty;
+    } catch (e) {
+      developer.log('isEmailAlreadyInUse failed: $e', name: 'Auth', level: 1000);
+      rethrow;
+    }
+  }
+
   /// 이메일·비밀번호로 회원가입 후 토큰 저장.
   Future<User?> registerWithEmailAndPassword(
       String email, String password) async {

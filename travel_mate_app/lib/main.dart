@@ -25,7 +25,10 @@ import 'package:travel_mate_app/data/repositories/message_repository_impl.dart';
 import 'package:travel_mate_app/data/repositories/chat_repository_impl.dart';
 import 'package:travel_mate_app/data/repositories/post_repository_impl.dart';
 import 'package:travel_mate_app/data/repositories/itinerary_repository_impl.dart';
+import 'package:travel_mate_app/data/repositories/companion_repository_impl.dart';
+import 'package:travel_mate_app/data/datasources/companion_search_remote_datasource.dart';
 import 'package:travel_mate_app/domain/repositories/user_profile_repository.dart';
+import 'package:travel_mate_app/domain/repositories/companion_repository.dart';
 import 'package:travel_mate_app/domain/repositories/tag_repository.dart';
 import 'package:travel_mate_app/domain/repositories/message_repository.dart';
 import 'package:travel_mate_app/domain/repositories/chat_repository.dart';
@@ -38,6 +41,7 @@ import 'package:travel_mate_app/domain/usecases/upload_profile_image.dart';
 import 'package:travel_mate_app/domain/usecases/get_tags.dart';
 import 'package:travel_mate_app/domain/usecases/send_private_message.dart';
 import 'package:travel_mate_app/domain/usecases/get_chat_messages.dart';
+import 'package:travel_mate_app/domain/usecases/get_chat_rooms.dart';
 import 'package:travel_mate_app/domain/usecases/send_chat_message.dart';
 import 'package:travel_mate_app/domain/usecases/get_posts.dart';
 import 'package:travel_mate_app/domain/usecases/get_post.dart';
@@ -51,6 +55,7 @@ import 'package:travel_mate_app/domain/usecases/create_itinerary.dart';
 import 'package:travel_mate_app/domain/usecases/update_itinerary.dart';
 import 'package:travel_mate_app/domain/usecases/delete_itinerary.dart';
 import 'package:travel_mate_app/domain/usecases/upload_itinerary_image.dart';
+import 'package:travel_mate_app/domain/usecases/search_companions_usecase.dart';
 
 /// 앱 진입점: Firebase 초기화 후 FCM 백그라운드 핸들러 등록, Provider 트리 구성 후 runApp.
 void main() async {
@@ -61,7 +66,10 @@ void main() async {
   const String googleClientIdEnv = String.fromEnvironment('GOOGLE_SIGN_IN_WEB_CLIENT_ID', defaultValue: '');
 
   AppConstants.setApiBaseUrl(apiUrl);
-  AppConstants.setGoogleSignInWebClientId(googleClientIdEnv.isEmpty ? null : googleClientIdEnv);
+  // env에 값이 있을 때만 덮어씀. 비어 있으면 constants.dart 기본 Web Client ID 유지(웹 Google 로그인용).
+  if (googleClientIdEnv.isNotEmpty) {
+    AppConstants.setGoogleSignInWebClientId(googleClientIdEnv);
+  }
 
   // 에러 발생 시 콘솔에 error 레벨로 로그 출력. 화면에는 간단 안내만 표시.
   FlutterError.onError = (FlutterErrorDetails details) {
@@ -133,6 +141,9 @@ void main() async {
         ),
         Provider<PostRemoteDataSource>(create: (context) => PostRemoteDataSource(dio: context.read<Dio>())),
         Provider<ItineraryRemoteDataSource>(create: (context) => ItineraryRemoteDataSource(dio: context.read<Dio>())),
+        Provider<CompanionSearchRemoteDataSource>(
+          create: (context) => CompanionSearchRemoteDataSource(dio: context.read<Dio>()),
+        ),
 
         // Repository Providers
         Provider<UserProfileRepository>(
@@ -151,6 +162,9 @@ void main() async {
         Provider<ItineraryRepository>(
           create: (context) => ItineraryRepositoryImpl(remoteDataSource: context.read<ItineraryRemoteDataSource>()),
         ),
+        Provider<CompanionRepository>(
+          create: (context) => CompanionRepositoryImpl(remoteDataSource: context.read<CompanionSearchRemoteDataSource>()),
+        ),
 
         // UseCase Providers
         Provider<GetUserProfile>(create: (context) => GetUserProfile(context.read<UserProfileRepository>())),
@@ -160,6 +174,7 @@ void main() async {
         Provider<GetTags>(create: (context) => GetTags(context.read<TagRepository>())),
         Provider<SendPrivateMessage>(create: (context) => SendPrivateMessage(context.read<MessageRepository>())),
         Provider<GetChatMessages>(create: (context) => GetChatMessages(context.read<ChatRepository>())),
+        Provider<GetChatRooms>(create: (context) => GetChatRooms(context.read<ChatRepository>())),
         Provider<SendChatMessage>(create: (context) => SendChatMessage(context.read<ChatRepository>())),
         Provider<GetPosts>(create: (context) => GetPosts(context.read<PostRepository>())),
         Provider<GetPost>(create: (context) => GetPost(context.read<PostRepository>())),
@@ -173,6 +188,7 @@ void main() async {
         Provider<UpdateItinerary>(create: (context) => UpdateItinerary(context.read<ItineraryRepository>())),
         Provider<DeleteItinerary>(create: (context) => DeleteItinerary(context.read<ItineraryRepository>())),
         Provider<UploadItineraryImage>(create: (context) => UploadItineraryImage(context.read<ItineraryRepository>())),
+        Provider<SearchCompanionsUsecase>(create: (context) => SearchCompanionsUsecase(context.read<CompanionRepository>())),
       ],
       child: const FCMInitializer(child: TravelMateApp()),
     ),
