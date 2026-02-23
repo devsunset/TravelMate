@@ -1,0 +1,27 @@
+# 환경·비밀키 (커밋 제외)
+.env
+*.env
+!*.env.example
+**/serviceAccountKey*.json
+**/*-firebase-adminsdk-*.json
+.xxx
+
+# 백엔드
+travel_mate_backend/node_modules/
+travel_mate_backend/.server.pid
+travel_mate_backend/logs/
+travel_mate_backend/uploads/
+
+# Flutter 빌드·캐시 (앱 내 .gitignore와 중복 가능)
+travel_mate_app/.dart_tool/
+travel_mate_app/.flutter-plugins
+travel_mate_app/.flutter-plugins-dependencies
+travel_mate_app/.pub-cache/
+travel_mate_app/.pub/
+travel_mate_app/build/
+
+# OS·IDE
+.DS_Store
+.idea/
+*.iml
+*.log
