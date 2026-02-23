@@ -1,4 +1,4 @@
-# TripMate 로컬 실행
+# TravelMate 로컬 실행
 # 터미널 2개: 
 1) 백엔드 
 2) 프론트 웹 → 브라우저에서 http://localhost:8080

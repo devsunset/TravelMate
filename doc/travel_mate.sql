@@ -2,7 +2,7 @@ CREATE DATABASE IF NOT EXISTS `travel_mate` CHARACTER SET utf8mb4 COLLATE utf8mb
 
 USE `travel_mate`;
 
--- TripMate 데이터베이스 스키마
+-- TravelMate 데이터베이스 스키마
 -- 데이터베이스: MariaDB
 -- 인코딩: utf8mb4
 -- 최종 업데이트: 2026-02-12

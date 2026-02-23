@@ -1,6 +1,6 @@
 # TravelMate Backend
 
-TripMate(트래블 메이트) Node.js API 서버. 사용자 식별자는 이메일(users PK=email). 사용자·프로필, 게시글, 일정, 댓글, 좋아요/북마크, 쪽지, 채팅방, FCM 토큰 등 REST API 제공. **이미지 파일은 multer로 수신하여 서버 `uploads/` 디렉터리에 저장**합니다 (Firebase Storage 미사용).
+TravelMate(트래블 메이트) Node.js API 서버. 사용자 식별자는 이메일(users PK=email). 사용자·프로필, 게시글, 일정, 댓글, 좋아요/북마크, 쪽지, 채팅방, FCM 토큰 등 REST API 제공. **이미지 파일은 multer로 수신하여 서버 `uploads/` 디렉터리에 저장**합니다 (Firebase Storage 미사용).
 
 ## 기술 스택
 

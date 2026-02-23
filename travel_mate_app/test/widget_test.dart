@@ -7,10 +7,10 @@ void main() {
     await tester.pumpWidget(
       const MaterialApp(
         home: Scaffold(
-          body: Center(child: Text('TripMate')),
+          body: Center(child: Text('TravelMate')),
         ),
       ),
     );
-    expect(find.text('TripMate'), findsOneWidget);
+    expect(find.text('TravelMate'), findsOneWidget);
   });
 }

@@ -72,7 +72,7 @@ class HomeScreen extends StatelessWidget {
                           child: Icon(Icons.explore, color: Colors.white, size: isCompact ? 20 : 24),
                         ),
                         SizedBox(width: isCompact ? 8 : 10),
-                        Text('TripMate', style: GoogleFonts.outfit(fontSize: isCompact ? 18 : 22, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                        Text('TravelMate', style: GoogleFonts.outfit(fontSize: isCompact ? 18 : 22, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
                       ],
                     ),
                     Row(
