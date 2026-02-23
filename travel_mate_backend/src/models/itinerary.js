@@ -13,11 +13,11 @@ const Itinerary = sequelize.define('Itinerary', {
     primaryKey: true,
   },
   authorId: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.STRING(255),
     allowNull: false,
     references: {
       model: User,
-      key: 'id',
+      key: 'email',
     },
     onDelete: 'CASCADE',
   },

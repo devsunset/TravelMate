@@ -20,12 +20,14 @@ exports.createChatRoom = async (req, res, next) => {
       return res.status(404).json({ message: '사용자 또는 상대를 찾을 수 없습니다.' });
     }
     const firestoreChatId = [currentUser.email, partnerUser.email].sort().join('_');
+    const user1Email = currentUser.email < partnerUser.email ? currentUser.email : partnerUser.email;
+    const user2Email = currentUser.email < partnerUser.email ? partnerUser.email : currentUser.email;
     let chatRoom = await ChatRoom.findOne({
       where: {
         firestoreChatId: firestoreChatId,
         [Op.or]: [
-          { user1Id: currentUser.id, user2Id: partnerUser.id },
-          { user1Id: partnerUser.id, user2Id: currentUser.id },
+          { user1Id: user1Email, user2Id: user2Email },
+          { user1Id: user2Email, user2Id: user1Email },
         ],
       },
     });
@@ -34,11 +36,10 @@ exports.createChatRoom = async (req, res, next) => {
       return res.status(200).json({ message: 'Chat room already exists', chatRoomId: chatRoom.firestoreChatId });
     }
 
-    // Create new chat room in MariaDB
     chatRoom = await ChatRoom.create({
       firestoreChatId: firestoreChatId,
-      user1Id: currentUser.id,
-      user2Id: partnerUser.id,
+      user1Id: user1Email,
+      user2Id: user2Email,
     });
 
     res.status(201).json({ message: '채팅방이 생성되었습니다.', chatRoomId: chatRoom.firestoreChatId });

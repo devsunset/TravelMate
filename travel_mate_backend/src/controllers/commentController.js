@@ -73,7 +73,7 @@ exports.addComment = async (req, res, next) => {
     }
 
     const comment = await Comment.create({
-      authorId: author.id,
+      authorId: author.email,
       postId: postId || null,
       itineraryId: itineraryId || null,
       parentCommentId: parentCommentId || null,

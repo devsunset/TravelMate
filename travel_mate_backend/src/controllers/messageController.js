@@ -19,19 +19,19 @@ exports.sendPrivateMessage = async (req, res, next) => {
     }
 
     const sender = await User.findOne({ where: { firebase_uid: senderFirebaseUid } });
-    const receiver = await User.findOne({ where: { firebase_uid: receiverId } });
+    const receiver = await User.findOne({ where: { email: receiverId } });
 
     if (!sender || !receiver) {
       return res.status(404).json({ message: '발신자 또는 수신자를 찾을 수 없습니다.' });
     }
 
     const message = await PrivateMessage.create({
-      senderId: sender.id,
-      receiverId: receiver.id,
+      senderId: sender.email,
+      receiverId: receiver.email,
       content,
     });
 
-    const senderProfile = await UserProfile.findOne({ where: { userId: sender.id } });
+    const senderProfile = await UserProfile.findOne({ where: { userId: sender.email } });
     const senderNickname = senderProfile ? senderProfile.nickname : senderFirebaseUid;
 
     await NotificationService.sendFCM(receiver.firebase_uid, {

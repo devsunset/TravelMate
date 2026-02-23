@@ -18,7 +18,7 @@ exports.registerFcmToken = async (req, res, next) => {
       return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
     }
     const [fcmToken, created] = await FcmToken.findOrCreate({
-      where: { userId: user.id, token: token },
+      where: { userId: user.email, token: token },
       defaults: { deviceType: deviceType },
     });
     if (!created) {
@@ -44,7 +44,7 @@ exports.deleteFcmToken = async (req, res, next) => {
     if (!user) {
       return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
     }
-    const deletedRows = await FcmToken.destroy({ where: { userId: user.id, token: token } });
+    const deletedRows = await FcmToken.destroy({ where: { userId: user.email, token: token } });
     if (deletedRows === 0) {
       return res.status(404).json({ message: '해당 사용자의 FCM 토큰을 찾을 수 없습니다.' });
     }

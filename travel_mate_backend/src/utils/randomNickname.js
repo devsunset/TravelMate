@@ -40,14 +40,14 @@ async function isNicknameTaken(nickname) {
 /**
  * 다른 사용자(본인 제외)가 해당 닉네임을 쓰고 있는지 조회
  * @param {string} nickname
- * @param {number} excludeUserId - 제외할 userId (본인)
+ * @param {string} excludeUserEmail - 제외할 사용자 이메일 (본인)
  * @returns {Promise<boolean>}
  */
-async function isNicknameTakenByOther(nickname, excludeUserId) {
+async function isNicknameTakenByOther(nickname, excludeUserEmail) {
   const existing = await UserProfile.findOne({
     where: { nickname },
   });
-  return !!existing && existing.userId !== excludeUserId;
+  return !!existing && existing.userId !== excludeUserEmail;
 }
 
 /**

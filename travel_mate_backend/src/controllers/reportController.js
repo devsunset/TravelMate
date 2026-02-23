@@ -30,9 +30,9 @@ exports.submitReport = async (req, res, next) => {
 
     switch (entityType) {
       case 'user':
-        const reportedUser = await User.findOne({ where: { firebase_uid: entityId } });
+        const reportedUser = await User.findOne({ where: { email: entityId } });
         if (!reportedUser) return res.status(404).json({ message: '신고 대상 사용자를 찾을 수 없습니다.' });
-        reportedUserId = reportedUser.id;
+        reportedUserId = reportedUser.email;
         break;
       case 'post':
         const reportedPost = await Post.findByPk(entityId);
@@ -53,14 +53,14 @@ exports.submitReport = async (req, res, next) => {
         return res.status(400).json({ message: '잘못된 대상 타입입니다.' });
     }
 
-    // Check for duplicate report
+    const reportedEntityId = entityType === 'user' ? reportedUserId : entityId;
     const existingReport = await Report.findOne({
       where: {
-        reporterUserId: reporter.id,
+        reporterUserId: reporter.email,
         [entityType === 'user' ? 'reportedUserId' :
          entityType === 'post' ? 'reportedPostId' :
          entityType === 'itinerary' ? 'reportedItineraryId' :
-         'reportedCommentId']: entityId,
+         'reportedCommentId']: reportedEntityId,
       }
     });
 
@@ -69,7 +69,7 @@ exports.submitReport = async (req, res, next) => {
     }
 
     const report = await Report.create({
-      reporterUserId: reporter.id,
+      reporterUserId: reporter.email,
       reportedUserId,
       reportedPostId,
       reportedItineraryId,

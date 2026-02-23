@@ -94,7 +94,7 @@ exports.createPost = async (req, res, next) => {
     }
 
     const post = await Post.create({
-      authorId: author.id,
+      authorId: author.email,
       categoryId: postCategory.id,
       title,
       content,

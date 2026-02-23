@@ -37,12 +37,12 @@ exports.getUserProfile = async (req, res, next) => {
       return res.status(401).json({ message: '인증이 필요합니다.' });
     }
 
-    let userProfile = await UserProfile.findOne({ where: { userId: user.id } });
+    let userProfile = await UserProfile.findOne({ where: { userId: user.email } });
 
     if (!userProfile) {
       const nickname = await generateUniqueRandomNickname();
       userProfile = await UserProfile.create({
-        userId: user.id,
+        userId: user.email,
         nickname,
         bio: '',
         profileImageUrl: '',
@@ -81,18 +81,18 @@ exports.updateUserProfile = async (req, res, next) => {
       return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
     }
 
-    let userProfile = await UserProfile.findOne({ where: { userId: user.id } });
+    let userProfile = await UserProfile.findOne({ where: { userId: user.email } });
 
     if (!userProfile) {
       const newNick = (nickname && nickname.trim()) ? nickname.trim() : await generateUniqueRandomNickname();
       if (nickname && nickname.trim()) {
-        const taken = await isNicknameTakenByOther(newNick, user.id);
+        const taken = await isNicknameTakenByOther(newNick, user.email);
         if (taken) {
           return res.status(409).json({ message: '이미 사용 중인 닉네임입니다.' });
         }
       }
       userProfile = await UserProfile.create({
-        userId: user.id,
+        userId: user.email,
         nickname: newNick,
         bio: bio ?? '',
         profileImageUrl: profileImageUrl ?? '',
@@ -108,7 +108,7 @@ exports.updateUserProfile = async (req, res, next) => {
     // 닉네임 변경 시 기존 등록된 닉네임인지 체크 (본인 닉네임은 그대로 허용)
     if (nickname != null && String(nickname).trim() !== '' && String(nickname).trim() !== userProfile.nickname) {
       const newNick = String(nickname).trim();
-      const taken = await isNicknameTakenByOther(newNick, user.id);
+      const taken = await isNicknameTakenByOther(newNick, user.email);
       if (taken) {
         return res.status(409).json({ message: '이미 사용 중인 닉네임입니다.' });
       }
@@ -149,12 +149,12 @@ exports.updateProfileImage = async (req, res, next) => {
       return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
     }
 
-    let userProfile = await UserProfile.findOne({ where: { userId: user.id } });
+    let userProfile = await UserProfile.findOne({ where: { userId: user.email } });
 
     if (!userProfile) {
       const nickname = await generateUniqueRandomNickname();
       userProfile = await UserProfile.create({
-        userId: user.id,
+        userId: user.email,
         nickname,
         profileImageUrl: profileImageUrl,
       });

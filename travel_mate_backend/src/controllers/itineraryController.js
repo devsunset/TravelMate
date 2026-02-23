@@ -93,7 +93,7 @@ exports.createItinerary = async (req, res, next) => {
     }
 
     const itinerary = await Itinerary.create({
-      authorId: author.id,
+      authorId: author.email,
       title,
       description,
       startDate,

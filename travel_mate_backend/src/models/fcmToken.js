@@ -15,9 +15,9 @@ const FcmToken = sequelize.define('FcmToken', {
     primaryKey: true,
   },
   userId: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.STRING(255),
     allowNull: false,
-    references: { model: User, key: 'id' },
+    references: { model: User, key: 'email' },
     onDelete: 'CASCADE',
   },
   token: {

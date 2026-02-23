@@ -25,7 +25,7 @@ exports.sendFCM = async (receiverFirebaseUid, payload) => {
     let data = payload.data && typeof payload.data === 'object' ? payload.data : {};
 
     const fcmTokens = await FcmToken.findAll({
-      where: { userId: receiver.id },
+      where: { userId: receiver.email },
       attributes: ['token'],
     });
     const tokens = fcmTokens.map((fcmToken) => fcmToken.token);

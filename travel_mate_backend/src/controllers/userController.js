@@ -16,7 +16,7 @@ exports.deleteUser = async (req, res, next) => {
       return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
     }
     await admin.auth().deleteUser(user.firebase_uid);
-    const deletedRows = await User.destroy({ where: { id: user.id } });
+    const deletedRows = await User.destroy({ where: { email: user.email } });
     if (deletedRows === 0) {
       return res.status(404).json({ message: '데이터베이스에서 사용자를 찾을 수 없습니다.' });
     }

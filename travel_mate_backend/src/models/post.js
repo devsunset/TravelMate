@@ -15,9 +15,9 @@ const Post = sequelize.define('Post', {
     primaryKey: true,
   },
   authorId: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.STRING(255),
     allowNull: false,
-    references: { model: User, key: 'id' },
+    references: { model: User, key: 'email' },
     onDelete: 'CASCADE',
   },
   categoryId: {

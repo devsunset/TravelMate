@@ -18,7 +18,8 @@ exports.register = async (req, res, next) => {
     if (user) {
       return res.status(200).json({ message: '이미 등록된 사용자입니다.', user });
     }
-    user = await User.create({ firebase_uid: uid, email });
+    const userEmail = email || `user_${uid}@temp`;
+    user = await User.create({ firebase_uid: uid, email: userEmail });
     res.status(201).json({ message: '회원가입이 완료되었습니다.', user });
   } catch (error) {
     console.error('authController.register 오류:', error);
@@ -40,7 +41,8 @@ exports.login = async (req, res, next) => {
     const { uid, email } = decodedToken;
     let user = await User.findOne({ where: { firebase_uid: uid } });
     if (!user) {
-      user = await User.create({ firebase_uid: uid, email });
+      const userEmail = email || `user_${uid}@temp`;
+      user = await User.create({ firebase_uid: uid, email: userEmail });
       return res.status(201).json({ message: '계정이 생성되었고 로그인되었습니다.', user });
     }
     res.status(200).json({ message: '로그인되었습니다.', user });
