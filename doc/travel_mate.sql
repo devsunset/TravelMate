@@ -2,6 +2,28 @@ CREATE DATABASE IF NOT EXISTS `travel_mate` CHARACTER SET utf8mb4 COLLATE utf8mb
 
 USE `travel_mate`;
 
+-- 기존 테이블 삭제 (존재 시에만 삭제, FK 검사 일시 비활성화)
+SET FOREIGN_KEY_CHECKS = 0;
+
+DROP TABLE IF EXISTS `reports`;
+DROP TABLE IF EXISTS `fcm_tokens`;
+DROP TABLE IF EXISTS `private_messages`;
+DROP TABLE IF EXISTS `chat_rooms`;
+DROP TABLE IF EXISTS `bookmarks`;
+DROP TABLE IF EXISTS `likes`;
+DROP TABLE IF EXISTS `comments`;
+DROP TABLE IF EXISTS `itinerary_activities`;
+DROP TABLE IF EXISTS `itinerary_days`;
+DROP TABLE IF EXISTS `posts`;
+DROP TABLE IF EXISTS `itineraries`;
+DROP TABLE IF EXISTS `user_profile_tags`;
+DROP TABLE IF EXISTS `user_profiles`;
+DROP TABLE IF EXISTS `tags`;
+DROP TABLE IF EXISTS `post_categories`;
+DROP TABLE IF EXISTS `users`;
+
+SET FOREIGN_KEY_CHECKS = 1;
+
 -- TravelMate 데이터베이스 스키마
 -- 데이터베이스: MariaDB
 -- 인코딩: utf8mb4
