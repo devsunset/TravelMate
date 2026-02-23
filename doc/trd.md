@@ -25,7 +25,7 @@ graph TD
 
 *   **Flutter Mobile App**: iOS 및 Android 플랫폼에서 동작하는 클라이언트 애플리케이션. 사용자 인터페이스 및 상호작용을 담당하며, API 서버 및 Firebase 서비스와 통신합니다.
 *   **API Server (Node.js/Express)**: Flutter 앱의 요청을 받아 MariaDB와 상호작용하는 백엔드 서비스. 사용자 프로필, 커뮤니티 게시글, 여행 일정 등의 데이터를 관리하고 RESTful API를 제공합니다. Firebase Admin SDK를 통해 사용자 인증 토큰을 검증합니다.
-*   **Firebase Authentication**: 사용자 회원가입, 로그인 및 인증(이메일/비밀번호, 소셜 로그인)을 담당합니다. 사용자 ID 토큰을 발급하여 API 서버에 전달합니다.
+*   **Firebase Authentication**: 사용자 로그인 및 인증(Google 로그인만 사용, 이메일/비밀번호 미지원)을 담당합니다. 사용자 ID 토큰을 발급하여 API 서버에 전달합니다.
 *   **Firebase Firestore**: 1:1 실시간 채팅 기능을 위한 NoSQL 데이터베이스입니다. 메시지 데이터의 실시간 동기화를 처리합니다.
 *   **Backend Uploads (Node.js)**: 프로필 사진, 게시글·일정 첨부 이미지를 API 서버가 수신하여 `uploads/` 디렉터리에 저장하고, 접근 URL을 반환합니다. (Firebase Storage 미사용)
 *   **MariaDB Database**: 사용자 프로필 상세 정보, 여행 스타일, 커뮤니티 게시글, 여행 일정, 댓글, 좋아요 등 핵심 비즈니스 데이터를 관계형 모델로 저장합니다.
@@ -123,47 +123,44 @@ graph TD
 
 #### 5.1.1. 사용자 인증 (`User Authentication`)
 
-*   **설명**: 사용자는 이메일/비밀번호 또는 소셜 로그인(Google, Apple 등)을 통해 회원가입 및 로그인할 수 있습니다.
+*   **설명**: 사용자는 Google 로그인만 지원됩니다. 이메일/비밀번호는 수집·저장하지 않습니다.
 *   **프론트엔드 (Flutter)**:
-    *   **컴포넌트**: `AuthScreen`, `LoginScreen`, `SignUpScreen`.
+    *   **컴포넌트**: `LoginScreen`, `SignupScreen` (Google 로그인 버튼만 제공).
     *   **기능**:
-        *   Firebase Authentication `signInWithEmailAndPassword`, `createUserWithEmailAndPassword` 함수 호출.
-        *   `google_sign_in` 또는 `sign_in_with_apple` 패키지를 통한 소셜 로그인 연동.
+        *   `google_sign_in` 패키지를 통한 Google 로그인 연동.
         *   로그인 성공 시 Firebase `User` 객체 및 `idToken` 획득.
-        *   `idToken`을 사용하여 API 서버에 사용자 정보(새 사용자 등록 또는 기존 사용자 검증) 요청.
-        *   `Provider` 또는 `Riverpod`를 사용하여 인증 상태 관리.
+        *   `idToken`으로 API 서버 `GET /api/auth/me` 호출하여 백엔드 사용자 ID(랜덤 영숫자) 획득.
+        *   `Provider`를 사용하여 인증 상태 관리.
     *   **검증 기준**:
-        *   유효한 이메일/비밀번호로 회원가입 및 로그인이 성공해야 합니다.
-        *   소셜 계정으로 회원가입 및 로그인이 성공해야 합니다.
+        *   Google 계정으로 로그인이 성공해야 합니다.
         *   인증 실패 시 적절한 오류 메시지가 사용자에게 표시되어야 합니다.
-        *   로그인 성공 후 발급된 `idToken`은 로컬에 안전하게 저장(예: `shared_preferences`)되어야 합니다.
+        *   로그인 성공 후 발급된 `idToken`은 로컬에 안전하게 저장되어야 합니다.
 *   **백엔드 (Node.js API Server)**:
     *   **API 엔드포인트**:
-        *   `POST /api/auth/register`: Firebase `idToken`을 받아 사용자 정보를 MariaDB에 등록.
-        *   `POST /api/auth/login`: Firebase `idToken`을 받아 사용자 정보 유효성 검증 및 세션 관리.
+        *   `POST /api/auth/register`: Firebase `idToken`을 받아 사용자(랜덤 id)를 MariaDB에 등록.
+        *   `POST /api/auth/login`: Firebase `idToken`을 받아 사용자 조회 또는 생성 후 반환.
+        *   `GET /api/auth/me`: 인증 시 현재 사용자 ID(랜덤 영숫자) 반환.
     *   **기능**:
-        *   `firebase-admin` SDK를 사용하여 클라이언트로부터 받은 `idToken`을 검증합니다 (`verifyIdToken`).
-        *   토큰 검증 성공 시, `decodedToken.uid`를 기반으로 MariaDB `users` 테이블에서 사용자 정보를 조회하거나 새로 생성합니다.
-        *   새 사용자 등록 시, 기본 프로필 정보(UID, 이메일)를 MariaDB에 저장합니다.
+        *   `firebase-admin` SDK로 `idToken` 검증 (`verifyIdToken`).
+        *   토큰의 `uid`로 MariaDB `users` 조회 또는 랜덤 영숫자 `id`로 새 사용자 생성. 이메일은 저장하지 않음.
         *   MariaDB에 사용자 존재 여부 및 기본 정보 동기화.
     *   **검증 기준**:
-        *   유효한 `idToken`으로 요청 시, MariaDB에 사용자 정보가 성공적으로 기록되거나 확인되어야 합니다.
+        *   유효한 `idToken`으로 요청 시, MariaDB에 사용자(id, firebase_uid)가 기록되거나 확인되어야 합니다.
         *   유효하지 않은 `idToken`에 대해서는 401 Unauthorized 응답을 반환해야 합니다.
 *   **데이터베이스 (MariaDB)**:
     *   **테이블**: `users`
     *   **스키마**:
         ```sql
         CREATE TABLE users (
-            id INT AUTO_INCREMENT PRIMARY KEY,
+            id VARCHAR(32) NOT NULL PRIMARY KEY COMMENT '랜덤 영숫자 사용자 ID',
             firebase_uid VARCHAR(255) UNIQUE NOT NULL,
-            email VARCHAR(255) UNIQUE NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
         );
         ```
     *   **검증 기준**:
-        *   `firebase_uid`는 각 사용자의 고유 식별자로 사용되어야 하며, 중복될 수 없습니다.
-        *   최소한 `firebase_uid`와 `email`이 저장되어야 합니다.
+        *   `id`는 서비스 내 사용자 식별자(랜덤 영숫자)이며 PK입니다. 이메일 컬럼은 없습니다.
+        *   `firebase_uid`는 UNIQUE이며, 중복될 수 없습니다.
 
 #### 5.1.2. 심층 프로필 관리 (`Detailed Profile Management`)
 
@@ -237,7 +234,7 @@ graph TD
 *   **프론트엔드 (Flutter)**:
     *   **컴포넌트**: `AccountSettingsScreen`.
     *   **기능**:
-        *   개인정보(예: 이메일 - Firebase Auth를 통해 변경) 수정 UI 제공.
+        *   프로필(닉네임, 소개 등) 수정 UI 제공. (이메일 미수집이므로 이메일 변경 기능 없음)
         *   회원 탈퇴 버튼 제공 및 경고 메시지 표시.
         *   탈퇴 요청 시 API 서버에 `DELETE` 요청.
     *   **검증 기준**:
@@ -312,7 +309,7 @@ graph TD
         *   `POST /api/messages/private` 요청 시, `sender_id`, `receiver_id`, `content`를 받아 MariaDB `private_messages` 테이블에 저장합니다.
         *   쪽지 수신자에게 FCM을 통해 알림을 발송합니다 (`firebase-admin` SDK).
     *   **검증 기준**:
-        *   프로필 조회 시, 민감한 개인정보(예: 이메일, 전화번호)는 제외하고 공개 가능한 정보만 반환해야 합니다.
+        *   프로필 조회 시 공개 가능한 정보(닉네임, 소개, 여행 스타일 등)만 반환합니다. (이메일은 수집하지 않음)
         *   쪽지 전송 시, 데이터베이스에 메시지가 정확하게 저장되고 발신 시간, 수신자 ID가 명확해야 합니다.
         *   FCM 알림이 정상적으로 수신자 기기에 전달되어야 합니다.
 *   **데이터베이스 (MariaDB)**:
@@ -809,14 +806,13 @@ graph TD
 
 ### 7.1. User
 
-*   **설명**: 사용자의 기본 정보 및 인증 관련 데이터.
+*   **설명**: 사용자의 기본 정보 및 인증 관련 데이터. 이메일은 수집·저장하지 않음.
 *   **저장소**: MariaDB (`users` 테이블), Firebase Auth.
 *   **필드**:
-    *   `id` (INT, PK, AUTO_INCREMENT)
+    *   `id` (VARCHAR(32), PK, 랜덤 영숫자 사용자 ID)
     *   `firebase_uid` (VARCHAR, UNIQUE, NOT NULL)
-    *   `email` (VARCHAR, UNIQUE, NOT NULL)
-    *   `created_at` (TIMESTAMP)
-    *   `updated_at` (TIMESTAMP)
+    *   `created_at` (DATETIME)
+    *   `updated_at` (DATETIME)
 
 ### 7.2. UserProfile
 

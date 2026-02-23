@@ -37,7 +37,7 @@ node src/app.js
 
 ## API 개요
 
-- **인증**: `POST /api/auth/register`, `POST /api/auth/login` (Firebase ID 토큰 사용)
+- **인증**: `GET /api/auth/me` (Firebase ID 토큰으로 현재 사용자 조회/생성), `POST /api/auth/register`, `POST /api/auth/login` (Firebase ID 토큰 사용)
 - **사용자/프로필**: `GET/PATCH /api/users/:userId/profile` (userId=백엔드 사용자 ID), `POST /api/users/:userId/profile/image`
 - **이미지 업로드**: 아래 참고
 - **채팅**: `GET /api/chat/rooms` (내 채팅방 목록, 신청한/신청받은 구분), `POST /api/chat/room` (채팅 요청, body: `{ partnerId: 사용자 ID }`)

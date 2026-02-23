@@ -17,7 +17,7 @@ Firebase 사이트에서 **TravelMate** 프로젝트만 만들어 둔 상태라�
 
 2. **Authentication(인증) 사용**
    - **빌드** → **Authentication** → **시작하기**
-   - **로그인 방법** 탭에서 **이메일/비밀번호**, **Google** 사용 설정
+   - **로그인 방법** 탭에서 **Google** 사용 설정 (TravelMate 앱은 Google 로그인만 사용. 이메일/비밀번호는 수집·저장하지 않음)
 
    **Google Sign-In 웹용 Client ID 확인 (Flutter 웹 빌드 시 필요)**
    - **방법 A (Firebase)**  
@@ -136,7 +136,7 @@ Firebase 사이트에서 **TravelMate** 프로젝트만 만들어 둔 상태라�
 #### 1.4. Firebase 인증 활성화
 1.  Firebase 콘솔 왼쪽 메뉴에서 `빌드` > `Authentication`으로 이동합니다.
 2.  `시작하기`를 클릭합니다.
-3.  `로그인 방법` 탭에서 원하는 인증 방식(예: `이메일/비밀번호`, `Google`)을 선택하고 활성화합니다.
+3.  `로그인 방법` 탭에서 **Google**을 선택하고 활성화합니다. (TravelMate는 Google 로그인만 사용)
 
 #### 1.5. Node.js 백엔드용 서비스 계정 생성
 1.  Firebase 콘솔 좌측 상단의 톱니바퀴 아이콘 > `프로젝트 설정`으로 이동합니다.
