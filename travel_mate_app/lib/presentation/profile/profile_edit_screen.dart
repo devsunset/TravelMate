@@ -145,12 +145,14 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('프로필이 저장되었습니다.')),
           );
-          context.pop(); // Go back to profile detail screen
+          context.go('/profile');
         }
       } catch (e) {
-        setState(() {
-          _errorMessage = '프로필 저장 실패: ${e.toString()}';
-        });
+        if (mounted) {
+          setState(() {
+            _errorMessage = '프로필 저장 실패: ${e.toString()}';
+          });
+        }
       } finally {
         setState(() {
           _isLoading = false;

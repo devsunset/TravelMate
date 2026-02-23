@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:travel_mate_app/app/theme.dart';
 import 'package:travel_mate_app/app/constants.dart';
 import 'package:travel_mate_app/core/services/auth_service.dart';
-import 'package:travel_mate_app/presentation/common/app_app_bar.dart';
 
 /// 로그인 화면. 이메일/비밀번호, Google 로그인 지원.
 class LoginScreen extends StatefulWidget {
@@ -94,7 +94,30 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const AppAppBar(title: '로그인', showBackButton: false),
+      appBar: AppBar(
+        backgroundColor: AppColors.background.withOpacity(0.85),
+        scrolledUnderElevation: 8,
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [AppColors.primary, AppColors.secondary],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(Icons.explore, color: Colors.white, size: 24),
+            ),
+            const SizedBox(width: 10),
+            Text('TravelMate', style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+          ],
+        ),
+        centerTitle: true,
+      ),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(AppConstants.paddingLarge),
@@ -104,7 +127,7 @@ class _LoginScreenState extends State<LoginScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  '다시 오신 걸 환영해요!',
+                  'Welcome',
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                     color: AppColors.primary,
                     fontWeight: FontWeight.bold,

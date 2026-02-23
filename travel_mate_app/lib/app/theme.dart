@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:travel_mate_app/app/constants.dart';
 
-/// 다크 네온 테마 (Travel-Companion-Finder 스타일)
-/// Primary: 네온 핑크, Secondary: 네온 시안, Accent: 딥 퍼플
+/// 다크 테마 (아쿠아·하늘색 계열)
+/// Primary: 아쿠아/시안, Secondary: 스카이 블루, Accent: 틸
 class AppColors {
-  static const Color primary = Color(0xFFEC4899);       // Neon Pink
-  static const Color primaryLight = Color(0xFFF472B6);
-  static const Color primaryDark = Color(0xFFDB2777);
-  static const Color secondary = Color(0xFF06B6D4);    // Neon Cyan
-  static const Color secondaryLight = Color(0xFF22D3EE);
-  static const Color accent = Color(0xFF7C3AED);        // Deep Purple
+  static const Color primary = Color(0xFF06B6D4);       // Cyan / Aqua
+  static const Color primaryLight = Color(0xFF22D3EE);
+  static const Color primaryDark = Color(0xFF0891B2);
+  static const Color secondary = Color(0xFF0EA5E9);     // Sky Blue
+  static const Color secondaryLight = Color(0xFF38BDF8);
+  static const Color accent = Color(0xFF14B8A6);        // Teal
   static const Color background = Color(0xFF0A0A12);  // 224 71% 4%
   static const Color card = Color(0xFF0D0D18);         // 224 71% 6%
   static const Color surface = Color(0xFF12121F);
