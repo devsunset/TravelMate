@@ -23,7 +23,8 @@ class ChatRemoteDataSource {
   }) async {
     try {
       final currentUser = _firebaseAuth.currentUser;
-      if (currentUser == null || currentUser.uid != senderId) {
+      final myId = currentUser?.email ?? currentUser?.uid ?? '';
+      if (currentUser == null || myId != senderId) {
         throw Exception('Unauthorized message send attempt.');
       }
 

@@ -26,7 +26,7 @@ class ProfileRemoteDataSource {
       if (idToken == null) throw Exception('User not authenticated.');
 
       final response = await _dio.get(
-        '${AppConstants.apiBaseUrl}/api/users/$userId/profile',
+        '${AppConstants.apiBaseUrl}/api/users/${Uri.encodeComponent(userId)}/profile',
         options: Options(headers: {'Authorization': 'Bearer $idToken'}),
       );
 
@@ -45,7 +45,7 @@ class ProfileRemoteDataSource {
       if (idToken == null) throw Exception('User not authenticated.');
 
       final response = await _dio.post(
-        '${AppConstants.apiBaseUrl}/api/users/${userProfile.userId}/profile',
+        '${AppConstants.apiBaseUrl}/api/users/${Uri.encodeComponent(userProfile.userId)}/profile',
         data: userProfile.toJson(),
         options: Options(headers: {'Authorization': 'Bearer $idToken'}),
       );
@@ -64,7 +64,7 @@ class ProfileRemoteDataSource {
       if (idToken == null) throw Exception('User not authenticated.');
 
       final response = await _dio.patch(
-        '${AppConstants.apiBaseUrl}/api/users/${userProfile.userId}/profile',
+        '${AppConstants.apiBaseUrl}/api/users/${Uri.encodeComponent(userProfile.userId)}/profile',
         data: userProfile.toJson(),
         options: Options(headers: {'Authorization': 'Bearer $idToken'}),
       );
@@ -83,7 +83,7 @@ class ProfileRemoteDataSource {
       if (idToken == null) throw Exception('User not authenticated.');
 
       final response = await _dio.delete(
-        '${AppConstants.apiBaseUrl}/api/users/$userId/profile',
+        '${AppConstants.apiBaseUrl}/api/users/${Uri.encodeComponent(userId)}/profile',
         options: Options(headers: {'Authorization': 'Bearer $idToken'}),
       );
 

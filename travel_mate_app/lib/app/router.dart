@@ -79,7 +79,8 @@ GoRouter createRouter(User? user) {
       GoRoute(
         path: '/users/:userId',
         builder: (BuildContext context, GoRouterState state) {
-          final userId = state.pathParameters['userId'] ?? '';
+          final raw = state.pathParameters['userId'] ?? '';
+          final userId = raw.isNotEmpty ? Uri.decodeComponent(raw) : '';
           return UserProfileScreen(userId: userId);
         },
       ),
@@ -92,7 +93,8 @@ GoRouter createRouter(User? user) {
       GoRoute(
         path: '/chat/room/:chatRoomId',
         builder: (BuildContext context, GoRouterState state) {
-          final chatRoomId = state.pathParameters['chatRoomId'] ?? '';
+          final raw = state.pathParameters['chatRoomId'] ?? '';
+          final chatRoomId = raw.isNotEmpty ? Uri.decodeComponent(raw) : raw;
           final extra = state.extra;
           final receiverNickname = extra is String ? extra : null;
           return ChatRoomScreen(chatRoomId: chatRoomId, receiverNickname: receiverNickname);

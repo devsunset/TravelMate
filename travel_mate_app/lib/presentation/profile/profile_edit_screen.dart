@@ -71,8 +71,9 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       if (currentUser == null) {
         throw Exception('로그인이 필요합니다.');
       }
+      final userEmail = currentUser.email ?? currentUser.uid;
       final getUserProfile = Provider.of<GetUserProfile>(context, listen: false);
-      final profile = await getUserProfile.execute(currentUser.uid);
+      final profile = await getUserProfile.execute(userEmail);
 
       _nicknameController.text = profile.nickname;
       _bioController.text = profile.bio ?? '';
@@ -119,13 +120,14 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
         }
 
         String? newImageUrl = _currentProfileImageUrl;
+        final userEmail = currentUser.email ?? currentUser.uid;
         if (_pickedImage != null) {
           final uploadProfileImage = Provider.of<UploadProfileImage>(context, listen: false);
-          newImageUrl = await uploadProfileImage.execute(currentUser.uid, _pickedImage!.path);
+          newImageUrl = await uploadProfileImage.execute(userEmail, _pickedImage!.path);
         }
 
         final updatedProfile = UserProfileModel( // Using UserProfileModel to leverage toJson
-          userId: currentUser.uid,
+          userId: userEmail,
           nickname: _nicknameController.text.trim(),
           bio: _bioController.text.trim(),
           gender: _gender,

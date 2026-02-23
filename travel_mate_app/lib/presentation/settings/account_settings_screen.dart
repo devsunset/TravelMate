@@ -9,7 +9,7 @@ import 'package:travel_mate_app/app/constants.dart';
 import 'package:travel_mate_app/presentation/common/app_app_bar.dart';
 import 'package:travel_mate_app/core/services/auth_service.dart';
 
-/// 계정 설정 화면. 이메일 변경, 비밀번호 변경, 로그아웃, 계정 삭제.
+/// 계정 설정 화면. 비밀번호 변경, 로그아웃, 계정 삭제. (아이디=이메일, 변경 불가)
 class AccountSettingsScreen extends StatefulWidget {
   const AccountSettingsScreen({Key? key}) : super(key: key);
 
@@ -20,96 +20,6 @@ class AccountSettingsScreen extends StatefulWidget {
 class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
   bool _isLoading = false;
   String? _errorMessage;
-
-  Future<void> _changeEmail(BuildContext context) async {
-    final emailController = TextEditingController();
-    final formKey = GlobalKey<FormState>();
-
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => Container(
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-          border: Border.all(color: Colors.white.withOpacity(0.08)),
-        ),
-        padding: EdgeInsets.only(
-          left: AppConstants.paddingLarge,
-          right: AppConstants.paddingLarge,
-          top: AppConstants.paddingLarge,
-          bottom: MediaQuery.of(ctx).viewInsets.bottom + AppConstants.paddingLarge,
-        ),
-        child: Form(
-          key: formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text('이메일 변경', style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: emailController,
-                keyboardType: TextInputType.emailAddress,
-                style: GoogleFonts.plusJakartaSans(color: AppColors.textPrimary),
-                decoration: InputDecoration(
-                  labelText: '새 이메일',
-                  labelStyle: TextStyle(color: AppColors.textSecondary),
-                  filled: true,
-                  fillColor: AppColors.card,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.white.withOpacity(0.1))),
-                ),
-                validator: (v) {
-                  if (v == null || v.isEmpty) return '새 이메일을 입력하세요.';
-                  if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(v)) return '올바른 이메일 주소를 입력하세요.';
-                  return null;
-                },
-              ),
-              const SizedBox(height: 20),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.of(ctx).pop(),
-                      style: OutlinedButton.styleFrom(foregroundColor: AppColors.textSecondary, side: BorderSide(color: Colors.white.withOpacity(0.2)), padding: const EdgeInsets.symmetric(vertical: 14)),
-                      child: const Text('취소'),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: FilledButton(
-                      onPressed: () async {
-                        if (!(formKey.currentState?.validate() ?? false)) return;
-                        setState(() {
-                          _isLoading = true;
-                          _errorMessage = null;
-                        });
-                        try {
-                          await FirebaseAuth.instance.currentUser?.updateEmail(emailController.text.trim());
-                          if (mounted) {
-                            Navigator.of(ctx).pop();
-                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('이메일이 변경되었습니다.'), backgroundColor: AppColors.success));
-                          }
-                        } catch (e) {
-                          setState(() => _errorMessage = '이메일 변경에 실패했습니다.');
-                        } finally {
-                          if (mounted) setState(() => _isLoading = false);
-                        }
-                      },
-                      style: FilledButton.styleFrom(backgroundColor: AppColors.primary, padding: const EdgeInsets.symmetric(vertical: 14)),
-                      child: const Text('저장'),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
   Future<void> _deleteAccount(BuildContext context) async {
     final confirm = await showDialog<bool>(
@@ -167,13 +77,6 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  _SettingsTile(
-                    icon: Icons.email_outlined,
-                    label: '이메일 변경',
-                    color: AppColors.secondary,
-                    onTap: () => _changeEmail(context),
-                  ),
-                  const SizedBox(height: 12),
                   _SettingsTile(
                     icon: Icons.lock_outline_rounded,
                     label: '비밀번호 변경',

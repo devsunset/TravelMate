@@ -25,7 +25,7 @@ class ChatListScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+    final currentUserId = FirebaseAuth.instance.currentUser?.email ?? FirebaseAuth.instance.currentUser?.uid;
     if (currentUserId == null || currentUserId.isEmpty) {
       return Scaffold(
         appBar: const AppAppBar(title: '채팅'),
@@ -74,7 +74,7 @@ class ChatListScreen extends StatelessWidget {
                 getProfile: getProfile,
                 onTap: (receiverNickname) {
                   context.push(
-                    '/chat/room/${room.chatRoomId}',
+                    '/chat/room/${Uri.encodeComponent(room.chatRoomId)}',
                     extra: receiverNickname ?? room.otherParticipantId,
                   );
                 },
@@ -108,7 +108,7 @@ class _ChatRoomTile extends StatelessWidget {
         final nickname = profileSnapshot.hasData
             ? (profileSnapshot.data?.nickname ?? '대화 상대')
             : '로딩...';
-        final imageUrl = profileSnapshot.hasData?.profileImageUrl;
+        final imageUrl = profileSnapshot.hasData ? profileSnapshot.data?.profileImageUrl : null;
 
         return Card(
           margin: const EdgeInsets.symmetric(

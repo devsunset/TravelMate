@@ -319,7 +319,7 @@ class _CompanionSearchScreenState extends State<CompanionSearchScreen> {
                                   isThreeLine: true,
                                   onTap: () {
                                     if (user.userId.isNotEmpty) {
-                                      context.push('/users/${user.userId}');
+                                      context.push('/users/${Uri.encodeComponent(user.userId)}');
                                     }
                                   },
                                 ),

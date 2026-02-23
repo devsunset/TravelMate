@@ -39,8 +39,9 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
       if (currentUser == null) {
         throw Exception('로그인이 필요합니다.');
       }
+      final userEmail = currentUser.email ?? currentUser.uid;
       final getUserProfile = Provider.of<GetUserProfile>(context, listen: false);
-      final profile = await getUserProfile.execute(currentUser.uid);
+      final profile = await getUserProfile.execute(userEmail);
       
       setState(() {
         _userProfile = profile;

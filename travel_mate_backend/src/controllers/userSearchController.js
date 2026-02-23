@@ -98,7 +98,7 @@ exports.searchCompanions = async (req, res, next) => {
       const profileJson = userJson.UserProfile;
       
       return {
-        userId: userJson.firebase_uid,
+        userId: userJson.email,
         email: userJson.email,
         nickname: profileJson.nickname,
         bio: profileJson.bio,

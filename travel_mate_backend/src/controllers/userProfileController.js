@@ -7,19 +7,34 @@ const UserProfile = require('../models/userProfile');
 const User = require('../models/user');
 const { generateUniqueRandomNickname, isNicknameTakenByOther } = require('../utils/randomNickname');
 
+/** API 응답용: userProfile에 userId를 이메일로 덮어써서 반환 */
+function profileWithEmailId(userProfile, user) {
+  const json = userProfile.toJSON ? userProfile.toJSON() : userProfile;
+  return { ...json, userId: user.email };
+}
+
 /**
  * 프로필 조회
- * params.userId는 Firebase UID. 사용자가 DB에 없으면 토큰 정보로 자동 생성 후 프로필 생성/반환합니다.
+ * params.userId는 이메일(URL 인코딩됨). 사용자가 DB에 없으면 토큰 정보로 자동 생성 후 프로필 생성/반환합니다.
  */
 exports.getUserProfile = async (req, res, next) => {
   try {
-    const { userId } = req.params;
-    const firebaseUid = req.user?.uid || userId;
+    const rawUserId = req.params.userId;
+    const userEmail = rawUserId ? decodeURIComponent(rawUserId) : (req.user?.email || '');
+    const firebaseUid = req.user?.uid;
     const firebaseEmail = req.user?.email || '';
 
-    let user = await User.findOne({ where: { firebase_uid: firebaseUid } });
-    if (!user) {
+    let user = null;
+    if (userEmail) {
+      user = await User.findOne({ where: { email: userEmail } });
+    } else if (firebaseUid) {
+      user = await User.findOne({ where: { firebase_uid: firebaseUid } });
+    }
+    if (!user && firebaseUid) {
       user = await User.create({ firebase_uid: firebaseUid, email: firebaseEmail || `user_${firebaseUid}@temp` });
+    }
+    if (!user) {
+      return res.status(401).json({ message: '인증이 필요합니다.' });
     }
 
     let userProfile = await UserProfile.findOne({ where: { userId: user.id } });
@@ -37,10 +52,10 @@ exports.getUserProfile = async (req, res, next) => {
         interests: [],
         preferredDestinations: [],
       });
-      return res.status(201).json({ message: '프로필이 생성되었습니다.', userProfile });
+      return res.status(201).json({ message: '프로필이 생성되었습니다.', userProfile: profileWithEmailId(userProfile, user) });
     }
 
-    res.status(200).json({ userProfile });
+    res.status(200).json({ userProfile: profileWithEmailId(userProfile, user) });
   } catch (error) {
     console.error('getUserProfile 오류:', error);
     next(error);
@@ -54,14 +69,14 @@ exports.getUserProfile = async (req, res, next) => {
  */
 exports.updateUserProfile = async (req, res, next) => {
   try {
-    const { userId } = req.params;
+    const userEmail = req.params.userId ? decodeURIComponent(req.params.userId) : req.user?.email;
     const { nickname, bio, profileImageUrl, gender, ageRange, travelStyles, interests, preferredDestinations } = req.body;
 
-    if (req.user.uid !== userId) {
+    if (!userEmail || req.user?.email !== userEmail) {
       return res.status(403).json({ message: '본인 프로필만 수정할 수 있습니다.' });
     }
 
-    const user = await User.findOne({ where: { firebase_uid: userId } });
+    const user = await User.findOne({ where: { email: userEmail } });
     if (!user) {
       return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
     }
@@ -87,7 +102,7 @@ exports.updateUserProfile = async (req, res, next) => {
         interests: interests ?? [],
         preferredDestinations: preferredDestinations ?? [],
       });
-      return res.status(201).json({ message: '프로필이 생성·수정되었습니다.', userProfile });
+      return res.status(201).json({ message: '프로필이 생성·수정되었습니다.', userProfile: profileWithEmailId(userProfile, user) });
     }
 
     // 닉네임 변경 시 기존 등록된 닉네임인지 체크 (본인 닉네임은 그대로 허용)
@@ -109,7 +124,7 @@ exports.updateUserProfile = async (req, res, next) => {
     userProfile.preferredDestinations = preferredDestinations;
     await userProfile.save();
 
-    res.status(200).json({ message: '프로필이 수정되었습니다.', userProfile });
+    res.status(200).json({ message: '프로필이 수정되었습니다.', userProfile: profileWithEmailId(userProfile, user) });
   } catch (error) {
     console.error('updateUserProfile 오류:', error);
     next(error);
@@ -122,14 +137,14 @@ exports.updateUserProfile = async (req, res, next) => {
  */
 exports.updateProfileImage = async (req, res, next) => {
   try {
-    const { userId } = req.params;
+    const userEmail = req.params.userId ? decodeURIComponent(req.params.userId) : req.user?.email;
     const { profileImageUrl } = req.body;
 
-    if (req.user.uid !== userId) {
+    if (!userEmail || req.user?.email !== userEmail) {
       return res.status(403).json({ message: '본인 프로필 이미지만 수정할 수 있습니다.' });
     }
 
-    const user = await User.findOne({ where: { firebase_uid: userId } });
+    const user = await User.findOne({ where: { email: userEmail } });
     if (!user) {
       return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
     }

@@ -66,10 +66,11 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
 
     try {
       final sendChatMessage = Provider.of<SendChatMessage>(context, listen: false);
+      final myId = _currentUser!.email ?? _currentUser!.uid;
       final ids = widget.chatRoomId.split('_');
-      final receiverId = ids.where((id) => id != _currentUser!.uid).isEmpty
+      final receiverId = ids.where((id) => id != myId).isEmpty
           ? (ids.isNotEmpty ? ids.first : '')
-          : ids.firstWhere((id) => id != _currentUser!.uid);
+          : ids.firstWhere((id) => id != myId);
       if (receiverId.isEmpty) {
         setState(() {
           _errorMessage = '대화 상대를 확인할 수 없습니다.';
@@ -79,7 +80,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
 
       await sendChatMessage.execute(
         chatRoomId: widget.chatRoomId,
-        senderId: _currentUser!.uid,
+        senderId: myId,
         receiverId: receiverId,
         content: _messageController.text.trim(),
       );

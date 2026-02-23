@@ -64,8 +64,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final currentUserUid = FirebaseAuth.instance.currentUser?.uid;
-    final isMyProfile = currentUserUid == widget.userId;
+    final currentUserId = FirebaseAuth.instance.currentUser?.email ?? FirebaseAuth.instance.currentUser?.uid ?? '';
+    final isMyProfile = currentUserId == widget.userId;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -81,10 +81,11 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             IconButton(
               icon: const Icon(Icons.chat_bubble_outline_rounded),
               onPressed: () {
-                final cur = FirebaseAuth.instance.currentUser!.uid;
+                final cur = FirebaseAuth.instance.currentUser!.email ?? FirebaseAuth.instance.currentUser!.uid;
                 final other = widget.userId;
-                final chatRoomId = cur.compareTo(other) < 0 ? '${cur}_$other' : '${other}_$cur';
-                context.go('/chat/room/$chatRoomId', extra: _userProfile!.nickname);
+                final parts = [cur, other]..sort();
+                final chatRoomId = '${parts[0]}_${parts[1]}';
+                context.go('/chat/room/${Uri.encodeComponent(chatRoomId)}', extra: _userProfile!.nickname);
               },
             ),
             ReportButtonWidget(entityType: ReportEntityType.user, entityId: widget.userId),

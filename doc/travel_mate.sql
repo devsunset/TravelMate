@@ -7,22 +7,29 @@ USE `travel_mate`;
 -- 인코딩: utf8mb4
 -- 최종 업데이트: 2026-02-12
 --
--- 이미지 URL 안내: 프로필/게시글/일정 이미지는 Firebase Storage가 아닌
--- 백엔드(Node.js)에서 수신·저장합니다. POST /api/upload/profile, /api/upload/post,
--- /api/upload/itinerary 로 업로드 후 반환된 imageUrl을 각 테이블에 저장합니다.
+-- [식별자 정책]
+-- - 서비스/API에서 사용자 식별자(아이디)는 이메일(users.email)입니다.
+-- - REST API 경로 예: GET/PATCH /api/users/:userId/profile (userId = URL 인코딩된 이메일)
+-- - DB 내부 FK는 users.id(INT)를 사용합니다. API 응답 시 클라이언트에는 userId를 이메일로 내려줍니다.
+-- - 이메일 변경 기능은 제공하지 않습니다.
+--
+-- [이미지 URL]
+-- 프로필/게시글/일정 이미지는 백엔드(Node.js)에서 수신·저장합니다.
+-- POST /api/upload/profile, /api/upload/post, /api/upload/itinerary 로 업로드 후
+-- 반환된 imageUrl을 각 테이블에 저장합니다.
 
 -- -----------------------------------------------------
 -- Table `users`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `users` (
-  `id` INT NOT NULL AUTO_INCREMENT COMMENT '사용자 고유 ID (Primary Key)',
+  `id` INT NOT NULL AUTO_INCREMENT COMMENT '내부 PK. API/앱 식별자에는 email 사용.',
   `firebase_uid` VARCHAR(255) NOT NULL UNIQUE COMMENT 'Firebase 인증 UID',
-  `email` VARCHAR(255) NOT NULL UNIQUE COMMENT '사용자 이메일',
+  `email` VARCHAR(255) NOT NULL UNIQUE COMMENT '사용자 이메일 (서비스 내 사용자 아이디로 사용, 변경 불가)',
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '가입일',
   `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '마지막 정보 수정일',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-COMMENT = '사용자 기본 정보 테이블. Firebase 인증 정보와 매핑됩니다.';
+COMMENT = '사용자 기본 정보. API/클라이언트 식별자=email, 내부 FK=id.';
 
 
 -- -----------------------------------------------------
@@ -30,8 +37,8 @@ COMMENT = '사용자 기본 정보 테이블. Firebase 인증 정보와 매핑�
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `user_profiles` (
   `id` INT NOT NULL AUTO_INCREMENT COMMENT '프로필 고유 ID (Primary Key)',
-  `userId` INT NOT NULL UNIQUE COMMENT 'users 테이블 외래 키',
-  `nickname` VARCHAR(255) NOT NULL UNIQUE COMMENT '사용자 닉네임',
+  `userId` INT NOT NULL UNIQUE COMMENT 'users.id (내부 FK). API에는 users.email을 userId로 반환.',
+  `nickname` VARCHAR(255) NOT NULL UNIQUE COMMENT '사용자 닉네임 (영문+숫자 랜덤 생성, 중복 검사)',
   `bio` TEXT COMMENT '자기소개',
   `profileImageUrl` VARCHAR(512) COMMENT '프로필 이미지 URL (백엔드 POST /api/upload/profile 반환 URL). 긴 URL 대비 512 권장.',
   `gender` VARCHAR(50) COMMENT '성별 (Male, Female, Other 등)',
@@ -290,7 +297,7 @@ COMMENT = '사용자의 북마크 정보 (게시글 또는 일정)';
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `chat_rooms` (
   `id` INT NOT NULL AUTO_INCREMENT,
-  `firestoreChatId` VARCHAR(255) NOT NULL UNIQUE COMMENT 'Firestore에서 사용하는 채팅방 ID',
+  `firestoreChatId` VARCHAR(255) NOT NULL UNIQUE COMMENT 'Firestore 문서 ID. 두 사용자 이메일 정렬 후 _ 로 연결 (예: a@b.com_user@x.com)',
   `user1Id` INT NOT NULL COMMENT '참여자1 (users.id)',
   `user2Id` INT NOT NULL COMMENT '참여자2 (users.id)',
   `lastMessage` TEXT COMMENT '마지막 메시지 요약',
