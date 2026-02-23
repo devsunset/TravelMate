@@ -23,6 +23,8 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
   bool _isLoading = true;
   String? _errorMessage;
 
+  String get idDisplay => maskForDisplay(_userProfile?.userId).isEmpty ? '-' : maskForDisplay(_userProfile?.userId);
+
   @override
   void initState() {
     super.initState();
@@ -60,7 +62,17 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
   Widget build(BuildContext context) {
     final User? currentUser = context.watch<User?>();
     
+    final hasImage = _userProfile?.profileImageUrl != null && _userProfile!.profileImageUrl!.isNotEmpty;
+
+    const sectionColors = [
+      Color(0xFF0EA5E9),
+      Color(0xFF14B8A6),
+      Color(0xFFF59E0B),
+      Color(0xFF10B981),
+    ];
+
     return Scaffold(
+      backgroundColor: const Color(0xFF1E1E32),
       appBar: AppAppBar(
         title: '내 프로필',
         actions: [
@@ -70,109 +82,125 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
           ),
         ],
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _errorMessage != null
-              ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(AppConstants.paddingMedium),
-                    child: Text(
-                      _errorMessage!,
-                      style: TextStyle(color: AppColors.error),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                )
-              : SingleChildScrollView(
-                  padding: const EdgeInsets.all(AppConstants.paddingLarge),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      CircleAvatar(
-                        radius: 80,
-                        backgroundImage: NetworkImage(_userProfile?.profileImageUrl ?? 'https://www.gravatar.com/avatar/?d=mp'),
-                        backgroundColor: AppColors.lightGrey,
-                      ),
-                      const SizedBox(height: AppConstants.spacingLarge),
-                      Text(
-                        _userProfile?.nickname ?? 'N/A',
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        idDisplay,
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                      const SizedBox(height: AppConstants.spacingLarge),
-                      _buildProfileDetailCard(
-                        context,
-                        title: '소개',
-                        content: _userProfile?.bio ?? '소개가 없습니다.',
-                      ),
-                      const SizedBox(height: AppConstants.spacingMedium),
-                      _buildProfileDetailCard(
-                        context,
-                        title: '성별',
-                        content: _userProfile?.gender ?? '-',
-                      ),
-                      const SizedBox(height: AppConstants.spacingMedium),
-                      _buildProfileDetailCard(
-                        context,
-                        title: '연령대',
-                        content: _userProfile?.ageRange ?? 'N/A',
-                      ),
-                      const SizedBox(height: AppConstants.spacingMedium),
-                      _buildProfileDetailCard(
-                        context,
-                        title: '여행 스타일',
-                        content: _userProfile?.travelStyles.join(', ') ?? '선택된 여행 스타일이 없습니다.',
-                      ),
-                      const SizedBox(height: AppConstants.spacingMedium),
-                      _buildProfileDetailCard(
-                        context,
-                        title: '관심사',
-                        content: _userProfile?.interests.join(', ') ?? '선택된 관심사가 없습니다.',
-                      ),
-                      const SizedBox(height: AppConstants.spacingMedium),
-                      _buildProfileDetailCard(
-                        context,
-                        title: '선호 지역',
-                        content: _userProfile?.preferredDestinations.join(', ') ?? '선택된 선호 지역이 없습니다.',
-                      ),
-                    ],
-                  ),
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          Positioned.fill(
+            child: Image.network(
+              'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800',
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => const ColoredBox(color: Color(0xFF1E1E32)),
+            ),
+          ),
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    const Color(0xFF1E1E32).withOpacity(0.82),
+                    const Color(0xFF1E1E32).withOpacity(0.88),
+                    const Color(0xFF1E1E32).withOpacity(0.95),
+                  ],
                 ),
+              ),
+            ),
+          ),
+          _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : _errorMessage != null
+                  ? Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(AppConstants.paddingMedium),
+                        child: Text(
+                          _errorMessage!,
+                          style: TextStyle(color: AppColors.error),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    )
+                  : SingleChildScrollView(
+                      padding: const EdgeInsets.all(AppConstants.paddingLarge),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          CircleAvatar(
+                            radius: 80,
+                            backgroundColor: AppColors.lightGrey,
+                            backgroundImage: hasImage ? NetworkImage(_userProfile!.profileImageUrl!) : null,
+                            child: hasImage ? null : Icon(Icons.person, size: 80, color: AppColors.grey),
+                          ),
+                          const SizedBox(height: AppConstants.spacingLarge),
+                          Text(
+                            _userProfile?.nickname ?? 'N/A',
+                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          Text(
+                            idDisplay,
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                          const SizedBox(height: AppConstants.spacingLarge),
+                          _buildProfileDetailCard(context, title: '소개', content: _userProfile?.bio ?? '소개가 없습니다.', color: sectionColors[0]),
+                          const SizedBox(height: AppConstants.spacingMedium),
+                          _buildProfileDetailCard(context, title: '성별', content: _userProfile?.gender ?? '-', color: sectionColors[1]),
+                          const SizedBox(height: AppConstants.spacingMedium),
+                          _buildProfileDetailCard(context, title: '연령대', content: _userProfile?.ageRange ?? 'N/A', color: sectionColors[2]),
+                          const SizedBox(height: AppConstants.spacingMedium),
+                          _buildProfileDetailCard(context, title: '여행 스타일', content: _userProfile?.travelStyles.join(', ') ?? '선택된 여행 스타일이 없습니다.', color: sectionColors[3]),
+                          const SizedBox(height: AppConstants.spacingMedium),
+                          _buildProfileDetailCard(context, title: '관심사', content: _userProfile?.interests.join(', ') ?? '선택된 관심사가 없습니다.', color: sectionColors[0]),
+                          const SizedBox(height: AppConstants.spacingMedium),
+                          _buildProfileDetailCard(context, title: '선호 지역', content: _userProfile?.preferredDestinations.join(', ') ?? '선택된 선호 지역이 없습니다.', color: sectionColors[1]),
+                        ],
+                      ),
+                    ),
+        ],
+      ),
     );
   }
 
-  Widget _buildProfileDetailCard(BuildContext context, {required String title, required String content}) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
+  Widget _buildProfileDetailCard(BuildContext context, {required String title, required String content, required Color color}) {
+    final cardBase = Color.lerp(Colors.white, color, 0.12)!;
+    final cardHighlight = Color.lerp(Colors.white, color, 0.22)!;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppConstants.paddingMedium),
+      decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(AppConstants.borderRadius),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(AppConstants.paddingMedium),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: AppColors.primary,
-              ),
-            ),
-            const SizedBox(height: AppConstants.spacingSmall),
-            Text(
-              content,
-              style: Theme.of(context).textTheme.bodyLarge,
-            ),
-          ],
+        border: Border.all(color: color.withOpacity(0.5), width: 1.5),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [cardBase, cardHighlight, color.withOpacity(0.12)],
+          stops: const [0.0, 0.5, 1.0],
         ),
+        boxShadow: [
+          BoxShadow(color: color.withOpacity(0.2), blurRadius: 14, offset: const Offset(0, 4)),
+          BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 8, offset: const Offset(0, 2)),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+          const SizedBox(height: AppConstants.spacingSmall),
+          Text(
+            content,
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: AppColors.textSecondary),
+          ),
+        ],
       ),
     );
   }

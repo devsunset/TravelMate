@@ -68,8 +68,16 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     final currentUserId = FirebaseAuth.instance.currentUser?.email ?? FirebaseAuth.instance.currentUser?.uid ?? '';
     final isMyProfile = currentUserId == widget.userId;
 
+    // 메인 화면 카드와 동일한 밝은 톤 색상 (티얼, 스카이, 앰버, 에메랄드)
+    const sectionColors = [
+      Color(0xFF0EA5E9), // Sky - 소개
+      Color(0xFF14B8A6), // Teal - 여행 스타일
+      Color(0xFFF59E0B), // Amber - 관심사
+      Color(0xFF10B981), // Emerald - 선호 지역
+    ];
+
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: const Color(0xFF1E1E32),
       appBar: AppAppBar(
         title: isMyProfile ? '내 프로필' : (_userProfile?.nickname ?? '프로필'),
         actions: [
@@ -99,100 +107,137 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           ],
         ],
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
-          : _errorMessage != null
-              ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(AppConstants.paddingLarge),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.person_off_rounded, size: 56, color: AppColors.textSecondary.withOpacity(0.6)),
-                        const SizedBox(height: 16),
-                        Text(
-                          _errorMessage!,
-                          style: GoogleFonts.plusJakartaSans(color: AppColors.textSecondary, fontSize: 15),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
-                  ),
-                )
-              : SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: AppConstants.paddingLarge),
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 24),
-                      _buildAvatar(),
-                      const SizedBox(height: 20),
-                      Text(
-                        _userProfile?.nickname ?? '-',
-                        style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        _userProfile?.gender != null && _userProfile!.gender!.isNotEmpty &&
-                                _userProfile?.ageRange != null && _userProfile!.ageRange!.isNotEmpty
-                            ? '${_userProfile!.gender} · ${_userProfile!.ageRange}'
-                            : '추가 정보 없음',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 14, color: AppColors.textSecondary),
-                      ),
-                      const SizedBox(height: 28),
-                      _buildSection(title: '소개', content: _userProfile?.bio ?? '소개가 없습니다.', icon: Icons.info_outline_rounded, color: AppColors.secondary),
-                      const SizedBox(height: 14),
-                      _buildSection(title: '여행 스타일', content: _userProfile?.travelStyles.join(', ') ?? '선택된 여행 스타일이 없습니다.', icon: Icons.explore_rounded, color: AppColors.primary),
-                      const SizedBox(height: 14),
-                      _buildSection(title: '관심사', content: _userProfile?.interests.join(', ') ?? '선택된 관심사가 없습니다.', icon: Icons.favorite_outline_rounded, color: AppColors.accent),
-                      const SizedBox(height: 14),
-                      _buildSection(title: '선호 지역', content: _userProfile?.preferredDestinations.join(', ') ?? '선택된 선호 지역이 없습니다.', icon: Icons.place_rounded, color: AppColors.secondary),
-                      if (isMyProfile) ...[
-                        const SizedBox(height: 28),
-                        _buildSettingsRow(context),
-                        const SizedBox(height: 32),
-                      ],
-                    ],
-                  ),
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          Positioned.fill(
+            child: Image.network(
+              'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800',
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => const ColoredBox(color: Color(0xFF1E1E32)),
+            ),
+          ),
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    const Color(0xFF1E1E32).withOpacity(0.82),
+                    const Color(0xFF1E1E32).withOpacity(0.88),
+                    const Color(0xFF1E1E32).withOpacity(0.95),
+                  ],
                 ),
+              ),
+            ),
+          ),
+          _isLoading
+              ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+              : _errorMessage != null
+                  ? Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(AppConstants.paddingLarge),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.person_off_rounded, size: 56, color: AppColors.textSecondary.withOpacity(0.6)),
+                            const SizedBox(height: 16),
+                            Text(
+                              _errorMessage!,
+                              style: GoogleFonts.plusJakartaSans(color: AppColors.textSecondary, fontSize: 15),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  : SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(horizontal: AppConstants.paddingLarge),
+                      child: Column(
+                        children: [
+                          const SizedBox(height: 24),
+                          _buildAvatar(),
+                          const SizedBox(height: 20),
+                          Text(
+                            _userProfile?.nickname ?? '-',
+                            style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            _userProfile?.gender != null && _userProfile!.gender!.isNotEmpty &&
+                                    _userProfile?.ageRange != null && _userProfile!.ageRange!.isNotEmpty
+                                ? '${_userProfile!.gender} · ${_userProfile!.ageRange}'
+                                : '추가 정보 없음',
+                            style: GoogleFonts.plusJakartaSans(fontSize: 14, color: AppColors.textSecondary),
+                          ),
+                          const SizedBox(height: 28),
+                          _buildSection(title: '소개', content: _userProfile?.bio ?? '소개가 없습니다.', icon: Icons.info_outline_rounded, color: sectionColors[0]),
+                          const SizedBox(height: 14),
+                          _buildSection(title: '여행 스타일', content: _userProfile?.travelStyles.join(', ') ?? '선택된 여행 스타일이 없습니다.', icon: Icons.explore_rounded, color: sectionColors[1]),
+                          const SizedBox(height: 14),
+                          _buildSection(title: '관심사', content: _userProfile?.interests.join(', ') ?? '선택된 관심사가 없습니다.', icon: Icons.favorite_outline_rounded, color: sectionColors[2]),
+                          const SizedBox(height: 14),
+                          _buildSection(title: '선호 지역', content: _userProfile?.preferredDestinations.join(', ') ?? '선택된 선호 지역이 없습니다.', icon: Icons.place_rounded, color: sectionColors[3]),
+                          if (isMyProfile) ...[
+                            const SizedBox(height: 28),
+                            _buildSettingsRow(context),
+                            const SizedBox(height: 32),
+                          ],
+                        ],
+                      ),
+                    ),
+        ],
+      ),
     );
   }
 
   Widget _buildAvatar() {
-    const cardSurface = Color(0xFF16162A);
+    final hasImage = _userProfile?.profileImageUrl != null && _userProfile!.profileImageUrl!.isNotEmpty;
+    const color = Color(0xFF0EA5E9);
+    final cardBase = Color.lerp(Colors.white, color, 0.15)!;
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        border: Border.all(color: AppColors.primary.withOpacity(0.5), width: 2),
+        border: Border.all(color: color.withOpacity(0.5), width: 2),
         boxShadow: [
-          BoxShadow(color: AppColors.primary.withOpacity(0.2), blurRadius: 20, spreadRadius: 0),
+          BoxShadow(color: color.withOpacity(0.2), blurRadius: 16, spreadRadius: 0),
         ],
-        color: cardSurface,
+        color: cardBase,
       ),
       child: CircleAvatar(
         radius: 56,
-        backgroundColor: AppColors.surface,
-        backgroundImage: NetworkImage(_userProfile?.profileImageUrl ?? 'https://www.gravatar.com/avatar/?d=mp'),
+        backgroundColor: AppColors.lightGrey,
+        backgroundImage: hasImage ? NetworkImage(_userProfile!.profileImageUrl!) : null,
+        child: hasImage ? null : Icon(Icons.person, size: 64, color: AppColors.grey),
       ),
     );
   }
 
   Widget _buildSection({required String title, required String content, required IconData icon, required Color color}) {
-    const surface = Color(0xFF16162A);
-    const surfaceLight = Color(0xFF1C1C34);
+    final cardBase = Color.lerp(Colors.white, color, 0.12)!;
+    final cardHighlight = Color.lerp(Colors.white, color, 0.22)!;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.4), width: 1.2),
+        border: Border.all(color: color.withOpacity(0.5), width: 1.5),
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [surface, surfaceLight, color.withOpacity(0.05)],
-          stops: const [0.0, 0.6, 1.0],
+          colors: [
+            cardBase,
+            cardHighlight,
+            color.withOpacity(0.12),
+          ],
+          stops: const [0.0, 0.5, 1.0],
         ),
-        boxShadow: [BoxShadow(color: color.withOpacity(0.1), blurRadius: 16, offset: const Offset(0, 4))],
+        boxShadow: [
+          BoxShadow(color: color.withOpacity(0.2), blurRadius: 14, offset: const Offset(0, 4)),
+          BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 8, offset: const Offset(0, 2)),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -202,7 +247,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.2),
+                  color: color.withOpacity(0.25),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(icon, size: 20, color: color),

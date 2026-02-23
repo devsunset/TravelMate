@@ -32,27 +32,61 @@ class HomeScreen extends StatelessWidget {
     final gridSpacing = isCompact ? 8.0 : 10.0;
     final bottomPadding = isCompact ? 24.0 : 32.0;
 
+    // 카드별 색상 + 주제에 맞는 배경 이미지 (동행, 채팅, 커뮤니티, 일정)
+    const cardColors = [
+      Color(0xFF14B8A6), // Teal - 동행 찾기
+      Color(0xFF0EA5E9), // Sky - 채팅
+      Color(0xFFF59E0B), // Amber - 커뮤니티
+      Color(0xFF10B981), // Emerald - 일정
+    ];
+    const cardBgImages = [
+      'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=400', // 동행/친구
+      'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400', // 채팅/메시지
+      'https://images.unsplash.com/photo-1528605248644-14dd04022da1?w=400', // 커뮤니티/모임
+      'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=400', // 일정/여행
+    ];
     final navCards = [
-      (Icons.person_search_rounded, '동행 찾기', AppColors.secondary, () => context.go('/matching/search')),
-      (Icons.chat_bubble_outline_rounded, '채팅', AppColors.primary, () => context.go('/chat')),
-      (Icons.article_outlined, '커뮤니티', AppColors.accent, () => context.go('/community')),
-      (Icons.calendar_month_rounded, '일정', AppColors.secondary, () => context.go('/itinerary')),
+      (Icons.person_search_rounded, '동행 찾기', cardColors[0], cardBgImages[0], () => context.go('/matching/search')),
+      (Icons.chat_bubble_outline_rounded, '채팅', cardColors[1], cardBgImages[1], () => context.go('/chat')),
+      (Icons.article_outlined, '커뮤니티', cardColors[2], cardBgImages[2], () => context.go('/community')),
+      (Icons.calendar_month_rounded, '일정', cardColors[3], cardBgImages[3], () => context.go('/itinerary')),
     ];
 
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              AppColors.background,
-              AppColors.background,
-              AppColors.background.withOpacity(0.98),
-            ],
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          // 배경 이미지 (비행기/여행) — 우측 상단에 위치, 선명하게 보이도록
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                image: DecorationImage(
+                  image: NetworkImage(
+                    'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=800',
+                  ),
+                  fit: BoxFit.cover,
+                  alignment: Alignment.topRight,
+                ),
+              ),
+            ),
           ),
-        ),
-        child: SafeArea(
+          // 가벼운 오버레이로 배경 사진이 선명하게 보이도록
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    AppColors.background.withOpacity(0.35),
+                    AppColors.background.withOpacity(0.55),
+                    AppColors.background.withOpacity(0.78),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          SafeArea(
           child: Column(
             children: [
               Padding(
@@ -63,16 +97,25 @@ class HomeScreen extends StatelessWidget {
                     Row(
                       children: [
                         Container(
-                          padding: EdgeInsets.all(isCompact ? 8 : 10),
+                          width: isCompact ? 40 : 44,
+                          height: isCompact ? 40 : 44,
                           decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [AppColors.primary, AppColors.secondary],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
                             borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.primary.withOpacity(0.25),
+                                blurRadius: 10,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
                           ),
-                          child: Icon(Icons.explore, color: Colors.white, size: isCompact ? 20 : 24),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Image.asset(
+                              'images/app_logo.png',
+                              fit: BoxFit.cover,
+                            ),
+                          ),
                         ),
                         SizedBox(width: isCompact ? 8 : 10),
                         Text('TravelMate', style: GoogleFonts.outfit(fontSize: isCompact ? 18 : 22, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
@@ -148,7 +191,7 @@ class HomeScreen extends StatelessWidget {
                         itemCount: 4,
                         itemBuilder: (context, index) {
                           final item = navCards[index];
-                          return _NavCard(icon: item.$1, label: item.$2, color: item.$3, onTap: item.$4, compact: isCompact);
+                          return _NavCard(icon: item.$1, label: item.$2, color: item.$3, backgroundImageUrl: item.$4, onTap: item.$5, compact: isCompact);
                         },
                       ),
                     );
@@ -158,6 +201,7 @@ class HomeScreen extends StatelessWidget {
             ],
           ),
         ),
+        ],
       ),
     );
   }
@@ -167,10 +211,18 @@ class _NavCard extends StatelessWidget {
   final IconData icon;
   final String label;
   final Color color;
+  final String backgroundImageUrl;
   final VoidCallback onTap;
   final bool compact;
 
-  const _NavCard({required this.icon, required this.label, required this.color, required this.onTap, this.compact = false});
+  const _NavCard({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.backgroundImageUrl,
+    required this.onTap,
+    this.compact = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -179,76 +231,101 @@ class _NavCard extends StatelessWidget {
     final iconSize = compact ? 30.0 : 38.0;
     final gap = compact ? 6.0 : 10.0;
     final fontSize = compact ? 12.0 : 14.0;
-    // 밝은 톤: 배경보다 확실히 밝게 + 테마색 틴트로 구분
-    const cardSurfaceLight = Color(0xFF28284A);
-    const cardSurfaceLighter = Color(0xFF32325C);
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(18),
-        child: Container(
-          padding: EdgeInsets.symmetric(horizontal: padding, vertical: padding + 6),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: color.withOpacity(0.65), width: 1.5),
-            boxShadow: [
-              BoxShadow(
-                color: color.withOpacity(0.22),
-                blurRadius: 20,
-                spreadRadius: 0,
-                offset: const Offset(0, 5),
-              ),
-              BoxShadow(
-                color: Colors.black.withOpacity(0.15),
-                blurRadius: 10,
-                offset: const Offset(0, 3),
-              ),
-            ],
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                cardSurfaceLight,
-                cardSurfaceLighter,
-                color.withOpacity(0.18),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(18),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: color.withOpacity(0.6), width: 1.5),
+              boxShadow: [
+                BoxShadow(
+                  color: color.withOpacity(0.2),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
               ],
-              stops: const [0.0, 0.5, 1.0],
             ),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding: EdgeInsets.all(iconWrap),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      color.withOpacity(0.5),
-                      color.withOpacity(0.28),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                // 카드 주제별 배경 이미지
+                Positioned.fill(
+                  child: Image.network(
+                    backgroundImageUrl,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Container(
+                      color: color.withOpacity(0.25),
+                    ),
+                  ),
+                ),
+                // 어두운 오버레이로 글자·아이콘 가독성 확보
+                Positioned.fill(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.black.withOpacity(0.35),
+                          Colors.black.withOpacity(0.6),
+                          Colors.black.withOpacity(0.75),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                // 콘텐츠 (흰색 글자·아이콘으로 선명하게)
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: padding, vertical: padding + 6),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: EdgeInsets.all(iconWrap),
+                        decoration: BoxDecoration(
+                          color: color.withOpacity(0.9),
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Icon(icon, color: Colors.white, size: iconSize),
+                      ),
+                      SizedBox(height: gap),
+                      Text(
+                        label,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: fontSize,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                          shadows: [
+                            Shadow(blurRadius: 4, color: Colors.black54, offset: const Offset(0, 1)),
+                            Shadow(blurRadius: 8, color: Colors.black45, offset: const Offset(0, 2)),
+                          ],
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
+                      ),
                     ],
                   ),
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: color.withOpacity(0.35),
-                      blurRadius: 14,
-                      spreadRadius: 0,
-                    ),
-                  ],
                 ),
-                child: Icon(icon, color: Colors.white, size: iconSize),
-              ),
-              SizedBox(height: gap),
-              Text(
-                label,
-                style: GoogleFonts.plusJakartaSans(fontSize: fontSize, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
