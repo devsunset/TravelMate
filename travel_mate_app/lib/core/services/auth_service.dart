@@ -101,4 +101,26 @@ class AuthService {
     }
   }
 
+  /// 백엔드 사용자 ID 조회. GET /api/auth/me 호출. 토큰 없거나 실패 시 null.
+  /// 공유 Dio에 baseUrl이 없을 수 있으므로 항상 전체 URL로 요청합니다.
+  Future<String?> getCurrentBackendUserId() async {
+    try {
+      final token = await getIdToken();
+      if (token == null || token.isEmpty) return null;
+      final url = '${AppConstants.apiBaseUrl}/api/auth/me';
+      final dio = _dio ?? Dio();
+      final response = await dio.get<Map<String, dynamic>>(
+        url,
+        options: Options(
+          headers: {'Authorization': 'Bearer $token'},
+          contentType: 'application/json',
+        ),
+      );
+      final userId = response.data?['userId'];
+      return userId is String ? userId : userId?.toString();
+    } catch (e) {
+      developer.log('getCurrentBackendUserId failed: $e', name: 'Auth', level: 1000);
+      return null;
+    }
+  }
 }

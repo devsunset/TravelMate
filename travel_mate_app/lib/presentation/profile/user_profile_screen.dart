@@ -167,7 +167,15 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                           const SizedBox(height: 20),
                           Text(
                             _userProfile?.nickname ?? '-',
-                            style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                            style: GoogleFonts.outfit(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                              shadows: [
+                                Shadow(color: Colors.black54, blurRadius: 8, offset: const Offset(0, 1)),
+                                Shadow(color: Colors.black38, blurRadius: 4, offset: const Offset(0, 0)),
+                              ],
+                            ),
                           ),
                           const SizedBox(height: 4),
                           Text(
@@ -175,7 +183,13 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                                     _userProfile?.ageRange != null && _userProfile!.ageRange!.isNotEmpty
                                 ? '${_userProfile!.gender} · ${_userProfile!.ageRange}'
                                 : '추가 정보 없음',
-                            style: GoogleFonts.plusJakartaSans(fontSize: 14, color: AppColors.textSecondary),
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 14,
+                              color: Colors.white.withOpacity(0.9),
+                              shadows: [
+                                Shadow(color: Colors.black45, blurRadius: 4, offset: const Offset(0, 1)),
+                              ],
+                            ),
                           ),
                           const SizedBox(height: 28),
                           _buildSection(title: '소개', content: _userProfile?.bio ?? '소개가 없습니다.', icon: Icons.info_outline_rounded, color: sectionColors[0]),
@@ -221,6 +235,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     );
   }
 
+  /// 카드 배경이 밝은 색이므로 제목·본문은 진한 색으로 표시해 가독성 확보.
+  static const Color _cardTextTitle = Color(0xFF1A1A2E);
+  static const Color _cardTextBody = Color(0xFF374151);
+
   Widget _buildSection({required String title, required String content, required IconData icon, required Color color}) {
     final cardBase = Color.lerp(Colors.white, color, 0.12)!;
     final cardHighlight = Color.lerp(Colors.white, color, 0.22)!;
@@ -261,14 +279,14 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               const SizedBox(width: 12),
               Text(
                 title,
-                style: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                style: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.w600, color: _cardTextTitle),
               ),
             ],
           ),
           const SizedBox(height: 12),
           Text(
             content,
-            style: GoogleFonts.plusJakartaSans(fontSize: 14, height: 1.45, color: AppColors.textSecondary),
+            style: GoogleFonts.plusJakartaSans(fontSize: 14, height: 1.45, color: _cardTextBody),
           ),
         ],
       ),
@@ -285,10 +303,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               await Provider.of<AuthService>(context, listen: false).signOut();
               if (context.mounted) context.go('/login');
             },
-            icon: const Icon(Icons.logout_rounded, size: 20, color: AppColors.textSecondary),
+            icon: Icon(Icons.logout_rounded, size: 20, color: Colors.white.withOpacity(0.9)),
             label: Text(
               '로그아웃',
-              style: GoogleFonts.plusJakartaSans(fontSize: 15, color: AppColors.textSecondary),
+              style: GoogleFonts.plusJakartaSans(fontSize: 15, color: Colors.white.withOpacity(0.9)),
             ),
             style: TextButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 14),

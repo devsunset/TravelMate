@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
 import 'package:travel_mate_app/app/theme.dart';
-import 'package:travel_mate_app/core/services/auth_service.dart';
 import 'package:travel_mate_app/app/constants.dart';
 import 'package:google_fonts/google_fonts.dart';
 /// 로그인 후 홈 화면. 히어로 + 기능 카드 + 탐색 버튼 (Travel-Companion-Finder 스타일).
@@ -24,23 +22,8 @@ class _HomeScreenBody extends StatefulWidget {
 }
 
 class _HomeScreenBodyState extends State<_HomeScreenBody> {
-  String? _profileUserId;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadProfileUserId();
-  }
-
-  Future<void> _loadProfileUserId() async {
-    final authService = context.read<AuthService>();
-    final userId = await authService.getCurrentBackendUserId();
-    if (mounted) setState(() => _profileUserId = userId != null && userId.isNotEmpty ? Uri.encodeComponent(userId) : null);
-  }
-
   @override
   Widget build(BuildContext context) {
-    final profileUserId = _profileUserId;
     final h = MediaQuery.sizeOf(context).height;
     final isCompact = h < 680;
     final isMedium = h >= 680 && h < 820;
@@ -144,19 +127,28 @@ class _HomeScreenBodyState extends State<_HomeScreenBody> {
                           ),
                         ),
                         SizedBox(width: isCompact ? 8 : 10),
-                        Text('TravelMate', style: GoogleFonts.outfit(fontSize: isCompact ? 18 : 22, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                        Text(
+                          'TravelMate',
+                          style: GoogleFonts.outfit(
+                            fontSize: isCompact ? 18 : 22,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                            shadows: [
+                              Shadow(color: Colors.black54, blurRadius: 8, offset: const Offset(0, 1)),
+                              Shadow(color: Colors.black38, blurRadius: 4, offset: const Offset(0, 0)),
+                            ],
+                          ),
+                        ),
                       ],
                     ),
                     Row(
                       children: [
                         IconButton(
-                          icon: Icon(Icons.person_outline, color: AppColors.textPrimary, size: isCompact ? 22 : 24),
-                          onPressed: () {
-                            if (profileUserId != null) context.go('/users/$profileUserId');
-                          },
+                          icon: Icon(Icons.person_outline, color: Colors.white, size: isCompact ? 22 : 24),
+                          onPressed: () => context.go('/profile'),
                         ),
                         IconButton(
-                          icon: Icon(Icons.settings_outlined, color: AppColors.textPrimary, size: isCompact ? 22 : 24),
+                          icon: Icon(Icons.settings_outlined, color: Colors.white, size: isCompact ? 22 : 24),
                           onPressed: () => context.go('/settings/account'),
                         ),
                       ],
@@ -178,7 +170,17 @@ class _HomeScreenBodyState extends State<_HomeScreenBody> {
                         borderRadius: BorderRadius.circular(100),
                         border: Border.all(color: AppColors.secondary.withOpacity(0.3)),
                       ),
-                      child: Text('Explore the world together', style: GoogleFonts.plusJakartaSans(fontSize: badgeFontSize, fontWeight: FontWeight.w600, color: AppColors.secondary)),
+                      child: Text(
+                        'Explore the world together',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: badgeFontSize,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                          shadows: [
+                            Shadow(color: Colors.black45, blurRadius: 4, offset: const Offset(0, 1)),
+                          ],
+                        ),
+                      ),
                     ),
                     SizedBox(height: isCompact ? 8 : 16),
                     ShaderMask(
@@ -187,10 +189,33 @@ class _HomeScreenBodyState extends State<_HomeScreenBody> {
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ).createShader(bounds),
-                      child: Text('Find Your\nTravel Squad', style: GoogleFonts.outfit(fontSize: heroTitleSize, fontWeight: FontWeight.bold, height: 1.15, color: Colors.white)),
+                      child: Text(
+                        'Find Your\nTravel Squad',
+                        style: GoogleFonts.outfit(
+                          fontSize: heroTitleSize,
+                          fontWeight: FontWeight.bold,
+                          height: 1.15,
+                          color: Colors.white,
+                          shadows: [
+                            Shadow(color: Colors.black54, blurRadius: 10, offset: const Offset(0, 2)),
+                            Shadow(color: Colors.black38, blurRadius: 4, offset: const Offset(0, 0)),
+                          ],
+                        ),
+                      ),
                     ),
                     SizedBox(height: heroAfterTitle),
-                    Text('같은 취향의 여행자와 만나고, 일정을 공유하고, 추억을 나눠보세요.', style: GoogleFonts.plusJakartaSans(fontSize: heroSubtitleSize, color: AppColors.textSecondary, height: 1.4)),
+                    Text(
+                      '같은 취향의 여행자와 만나고, 일정을 공유하고, 추억을 나눠보세요.',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: heroSubtitleSize,
+                        color: Colors.white.withOpacity(0.95),
+                        height: 1.4,
+                        shadows: [
+                          Shadow(color: Colors.black54, blurRadius: 6, offset: const Offset(0, 1)),
+                          Shadow(color: Colors.black38, blurRadius: 2, offset: const Offset(0, 0)),
+                        ],
+                      ),
+                    ),
                     SizedBox(height: heroBottom),
                   ],
                 ),

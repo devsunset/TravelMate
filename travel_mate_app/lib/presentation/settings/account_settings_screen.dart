@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -97,6 +98,30 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                     ),
                     const SizedBox(height: 12),
                   ],
+                  _SettingsTile(
+                    icon: Icons.vpn_key_rounded,
+                    label: 'API 테스트용 토큰 복사',
+                    color: AppColors.secondary,
+                    onTap: () async {
+                      final authService = Provider.of<AuthService>(context, listen: false);
+                      final token = await authService.getIdToken();
+                      if (token == null || token.isEmpty) {
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('토큰을 가져올 수 없습니다. 로그인 상태를 확인하세요.')),
+                          );
+                        }
+                        return;
+                      }
+                      await Clipboard.setData(ClipboardData(text: token));
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('토큰이 클립보드에 복사되었습니다. curl/Postman에서 Authorization: Bearer <붙여넣기> 로 사용하세요.')),
+                        );
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 12),
                   _SettingsTile(
                     icon: Icons.logout_rounded,
                     label: '로그아웃',

@@ -200,6 +200,7 @@ GoRouter createRouter(User? user) {
 }
 
 /// /profile 접근 시 백엔드에서 현재 사용자 id를 조회한 뒤 /users/:userId로 리다이렉트.
+/// Firebase 로그인은 되어 있으나 API 실패 시 로그인으로 보내지 않고 재시도/홈 버튼 표시.
 class _ProfileRedirectScreen extends StatefulWidget {
   const _ProfileRedirectScreen();
 
@@ -208,6 +209,9 @@ class _ProfileRedirectScreen extends StatefulWidget {
 }
 
 class _ProfileRedirectScreenState extends State<_ProfileRedirectScreen> {
+  bool _loading = true;
+  String? _error;
+
   @override
   void initState() {
     super.initState();
@@ -216,20 +220,43 @@ class _ProfileRedirectScreenState extends State<_ProfileRedirectScreen> {
 
   Future<void> _redirect() async {
     if (!mounted) return;
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null) {
+      if (mounted) GoRouter.of(context).go('/login');
+      return;
+    }
+    setState(() { _loading = true; _error = null; });
     final authService = Provider.of<AuthService>(context, listen: false);
     final userId = await authService.getCurrentBackendUserId();
     if (!mounted) return;
     if (userId != null && userId.isNotEmpty) {
       GoRouter.of(context).go('/users/${Uri.encodeComponent(userId)}');
-    } else {
-      GoRouter.of(context).go('/login');
+      return;
     }
+    setState(() { _loading = false; _error = '프로필 정보를 불러오지 못했습니다. API 주소와 네트워크를 확인한 뒤 재시도하세요.'; });
   }
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(child: CircularProgressIndicator()),
+    if (_loading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+    return Scaffold(
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(_error ?? '', textAlign: TextAlign.center),
+              const SizedBox(height: 16),
+              FilledButton(onPressed: _redirect, child: const Text('재시도')),
+              const SizedBox(height: 8),
+              TextButton(onPressed: () => GoRouter.of(context).go('/'), child: const Text('홈으로')),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

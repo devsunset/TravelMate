@@ -81,7 +81,12 @@ exports.getMyChatRooms = async (req, res, next) => {
         { model: User, as: 'User1', attributes: ['id'], include: [{ model: UserProfile, attributes: ['nickname', 'profileImageUrl'] }] },
         { model: User, as: 'User2', attributes: ['id'], include: [{ model: UserProfile, attributes: ['nickname', 'profileImageUrl'] }] },
       ],
-      order: [[sequelize.literal('COALESCE(lastMessageSentAt, created_at)'), 'DESC']],
+      attributes: {
+        include: [
+          [sequelize.literal('COALESCE(`ChatRoom`.`lastMessageSentAt`, `ChatRoom`.`created_at`)'), '_sortAt'],
+        ],
+      },
+      order: [[sequelize.literal('_sortAt'), 'DESC']],
     });
 
     const list = rooms.map((r) => {
