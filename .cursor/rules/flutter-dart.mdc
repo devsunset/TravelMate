@@ -1,0 +1,32 @@
+---
+description: Flutter/Dart 코딩 규칙 (travel_mate_app)
+globs: travel_mate_app/**/*.dart
+alwaysApply: false
+---
+
+# Flutter / Dart 규칙
+
+## 적용 범위
+- `travel_mate_app/lib/**/*.dart` (앱 소스)
+
+## 스타일·구조
+- 파일 상단에 `library;` 및 `/// ...` 한 줄 요약 주석 유지.
+- import 순서: `dart:`, `package:`(외부), `package:travel_mate_app/`(프로젝트). 블록 사이 빈 줄 허용.
+- 플랫폼 분기 시: `import 'dart:io' if (dart.library.html) '.../file_stub.dart';` 처럼 웹에서 dart:io 미사용.
+
+## 아키텍처
+- **레이어**: presentation / domain(entities, repositories, usecases) / data(datasources, models, repositories impl).
+- API 호출은 data 레이어(datasource). 도메인은 repository 추상화만 의존.
+- Provider로 usecase·repository·datasource 주입(main.dart). 화면에서는 `Provider.of<X>(context, listen: false)` 등으로 사용.
+
+## 반응형·테마
+- `lib/app/responsive.dart`: `Responsive.breakpoint*`, `Responsive.value(context, compact:, medium:, expanded:)` 사용.
+- `lib/app/constants.dart`: `AppConstants`, `AppColors` 등 공통 상수·색상.
+- 화면별로 `Responsive.isCompact(context)` 또는 `Responsive.value(...)`로 패딩·폰트·열 수 조정.
+
+## 네트워크·에러
+- Dio 사용. 인증은 `Options(headers: {'Authorization': 'Bearer $idToken'})`.
+- 예외는 상위에서 catch 후 사용자 메시지(예: SnackBar, _errorMessage)로 표시. `mounted` 체크 후 setState.
+
+## 테스트·디버그
+- `kDebugMode`일 때만 `debugPrint('[기능명] ...')` 로그 출력. 민감 정보 로그 금지.

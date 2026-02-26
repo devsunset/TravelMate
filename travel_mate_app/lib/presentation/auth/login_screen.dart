@@ -90,10 +90,11 @@ class _LoginScreenState extends State<LoginScreen> {
       body: SingleChildScrollView(
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: padding, vertical: spacing),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: Responsive.maxContentWidth(context)),
-            child: Column(
-              children: [
+          child: Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: Responsive.maxContentWidth(context)),
+              child: Column(
+                children: [
                 Text(
                   'Welcome',
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
@@ -200,7 +201,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ],
                 ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

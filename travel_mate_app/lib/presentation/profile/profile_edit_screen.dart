@@ -1,10 +1,9 @@
 import 'dart:developer' as developer;
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dart:io' if (dart.library.html) 'package:travel_mate_app/core/io_stub/file_stub.dart';
-import 'package:travel_mate_app/core/io_stub/picked_image_provider_io.dart' if (dart.library.html) 'package:travel_mate_app/core/io_stub/picked_image_provider_web.dart';
 import 'package:travel_mate_app/app/theme.dart';
 import 'package:travel_mate_app/app/responsive.dart';
 import 'package:travel_mate_app/core/services/auth_service.dart';
@@ -29,7 +28,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   final TextEditingController _bioController = TextEditingController();
   final TextEditingController _preferredDestinationsController = TextEditingController(); // Renamed for clarity
 
-  File? _pickedImage;
+  XFile? _pickedImage;
+  Uint8List? _pickedImageBytes;
   bool _isLoading = false;
   String? _errorMessage;
 
@@ -100,8 +100,15 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
 
     if (pickedFile != null) {
       setState(() {
-        _pickedImage = File(pickedFile.path);
+        _pickedImage = pickedFile;
+        _pickedImageBytes = null;
       });
+      try {
+        final bytes = await pickedFile.readAsBytes();
+        if (mounted) setState(() => _pickedImageBytes = bytes);
+      } catch (_) {
+        if (mounted) setState(() => _pickedImageBytes = null);
+      }
     }
   }
 
@@ -122,7 +129,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
         String? newImageUrl = _currentProfileImageUrl;
         if (_pickedImage != null) {
           final uploadProfileImage = Provider.of<UploadProfileImage>(context, listen: false);
-          newImageUrl = await uploadProfileImage.execute(userId, _pickedImage!.path);
+          newImageUrl = await uploadProfileImage.execute(userId, _pickedImage!);
         }
 
         final updatedProfile = UserProfileModel( // Using UserProfileModel to leverage toJson
@@ -192,12 +199,12 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                             CircleAvatar(
                               radius: 70,
                               backgroundColor: AppColors.lightGrey,
-                              backgroundImage: imageProviderForPickedFile(_pickedImage) ??
-                                  (_currentProfileImageUrl != null && _currentProfileImageUrl!.isNotEmpty
+                              backgroundImage: _pickedImageBytes != null
+                                  ? MemoryImage(_pickedImageBytes!)
+                                  : (_currentProfileImageUrl != null && _currentProfileImageUrl!.isNotEmpty
                                       ? NetworkImage(_currentProfileImageUrl!) as ImageProvider
-                                      : null
-                                  ),
-                              child: _pickedImage == null && (_currentProfileImageUrl == null || _currentProfileImageUrl!.isEmpty)
+                                      : null),
+                              child: _pickedImageBytes == null && (_currentProfileImageUrl == null || _currentProfileImageUrl!.isEmpty)
                                   ? Icon(Icons.person, size: 70, color: AppColors.grey)
                                   : null,
                             ),

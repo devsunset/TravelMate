@@ -1,0 +1,29 @@
+---
+description: TravelMate 프로젝트 개요, 구조, 공통 규칙
+alwaysApply: true
+---
+
+# TravelMate 프로젝트 규칙
+
+## 프로젝트 개요
+- **목적**: 여행 동반자 매칭 및 여행 정보 공유 모바일·웹 앱
+- **사용자 식별**: 백엔드 랜덤 영숫자 ID(users.id)만 사용. 이메일 수집·저장 안 함.
+- **구성**: `travel_mate_app/`(Flutter), `travel_mate_backend/`(Node.js), `doc/`(문서·스키마)
+
+## 디렉터리 구조
+| 경로 | 설명 |
+|------|------|
+| `travel_mate_app/` | Flutter 앱 (iOS/Android/Web). Provider, Dio, GoRouter, Firebase Auth |
+| `travel_mate_backend/` | Express API, Sequelize, MariaDB, Firebase Admin, multer |
+| `doc/` | 기획·기술 문서, travel_mate.sql(DB 스키마), Firebase 가이드 |
+
+## 공통 규칙
+- **응답 언어**: 사용자/코드 주석이 한국어면 한국어로 답변.
+- **API 베이스 URL**: 앱은 `lib/app/constants.dart`의 `AppConstants.apiBaseUrl` 사용. 백엔드 라우트는 `doc/`, `travel_mate_backend/README.md` 참고.
+- **이미지 저장**: Firebase Storage 미사용. 프로필/게시글/일정 이미지는 백엔드 `POST /api/upload/profile|post|itinerary`로 업로드 후 URL 반환.
+- **인증**: 백엔드 API는 `Authorization: Bearer <Firebase ID Token>` 필수. 미들웨어 `authMiddleware`로 검증 후 `req.user`(디코딩 토큰) 사용.
+- **DB 초기화**: `doc/travel_mate.sql` 적용. `scripts/init-db.sh` 또는 `travel_mate_backend`에서 `npm run init-db`.
+
+## 수정 시 유의
+- 플랫폼 분기: 앱의 `dart:io` 사용 코드는 웹에서 `_Namespace` 오류 유발. 조건부 export는 `dart.library.html`일 때 웹 구현 사용(`profile_remote_datasource`, `user_profile_repository_impl` 등).
+- 새 API 추가 시 백엔드 라우트 등록(`travel_mate_backend/src/app.js`, 해당 라우터) 및 doc 정리.

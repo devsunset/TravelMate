@@ -7,7 +7,8 @@ class UploadProfileImage {
 
   UploadProfileImage(this.repository);
 
-  Future<String> execute(String userId, String imagePath) async {
-    return await repository.uploadProfileImage(userId, imagePath);
+  /// image: 파일 경로(String, 모바일) 또는 XFile(웹).
+  Future<String> execute(String userId, dynamic image) async {
+    return await repository.uploadProfileImage(userId, image);
   }
 }

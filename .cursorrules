@@ -1,0 +1,39 @@
+# TravelMate — Cursor / AI 규칙 (고도화)
+
+이 프로젝트는 **Flutter 앱(`travel_mate_app/`) + Node.js 백엔드(`travel_mate_backend/`)** 구성입니다.
+
+## 1) 기본 커뮤니케이션 규칙
+- **언어**: 사용자/문서/코드 주석이 한국어면 **항상 한국어로 응답**.
+- **출력**: 작업 결과는 “무엇을 왜 바꿨는지” 중심으로 요약. 링크/경로는 백틱(`...`) 사용.
+
+## 2) 프로젝트 핵심 도메인 규칙 (절대 어기지 않기)
+- **사용자 식별**: 이메일 미수집/미저장. 앱·서버 전반에서 **백엔드 랜덤 ID(users.id)** 를 사용자 식별자로 사용.
+- **인증**: 백엔드 API 호출은 기본적으로 `Authorization: Bearer <Firebase ID Token>` 필요. 서버는 `authMiddleware`로 검증 후 `req.user.uid`(Firebase UID) 사용.
+- **이미지 저장**: Firebase Storage 미사용. 업로드는 백엔드 `POST /api/upload/profile|post|itinerary`로 처리하고 URL 반환.
+
+## 3) Flutter(Dart) 작업 규칙
+- **레이어 분리**: UI는 `presentation`, 비즈니스는 `domain(usecases/repositories/entities)`, 통신/직렬화는 `data(datasources/models/repositories)`에 둔다.
+- **Provider 주입**: 의존성은 `main.dart`에서 Provider로 주입하고, 화면에서는 `context.read<T>()`/`Provider.of<T>(listen:false)`로 사용.
+- **import 정리**: 미사용 import 제거, 정렬은 `dart:` → 외부 `package:` → `package:travel_mate_app/...`.
+- **웹 호환(중요)**:
+  - 웹에서 `dart:io`/`File` 직접 사용 금지(대표 오류: `Unsupported operation: _Namespace`).
+  - 플랫폼별 구현은 **조건부 import/export**로 분리한다. 예:  
+    - `export 'io.dart' if (dart.library.html) 'web.dart';` (웹일 때 web 구현 사용)
+  - 웹에서 파일 업로드는 **XFile bytes → multipart** 방식 사용(경로 기반 업로드 금지).
+- **디버그 로그**: `kDebugMode`에서만 `debugPrint('[기능] ...')`. 토큰/개인정보 로그 금지.
+
+## 4) 백엔드(Node/Express/Sequelize) 작업 규칙
+- **라우팅**: 새 API는 `src/routes/*`에 추가 후 `src/app.js`에 등록.
+- **권한 검사**: “본인만 가능”은 `req.user.uid`로 users 테이블 조회 후 `user.id` 비교로 처리.
+- **쿼리 로깅**: 검색/필터 API는 “수신 쿼리 / 질의 조건 / 결과 요약” 로그를 남긴다(개인정보/토큰 제외).
+- **응답 규격**: 실패 시 `status + { message }` 중심. 서버 에러는 `next(error)`로 위임 가능.
+
+## 5) 변경 시 검증(최소)
+- Flutter: `flutter analyze` 또는 `dart analyze`로 컴파일/정적 분석 확인.
+- 백엔드: 라우트 추가 시 최소 1개 curl 또는 테스트 시나리오로 동작 확인.
+
+## 6) Cursor 세부 규칙 파일
+- 상세 규칙은 `.cursor/rules/` 참고:
+  - 항상 적용: `.cursor/rules/project-overview.mdc`
+  - Flutter/Dart: `.cursor/rules/flutter-dart.mdc` (globs: `travel_mate_app/**/*.dart`)
+  - 백엔드: `.cursor/rules/backend-node.mdc` (globs: `travel_mate_backend/**/*.js`)

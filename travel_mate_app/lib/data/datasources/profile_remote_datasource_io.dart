@@ -19,13 +19,18 @@ class ProfileRemoteDataSource {
         _dio = dio ?? Dio();
 
   /// image: String(경로) 또는 File. 웹에서는 사용하지 않음.
+  /// 압축 실패 시 원본 파일로 업로드하고, 임시 디렉터리에 압축 파일을 생성해 권한 오류를 방지합니다.
   Future<String> uploadProfileImage(String userId, dynamic image) async {
     final File imageFile = image is String ? File(image) : image as File;
+    if (!imageFile.existsSync()) {
+      throw Exception('이미지 파일을 찾을 수 없습니다: ${imageFile.path}');
+    }
     try {
       final filePath = imageFile.absolute.path;
-      final targetPath = '${filePath}_compressed.jpg';
+      final tempDir = Directory.systemTemp;
+      final targetPath = '${tempDir.path}${Platform.pathSeparator}profile_${DateTime.now().millisecondsSinceEpoch}_compressed.jpg';
 
-      final XFile? compressedImage = await FlutterImageCompress.compressAndGetFile(
+      XFile? compressedImage = await FlutterImageCompress.compressAndGetFile(
         filePath,
         targetPath,
         quality: 80,
@@ -34,15 +39,19 @@ class ProfileRemoteDataSource {
         format: CompressFormat.jpeg,
       );
 
-      if (compressedImage == null) {
-        throw Exception('Image compression failed');
+      final File fileToUpload;
+      if (compressedImage != null && compressedImage.path.isNotEmpty) {
+        final f = File(compressedImage.path);
+        fileToUpload = f.existsSync() ? f : imageFile;
+      } else {
+        fileToUpload = imageFile;
       }
 
       final idToken = await _firebaseAuth.currentUser?.getIdToken();
       if (idToken == null) throw Exception('User not authenticated.');
 
       final formData = FormData.fromMap({
-        'image': await MultipartFile.fromFile(compressedImage.path, filename: 'image.jpg'),
+        'image': await MultipartFile.fromFile(fileToUpload.path, filename: 'image.jpg'),
       });
 
       final response = await _dio.post(
@@ -50,11 +59,16 @@ class ProfileRemoteDataSource {
         data: formData,
         options: Options(
           headers: {'Authorization': 'Bearer $idToken'},
+          sendTimeout: const Duration(seconds: 30),
+          receiveTimeout: const Duration(seconds: 10),
         ),
       );
 
-      if (response.statusCode == 200 && response.data['imageUrl'] != null) {
-        return response.data['imageUrl'] as String;
+      if (response.statusCode == 200 && response.data != null) {
+        final imageUrl = response.data['imageUrl'];
+        if (imageUrl != null && imageUrl is String && imageUrl.isNotEmpty) {
+          return imageUrl;
+        }
       }
       throw Exception('Failed to upload image: ${response.data}');
     } catch (e) {

@@ -1,0 +1,29 @@
+---
+description: 백엔드 Node.js/Express/Sequelize 규칙
+globs: travel_mate_backend/**/*.js
+alwaysApply: false
+---
+
+# 백엔드 (Node.js / Express / Sequelize) 규칙
+
+## 적용 범위
+- `travel_mate_backend/src/**/*.js`
+
+## 구조
+- **라우트**: `src/routes/` (userRoutes, uploadRoutes 등). `src/app.js`에서 `app.use('/api/...', router)` 등록.
+- **컨트롤러**: `src/controllers/`. `req.user`는 authMiddleware가 Firebase ID 토큰 검증 후 설정(decoded token).
+- **모델**: `src/models/`. Sequelize 정의. 테이블명·컬럼은 `doc/travel_mate.sql`과 일치 유지.
+- **미들웨어**: `src/middlewares/authMiddleware.js` (Bearer 토큰 검증).
+
+## API·DB 규칙
+- 사용자 식별: `req.user.uid`(Firebase UID). DB에는 `users.firebase_uid`, `users.id`(PK, 랜덤 영숫자) 사용.
+- 본인만 수정/삭제 가능한 리소스는 `User.findOne({ where: { firebase_uid: req.user.uid } })` 후 `user.id`로 비교.
+- 이미지 업로드: multer + `uploadController`. 저장 경로 `uploads/profile|posts|itineraries/{uid}/{timestamp}.jpg`. 응답에 `imageUrl`(절대 URL) 포함.
+- 에러 처리: `try/catch` 후 `next(error)` 또는 `res.status(4xx).json({ message: '...' })`. `console.error`로 서버 로그 출력 가능.
+
+## 검색·쿼리
+- 동행 검색 등 쿼리 파라미터: `req.query`. 배열/쉼표 구분 문자열 모두 파싱해 Sequelize `where`/`include`에 반영.
+- 복잡한 조건은 컨트롤러 상단 주석으로 [검색 조건 설명] 문서화. 실제 질의 조건·결과는 `console.log('[기능명] ...')` 로 로그 남기면 디버깅에 유리.
+
+## 환경
+- `.env`: `DB_*`, Firebase 등. `.env.example` 참고. 코드에서 `process.env` 사용.

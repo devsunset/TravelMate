@@ -64,7 +64,7 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
   }
 
   @override
-  Future<String> uploadProfileImage(String userId, String imagePath) async {
-    return await remoteDataSource.uploadProfileImage(userId, imagePath);
+  Future<String> uploadProfileImage(String userId, dynamic image) async {
+    return await remoteDataSource.uploadProfileImage(userId, image);
   }
 }

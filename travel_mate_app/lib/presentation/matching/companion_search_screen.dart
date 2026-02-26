@@ -10,7 +10,15 @@ import 'package:travel_mate_app/presentation/common/app_app_bar.dart';
 import 'package:travel_mate_app/domain/usecases/search_companions_usecase.dart';
 import 'package:travel_mate_app/presentation/common/empty_state_widget.dart';
 
-/// 동행 검색 화면. 목적지·성별·연령 등 필터로 프로필 검색.
+/// 동행 검색 화면.
+///
+/// [검색 조건]
+/// - 목적지: preferredDestinations에 포함된 사용자 (서버: LIKE %목적지%)
+/// - 검색어: 닉네임 또는 자기소개(bio)에 포함 (서버: LIKE %검색어%)
+/// - 성별: 선택 시 일치만 (무관이면 조건 없음)
+/// - 연령대: 선택 시 일치만 (무관이면 조건 없음)
+/// - 여행 스타일/관심사: 선택한 항목을 가진 사용자만 (서버: Tag 또는 프로필 JSON 기준)
+/// - 실제 요청 쿼리·결과는 디버그 로그([동행 검색] 요청 쿼리 / 응답) 및 백엔드 콘솔([동행 검색] 수신 쿼리 / 질의 조건 / 질의 결과)에서 확인 가능.
 class CompanionSearchScreen extends StatefulWidget {
   const CompanionSearchScreen({super.key});
 

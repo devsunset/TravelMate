@@ -1,7 +1,8 @@
-/// 프로필 API 호출 (웹). dart:io 미사용. 이미지 업로드는 웹에서 미지원 시 예외.
+/// 프로필 API 호출 (웹). dart:io 미사용. 이미지 업로드는 XFile bytes로 multipart 전송.
 library;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:dio/dio.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:travel_mate_app/app/constants.dart';
 import 'package:travel_mate_app/data/models/user_profile_model.dart';
 
@@ -15,10 +16,41 @@ class ProfileRemoteDataSource {
   })  : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance,
         _dio = dio ?? Dio();
 
+  /// image: XFile(웹). bytes 읽어서 multipart로 전송.
   Future<String> uploadProfileImage(String userId, dynamic image) async {
-    throw UnsupportedError(
-      '프로필 이미지 업로드는 웹에서 지원되지 않습니다. 모바일 앱을 사용하세요.',
-    );
+    final XFile xFile = image is XFile ? image : throw ArgumentError('웹에서는 XFile이 필요합니다.');
+    try {
+      final bytes = await xFile.readAsBytes();
+      final idToken = await _firebaseAuth.currentUser?.getIdToken();
+      if (idToken == null) throw Exception('User not authenticated.');
+
+      final name = xFile.name.isNotEmpty ? xFile.name : 'image.jpg';
+      final ext = name.toLowerCase().split('.').last;
+      final hasImageExt = ['jpg', 'jpeg', 'png', 'gif', 'webp'].contains(ext);
+      final formData = FormData.fromMap({
+        'image': MultipartFile.fromBytes(bytes, filename: hasImageExt ? name : 'image.jpg'),
+      });
+
+      final response = await _dio.post(
+        '${AppConstants.apiBaseUrl}/api/upload/profile',
+        data: formData,
+        options: Options(
+          headers: {'Authorization': 'Bearer $idToken'},
+          sendTimeout: const Duration(seconds: 30),
+          receiveTimeout: const Duration(seconds: 10),
+        ),
+      );
+
+      if (response.statusCode == 200 && response.data != null) {
+        final imageUrl = response.data['imageUrl'];
+        if (imageUrl != null && imageUrl is String && imageUrl.isNotEmpty) {
+          return imageUrl;
+        }
+      }
+      throw Exception('Failed to upload image: ${response.data}');
+    } catch (e) {
+      throw Exception('Failed to upload image: ${e.toString()}');
+    }
   }
 
   Future<UserProfileModel> getUserProfile(String userId) async {

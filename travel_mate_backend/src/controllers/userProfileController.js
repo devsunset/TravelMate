@@ -145,7 +145,9 @@ exports.updateUserProfile = async (req, res, next) => {
 
     userProfile.nickname = nickname != null && String(nickname).trim() !== '' ? String(nickname).trim() : userProfile.nickname;
     userProfile.bio = bio;
-    userProfile.profileImageUrl = profileImageUrl;
+    if (profileImageUrl !== undefined) {
+      userProfile.profileImageUrl = profileImageUrl;
+    }
     userProfile.gender = gender;
     userProfile.ageRange = ageRange;
     userProfile.travelStyles = travelStyles;

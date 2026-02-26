@@ -9,6 +9,6 @@ abstract class UserProfileRepository {
   Future<void> deleteUserProfile(String userId);
   /// 계정 삭제(백엔드 DB·Firebase Auth). userId는 백엔드 사용자 ID.
   Future<void> deleteUserAccount(String userId);
-  /// 업로드된 이미지 URL 반환
-  Future<String> uploadProfileImage(String userId, String imagePath);
+  /// 업로드된 이미지 URL 반환. image: 경로(String, IO) 또는 XFile(웹).
+  Future<String> uploadProfileImage(String userId, dynamic image);
 }
