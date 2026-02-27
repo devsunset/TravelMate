@@ -6,11 +6,14 @@ import 'package:travel_mate_app/domain/entities/user_profile.dart';
 abstract class CompanionRepository {
   Future<PaginatedResult<UserProfile>> searchCompanions({
     String? destination,
+    String? preferredLocation,
     String? keyword,
     String? gender,
     String? ageRange,
     List<String>? travelStyles,
     List<String>? interests,
+    String? startDate,
+    String? endDate,
     int limit,
     int offset,
   });

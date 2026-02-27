@@ -21,11 +21,14 @@ class CompanionSearchRemoteDataSource {
   /// 실제 요청 파라미터와 응답 결과는 디버그 로그로 출력됨. total 포함 반환.
   Future<PaginatedResult<UserProfileModel>> searchCompanions({
     String? destination,
+    String? preferredLocation,
     String? keyword,
     String? gender,
     String? ageRange,
     List<String>? travelStyles,
     List<String>? interests,
+    String? startDate,
+    String? endDate,
     int limit = 20,
     int offset = 0,
   }) async {
@@ -34,9 +37,14 @@ class CompanionSearchRemoteDataSource {
 
     final queryParams = <String, dynamic>{
       if (destination != null && destination.trim().isNotEmpty) 'destination': destination.trim(),
+      if (preferredLocation != null && preferredLocation.trim().isNotEmpty) 'preferredLocation': preferredLocation.trim(),
       if (keyword != null && keyword.trim().isNotEmpty) 'keyword': keyword.trim(),
       if (gender != null && gender.isNotEmpty && gender != '무관') 'gender': gender,
       if (ageRange != null && ageRange.isNotEmpty && ageRange != '무관') 'ageRange': ageRange,
+      if (travelStyles != null && travelStyles.isNotEmpty) 'travelStyles': travelStyles.join(','),
+      if (interests != null && interests.isNotEmpty) 'interests': interests.join(','),
+      if (startDate != null && startDate.isNotEmpty) 'startDate': startDate,
+      if (endDate != null && endDate.isNotEmpty) 'endDate': endDate,
       'limit': limit,
       'offset': offset,
     };

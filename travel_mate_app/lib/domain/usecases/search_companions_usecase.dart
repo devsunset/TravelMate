@@ -11,21 +11,27 @@ class SearchCompanionsUsecase {
 
   Future<PaginatedResult<UserProfile>> execute({
     String? destination,
+    String? preferredLocation,
     String? keyword,
     String? gender,
     String? ageRange,
     List<String>? travelStyles,
     List<String>? interests,
+    String? startDate,
+    String? endDate,
     int limit = 20,
     int offset = 0,
   }) async {
     return await _repository.searchCompanions(
       destination: destination,
+      preferredLocation: preferredLocation,
       keyword: keyword,
       gender: gender,
       ageRange: ageRange,
       travelStyles: travelStyles,
       interests: interests,
+      startDate: startDate,
+      endDate: endDate,
       limit: limit,
       offset: offset,
     );
