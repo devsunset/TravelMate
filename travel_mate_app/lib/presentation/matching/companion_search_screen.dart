@@ -494,7 +494,7 @@ class _CompanionSearchScreenState extends State<CompanionSearchScreen> {
                               style: ElevatedButton.styleFrom(
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                               ),
-                              child: const Text('조건으로 동행 찾기', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                              child: const Text('검색', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                             ),
                           ),
                   ],

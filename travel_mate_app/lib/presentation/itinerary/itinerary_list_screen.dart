@@ -123,7 +123,7 @@ class _ItineraryListScreenState extends State<ItineraryListScreen> {
                   icon: Icons.calendar_month_rounded,
                   title: '아직 공유된 일정이 없어요',
                   subtitle: '여행 계획을 올려 보세요!',
-                  actionLabel: '일정 만들기',
+                  actionLabel: '등록',
                   onAction: () => context.go('/itinerary/new'),
                 )
               : _errorMessage != null

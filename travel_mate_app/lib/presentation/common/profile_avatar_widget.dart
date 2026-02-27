@@ -24,10 +24,9 @@ class ProfileAvatar extends StatelessWidget {
 
   /// 성별에 따른 사람 모양 아이콘. 남성=남자 모양, 여성=여자 모양. 다른 화면에서 동일 기준 적용 시 사용.
   static IconData iconForGender(String? gender) {
-    if (gender == null) return Icons.person;
-    if (gender == '남성') return Icons.man;
-    if (gender == '여성') return Icons.woman;
-    return Icons.person;
+    if (gender == '남성') return Icons.face_6_rounded;
+    if (gender == '여성') return Icons.face_3_rounded;
+    return Icons.person_rounded;
   }
 
   static IconData _iconForGender(String? gender) => iconForGender(gender);

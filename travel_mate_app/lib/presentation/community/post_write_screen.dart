@@ -391,7 +391,7 @@ class _PostWriteScreenState extends State<PostWriteScreen> {
                     OutlinedButton.icon(
                       onPressed: _pickImages,
                       icon: const Icon(Icons.image),
-                      label: const Text('이미지 추가'),
+                      label: const Text('추가'),
                     ),
                     const SizedBox(height: AppConstants.spacingLarge),
                     if (_errorMessage != null)
@@ -410,7 +410,7 @@ class _PostWriteScreenState extends State<PostWriteScreen> {
                             child: ElevatedButton(
                               onPressed: _submitPost,
                               child: Text(
-                                widget.postId == null ? '글 등록' : '글 수정',
+                                '저장',
                                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                                       color: Colors.white,
                                       fontWeight: FontWeight.bold,

@@ -107,9 +107,9 @@ class _HomeScreenBodyState extends State<_HomeScreenBody> {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    AppColors.background.withOpacity(0.35),
-                    AppColors.background.withOpacity(0.55),
-                    AppColors.background.withOpacity(0.78),
+                    AppColors.background.withOpacity(0.15),
+                    AppColors.background.withOpacity(0.3),
+                    AppColors.background.withOpacity(0.5),
                   ],
                 ),
               ),
@@ -327,7 +327,7 @@ class _NavCard extends StatelessWidget {
           child: Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: color.withOpacity(0.6), width: 1.5),
+              border: Border.all(color: color.withOpacity(0.9), width: 3.5),
               boxShadow: [
                 BoxShadow(
                   color: color.withOpacity(0.2),

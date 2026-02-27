@@ -440,7 +440,7 @@ class _ItineraryWriteScreenState extends State<ItineraryWriteScreen> {
                     OutlinedButton.icon(
                       onPressed: _pickImages,
                       icon: const Icon(Icons.image),
-                      label: const Text('이미지 추가'),
+                      label: const Text('추가'),
                     ),
                     const SizedBox(height: AppConstants.spacingLarge),
                     Text(
@@ -483,7 +483,7 @@ class _ItineraryWriteScreenState extends State<ItineraryWriteScreen> {
                             child: ElevatedButton(
                               onPressed: _submitItinerary,
                               child: Text(
-                                widget.itineraryId == null ? '일정 만들기' : '일정 수정',
+                                '저장',
                                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                                       color: Colors.white,
                                       fontWeight: FontWeight.bold,

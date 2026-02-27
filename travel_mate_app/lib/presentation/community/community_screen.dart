@@ -124,7 +124,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                   icon: Icons.article_outlined,
                   title: '아직 글이 없어요',
                   subtitle: '첫 여행 이야기를 공유해 보세요!',
-                  actionLabel: '글쓰기',
+                  actionLabel: '등록',
                   onAction: () => context.go('/community/post/new'),
                 )
               : _errorMessage != null

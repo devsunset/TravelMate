@@ -372,7 +372,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                             child: ElevatedButton(
                               onPressed: _saveProfile,
                               child: Text(
-                                '프로필 저장',
+                                '저장',
                                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                                       color: Colors.white,
                                       fontWeight: FontWeight.bold,
