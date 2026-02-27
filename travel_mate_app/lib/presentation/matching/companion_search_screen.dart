@@ -189,315 +189,320 @@ class _CompanionSearchScreenState extends State<CompanionSearchScreen> {
       ),
       body: Column(
         children: [
-          Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: Responsive.value(context, compact: AppConstants.paddingSmall, medium: AppConstants.paddingMedium, expanded: AppConstants.paddingMedium),
-              vertical: AppConstants.paddingMedium,
-            ),
-            child: Column(
-              children: [
-                // SECTION 1: Profile-based Search (Moved Up)
-                Card(
-                  elevation: 4,
-                  color: cardBgColor,
-                  shadowColor: Colors.black45,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    side: BorderSide(color: AppColors.secondary.withOpacity(0.3), width: 1.2),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(AppConstants.paddingMedium + 4),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: AppColors.secondary.withOpacity(0.15),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: const Icon(Icons.person_search_rounded, color: AppColors.secondary, size: 22),
-                            ),
-                            const SizedBox(width: AppConstants.spacingSmall + 4),
-                            Text(
-                              '사용자 프로필 기반 검색',
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                color: AppColors.secondary,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 16),
-                          child: Divider(height: 1, thickness: 0.8, color: AppColors.border),
-                        ),
-                        
-                        // Preferred Location
-                        TextFormField(
-                          controller: _preferredLocationController,
-                          decoration: const InputDecoration(
-                            labelText: '선호 지역',
-                            hintText: '평소 관심 있는 지역 또는 국가',
-                            prefixIcon: Icon(Icons.favorite_outline_rounded),
-                          ),
-                        ),
-                        const SizedBox(height: AppConstants.spacingMedium),
-                        
-                        TextFormField(
-                          controller: _searchKeywordController,
-                          decoration: const InputDecoration(
-                            labelText: '검색 키워드',
-                            hintText: '닉네임 또는 소개글 키워드',
-                            prefixIcon: Icon(Icons.manage_search_rounded),
-                          ),
-                        ),
-                        const SizedBox(height: AppConstants.spacingMedium),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: DropdownButtonFormField<String>(
-                                value: _selectedGender != null && _genders.contains(_selectedGender) ? _selectedGender : null,
-                                decoration: const InputDecoration(
-                                  labelText: '성별',
-                                  prefixIcon: Icon(Icons.wc_rounded),
-                                ),
-                                items: _genders.map((String gender) {
-                                  return DropdownMenuItem<String>(
-                                    value: gender,
-                                    child: Text(gender),
-                                  );
-                                }).toList(),
-                                onChanged: (String? newValue) {
-                                  setState(() => _selectedGender = newValue);
-                                },
-                              ),
-                            ),
-                            const SizedBox(width: AppConstants.spacingMedium),
-                            Expanded(
-                              child: DropdownButtonFormField<String>(
-                                value: _selectedAgeRange != null && _ageRanges.contains(_selectedAgeRange) ? _selectedAgeRange : null,
-                                decoration: const InputDecoration(
-                                  labelText: '연령대',
-                                  prefixIcon: Icon(Icons.history_toggle_off_rounded),
-                                ),
-                                items: _ageRanges.map((String age) {
-                                  return DropdownMenuItem<String>(
-                                    value: age,
-                                    child: Text(age),
-                                  );
-                                }).toList(),
-                                onChanged: (String? newValue) {
-                                  setState(() => _selectedAgeRange = newValue);
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                        
-                        const SizedBox(height: AppConstants.spacingLarge),
-                        Row(
-                          children: [
-                            const Icon(Icons.style_rounded, color: AppColors.accent, size: 18),
-                            const SizedBox(width: 8),
-                            Text(
-                              '여행 스타일',
-                              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.textPrimary,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 10),
-                        Wrap(
-                          spacing: AppConstants.spacingSmall,
-                          runSpacing: AppConstants.spacingSmall,
-                          children: _availableTravelStyles.map((style) {
-                            final isSelected = _selectedTravelStyles.contains(style);
-                            return FilterChip(
-                              label: Text(style, style: const TextStyle(fontSize: 12)),
-                              selected: isSelected,
-                              onSelected: (selected) {
-                                setState(() {
-                                  if (selected) {
-                                    _selectedTravelStyles.add(style);
-                                  } else {
-                                    _selectedTravelStyles.remove(style);
-                                  }
-                                });
-                              },
-                              selectedColor: AppColors.accent.withOpacity(0.25),
-                              checkmarkColor: AppColors.accent,
-                              labelStyle: TextStyle(
-                                color: isSelected ? AppColors.accent : AppColors.textPrimary,
-                                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                              ),
-                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                              visualDensity: VisualDensity.compact,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                            );
-                          }).toList(),
-                        ),
-                        
-                        const SizedBox(height: AppConstants.spacingLarge),
-                        Row(
-                          children: [
-                            const Icon(Icons.favorite_rounded, color: AppColors.error, size: 18),
-                            const SizedBox(width: 8),
-                            Text(
-                              '관심사',
-                              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.textPrimary,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 10),
-                        Wrap(
-                          spacing: AppConstants.spacingSmall,
-                          runSpacing: AppConstants.spacingSmall,
-                          children: _availableInterests.map((interest) {
-                            final isSelected = _selectedInterests.contains(interest);
-                            return FilterChip(
-                              label: Text(interest, style: const TextStyle(fontSize: 12)),
-                              selected: isSelected,
-                              onSelected: (selected) {
-                                setState(() {
-                                  if (selected) {
-                                    _selectedInterests.add(interest);
-                                  } else {
-                                    _selectedInterests.remove(interest);
-                                  }
-                                });
-                              },
-                              selectedColor: Colors.orange.withOpacity(0.2),
-                              checkmarkColor: Colors.orangeAccent,
-                              labelStyle: TextStyle(
-                                color: isSelected ? Colors.orangeAccent : AppColors.textPrimary,
-                                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                              ),
-                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                              visualDensity: VisualDensity.compact,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                            );
-                          }).toList(),
-                        ),
-                      ],
-                    ),
-                  ),
+          Flexible(
+            flex: 3, // Allow filters to take up space but scroll if needed
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: Responsive.value(context, compact: AppConstants.paddingSmall, medium: AppConstants.paddingMedium, expanded: AppConstants.paddingMedium),
+                  vertical: AppConstants.paddingMedium,
                 ),
-                const SizedBox(height: AppConstants.spacingLarge + 8),
-
-                // SECTION 2: Schedule-based Search (Moved Down)
-                Card(
-                  elevation: 4,
-                  color: cardBgColor,
-                  shadowColor: Colors.black45,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    side: BorderSide(color: AppColors.primary.withOpacity(0.4), width: 1.5),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(AppConstants.paddingMedium + 4),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
+                child: Column(
+                  children: [
+                    // SECTION 1: Profile-based Search
+                    Card(
+                      elevation: 4,
+                      color: cardBgColor,
+                      shadowColor: Colors.black45,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        side: BorderSide(color: AppColors.secondary.withOpacity(0.3), width: 1.2),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(AppConstants.paddingMedium + 4),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: AppColors.primary.withOpacity(0.15),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: const Icon(Icons.event_note_rounded, color: AppColors.primary, size: 22),
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.secondary.withOpacity(0.15),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: const Icon(Icons.person_search_rounded, color: AppColors.secondary, size: 22),
+                                ),
+                                const SizedBox(width: AppConstants.spacingSmall + 4),
+                                Text(
+                                  '사용자 프로필 기반 검색',
+                                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    color: AppColors.secondary,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              ],
                             ),
-                            const SizedBox(width: AppConstants.spacingSmall + 4),
-                            Text(
-                              '일정 기반 검색',
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                color: AppColors.primary,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 0.5,
+                            const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 16),
+                              child: Divider(height: 1, thickness: 0.8, color: AppColors.border),
+                            ),
+                            
+                            // Preferred Location
+                            TextFormField(
+                              controller: _preferredLocationController,
+                              decoration: const InputDecoration(
+                                labelText: '선호 지역',
+                                hintText: '평소 관심 있는 지역 또는 국가',
+                                prefixIcon: Icon(Icons.favorite_outline_rounded),
                               ),
+                            ),
+                            const SizedBox(height: AppConstants.spacingMedium),
+                            
+                            TextFormField(
+                              controller: _searchKeywordController,
+                              decoration: const InputDecoration(
+                                labelText: '검색 키워드',
+                                hintText: '닉네임 또는 소개글 키워드',
+                                prefixIcon: Icon(Icons.manage_search_rounded),
+                              ),
+                            ),
+                            const SizedBox(height: AppConstants.spacingMedium),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: DropdownButtonFormField<String>(
+                                    value: _selectedGender != null && _genders.contains(_selectedGender) ? _selectedGender : null,
+                                    decoration: const InputDecoration(
+                                      labelText: '성별',
+                                      prefixIcon: Icon(Icons.wc_rounded),
+                                    ),
+                                    items: _genders.map((String gender) {
+                                      return DropdownMenuItem<String>(
+                                        value: gender,
+                                        child: Text(gender),
+                                      );
+                                    }).toList(),
+                                    onChanged: (String? newValue) {
+                                      setState(() => _selectedGender = newValue);
+                                    },
+                                  ),
+                                ),
+                                const SizedBox(width: AppConstants.spacingMedium),
+                                Expanded(
+                                  child: DropdownButtonFormField<String>(
+                                    value: _selectedAgeRange != null && _ageRanges.contains(_selectedAgeRange) ? _selectedAgeRange : null,
+                                    decoration: const InputDecoration(
+                                      labelText: '연령대',
+                                      prefixIcon: Icon(Icons.history_toggle_off_rounded),
+                                    ),
+                                    items: _ageRanges.map((String age) {
+                                      return DropdownMenuItem<String>(
+                                        value: age,
+                                        child: Text(age),
+                                      );
+                                    }).toList(),
+                                    onChanged: (String? newValue) {
+                                      setState(() => _selectedAgeRange = newValue);
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                            
+                            const SizedBox(height: AppConstants.spacingLarge),
+                            Row(
+                              children: [
+                                const Icon(Icons.style_rounded, color: AppColors.accent, size: 18),
+                                const SizedBox(width: 8),
+                                Text(
+                                  '여행 스타일',
+                                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.textPrimary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+                            Wrap(
+                              spacing: AppConstants.spacingSmall,
+                              runSpacing: AppConstants.spacingSmall,
+                              children: _availableTravelStyles.map((style) {
+                                final isSelected = _selectedTravelStyles.contains(style);
+                                return FilterChip(
+                                  label: Text(style, style: const TextStyle(fontSize: 12)),
+                                  selected: isSelected,
+                                  onSelected: (selected) {
+                                    setState(() {
+                                      if (selected) {
+                                        _selectedTravelStyles.add(style);
+                                      } else {
+                                        _selectedTravelStyles.remove(style);
+                                      }
+                                    });
+                                  },
+                                  selectedColor: AppColors.accent.withOpacity(0.25),
+                                  checkmarkColor: AppColors.accent,
+                                  labelStyle: TextStyle(
+                                    color: isSelected ? AppColors.accent : AppColors.textPrimary,
+                                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                  ),
+                                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                                  visualDensity: VisualDensity.compact,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                );
+                              }).toList(),
+                            ),
+                            
+                            const SizedBox(height: AppConstants.spacingLarge),
+                            Row(
+                              children: [
+                                const Icon(Icons.favorite_rounded, color: AppColors.error, size: 18),
+                                const SizedBox(width: 8),
+                                Text(
+                                  '관심사',
+                                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.textPrimary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+                            Wrap(
+                              spacing: AppConstants.spacingSmall,
+                              runSpacing: AppConstants.spacingSmall,
+                              children: _availableInterests.map((interest) {
+                                final isSelected = _selectedInterests.contains(interest);
+                                return FilterChip(
+                                  label: Text(interest, style: const TextStyle(fontSize: 12)),
+                                  selected: isSelected,
+                                  onSelected: (selected) {
+                                    setState(() {
+                                      if (selected) {
+                                        _selectedInterests.add(interest);
+                                      } else {
+                                        _selectedInterests.remove(interest);
+                                      }
+                                    });
+                                  },
+                                  selectedColor: Colors.orange.withOpacity(0.2),
+                                  checkmarkColor: Colors.orangeAccent,
+                                  labelStyle: TextStyle(
+                                    color: isSelected ? Colors.orangeAccent : AppColors.textPrimary,
+                                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                  ),
+                                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                                  visualDensity: VisualDensity.compact,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                );
+                              }).toList(),
                             ),
                           ],
-                        ),
-                        const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 16),
-                          child: Divider(height: 1, thickness: 0.8, color: AppColors.border),
-                        ),
-                        TextFormField(
-                          controller: _destinationController,
-                          decoration: const InputDecoration(
-                            labelText: '방문 목적지',
-                            hintText: '예: 파리, 도쿄, 뉴욕',
-                            prefixIcon: Icon(Icons.map_outlined),
-                          ),
-                        ),
-                        const SizedBox(height: AppConstants.spacingMedium),
-                        Container(
-                          decoration: BoxDecoration(
-                            color: AppColors.surface.withOpacity(0.5),
-                            borderRadius: BorderRadius.circular(AppConstants.borderRadius),
-                            border: Border.all(color: Colors.white.withOpacity(0.05)),
-                          ),
-                          child: ListTile(
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                            title: Text(
-                              _startDate == null && _endDate == null
-                                  ? '여행 예정 기간 선택'
-                                  : '${_startDate!.year}/${_startDate!.month}/${_startDate!.day} - ${_endDate!.year}/${_endDate!.month}/${_endDate!.day}',
-                              style: TextStyle(
-                                color: _startDate == null ? AppColors.textSecondary : AppColors.textPrimary,
-                                fontSize: 14,
-                                fontWeight: _startDate == null ? FontWeight.normal : FontWeight.w500,
-                              ),
-                            ),
-                            leading: const Icon(Icons.date_range_rounded, color: AppColors.primary),
-                            trailing: const Icon(Icons.chevron_right_rounded),
-                            onTap: () => _selectDateRange(context),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: AppConstants.spacingLarge + 16),
-                
-                // Search Action Button
-                _isLoading
-                    ? const CircularProgressIndicator()
-                    : Container(
-                        width: double.infinity,
-                        height: 54,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(AppConstants.borderRadius),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.primary.withOpacity(0.3),
-                              blurRadius: 12,
-                              offset: const Offset(0, 4),
-                            )
-                          ],
-                        ),
-                        child: ElevatedButton(
-                          onPressed: _searchCompanions,
-                          style: ElevatedButton.styleFrom(
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          ),
-                          child: const Text('조건으로 동행 찾기', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                         ),
                       ),
-              ],
+                    ),
+                    const SizedBox(height: AppConstants.spacingLarge + 8),
+                    
+                    // SECTION 2: Schedule-based Search
+                    Card(
+                      elevation: 4,
+                      color: cardBgColor,
+                      shadowColor: Colors.black45,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        side: BorderSide(color: AppColors.primary.withOpacity(0.4), width: 1.5),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(AppConstants.paddingMedium + 4),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primary.withOpacity(0.15),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: const Icon(Icons.event_note_rounded, color: AppColors.primary, size: 22),
+                                ),
+                                const SizedBox(width: AppConstants.spacingSmall + 4),
+                                Text(
+                                  '일정 기반 검색',
+                                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    color: AppColors.primary,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 16),
+                              child: Divider(height: 1, thickness: 0.8, color: AppColors.border),
+                            ),
+                            TextFormField(
+                              controller: _destinationController,
+                              decoration: const InputDecoration(
+                                labelText: '방문 목적지',
+                                hintText: '예: 파리, 도쿄, 뉴욕',
+                                prefixIcon: Icon(Icons.map_outlined),
+                              ),
+                            ),
+                            const SizedBox(height: AppConstants.spacingMedium),
+                            Container(
+                              decoration: BoxDecoration(
+                                color: AppColors.surface.withOpacity(0.5),
+                                borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+                                border: Border.all(color: Colors.white.withOpacity(0.05)),
+                              ),
+                              child: ListTile(
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                                title: Text(
+                                  _startDate == null && _endDate == null
+                                      ? '여행 예정 기간 선택'
+                                      : '${_startDate!.year}/${_startDate!.month}/${_startDate!.day} - ${_endDate!.year}/${_endDate!.month}/${_endDate!.day}',
+                                  style: TextStyle(
+                                    color: _startDate == null ? AppColors.textSecondary : AppColors.textPrimary,
+                                    fontSize: 14,
+                                    fontWeight: _startDate == null ? FontWeight.normal : FontWeight.w500,
+                                  ),
+                                ),
+                                leading: const Icon(Icons.date_range_rounded, color: AppColors.primary),
+                                trailing: const Icon(Icons.chevron_right_rounded),
+                                onTap: () => _selectDateRange(context),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: AppConstants.spacingLarge + 16),
+                    
+                    // Search Action Button
+                    _isLoading
+                        ? const CircularProgressIndicator()
+                        : Container(
+                            width: double.infinity,
+                            height: 54,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.primary.withOpacity(0.3),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
+                                )
+                              ],
+                            ),
+                            child: ElevatedButton(
+                              onPressed: _searchCompanions,
+                              style: ElevatedButton.styleFrom(
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              ),
+                              child: const Text('조건으로 동행 찾기', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                            ),
+                          ),
+                  ],
+                ),
+              ),
             ),
           ),
-          const Divider(),
+          const Divider(height: 1),
           Expanded(
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
