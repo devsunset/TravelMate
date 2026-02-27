@@ -48,17 +48,7 @@ class CompanionSearchRemoteDataSource {
       'limit': limit,
       'offset': offset,
     };
-    if (travelStyles != null && travelStyles.isNotEmpty) {
-      queryParams['travelStyles'] = travelStyles.join(',');
-    }
-    if (interests != null && interests.isNotEmpty) {
-      queryParams['interests'] = interests.join(',');
-    }
 
-    if (kDebugMode) {
-      debugPrint('[동행 검색] 요청 쿼리: $queryParams');
-      debugPrint('[동행 검색] URL: ${AppConstants.apiBaseUrl}/api/users/search');
-    }
 
     final response = await _dio.get(
       '${AppConstants.apiBaseUrl}/api/users/search',
@@ -76,12 +66,6 @@ class CompanionSearchRemoteDataSource {
           .map((e) => UserProfileModel.fromJson(Map<String, dynamic>.from(e as Map)))
           .toList();
 
-      if (kDebugMode) {
-        debugPrint('[동행 검색] 응답: total=$total, returned=${results.length}, limit=$limit, offset=$offset');
-        if (results.isNotEmpty) {
-          debugPrint('[동행 검색] 결과 샘플(닉네임): ${results.take(3).map((u) => u.nickname).join(", ")}');
-        }
-      }
 
       return PaginatedResult<UserProfileModel>(items: results, total: total);
     }

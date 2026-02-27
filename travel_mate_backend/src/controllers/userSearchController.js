@@ -11,7 +11,8 @@
  * - limit, offset: 페이징 (기본 limit=10, offset=0)
  * - 본인(firebase_uid)은 항상 제외, 프로필이 있는 사용자만 조회(INNER JOIN)
  */
-const { Op } = require('sequelize');
+const Sequelize = require('sequelize');
+const { Op } = Sequelize;
 const User = require('../models/user');
 const UserProfile = require('../models/userProfile');
 const Tag = require('../models/tag');
@@ -22,21 +23,6 @@ exports.searchCompanions = async (req, res, next) => {
   try {
     const { destination, preferredLocation, gender, ageRange, travelStyles, interests, startDate, endDate, keyword, limit = 10, offset = 0 } = req.query;
 
-    // [동행 검색] 수신 쿼리 파라미터 로그
-    console.log('[동행 검색] 수신 쿼리:', JSON.stringify({
-      destination: destination ?? null,
-      preferredLocation: preferredLocation ?? null,
-      keyword: keyword ?? null,
-      gender: gender ?? null,
-      ageRange: ageRange ?? null,
-      travelStyles: travelStyles ?? null,
-      interests: interests ?? null,
-      startDate: startDate ?? null,
-      endDate: endDate ?? null,
-      limit,
-      offset,
-    }));
-
     // travelStyles, interests: 배열 또는 쉼표 구분 문자열 지원
     const travelStylesArr = !travelStyles ? [] : Array.isArray(travelStyles) ? travelStyles : String(travelStyles).split(',').map(s => s.trim()).filter(Boolean);
     const interestsArr = !interests ? [] : Array.isArray(interests) ? interests : String(interests).split(',').map(s => s.trim()).filter(Boolean);
@@ -44,101 +30,102 @@ exports.searchCompanions = async (req, res, next) => {
     // 본인 제외: 등록된 다른 사용자만 표시
     const currentUid = req.user?.uid;
     const whereConditions = currentUid ? { firebase_uid: { [Op.ne]: currentUid } } : {};
+    // [동행 검색] 질의 조건 조립 (UserProfile 조건)
+    const profileWheres = [];
+
+    // 1. 키워드 검색 (닉네임 또는 소개)
+    if (keyword) {
+      profileWheres.push({
+        [Op.or]: [
+          { nickname: { [Op.like]: `%${keyword}%` } },
+          { bio: { [Op.like]: `%${keyword}%` } },
+        ]
+      });
+    }
+
+    // 2. 선호 지역 검색 (JSON 컬럼 -> CHAR 캐스팅 후 LIKE)
+    if (preferredLocation) {
+      profileWheres.push(
+        Sequelize.where(
+          Sequelize.cast(Sequelize.col('UserProfile.preferredDestinations'), 'CHAR'),
+          { [Op.like]: `%${preferredLocation}%` }
+        )
+      );
+    }
+
+    // 3. 성별 필터
+    if (gender && gender !== 'Any' && gender !== '무관') {
+      profileWheres.push({ gender });
+    }
+
+    // 4. 연령대 필터
+    if (ageRange && ageRange !== 'Any' && ageRange !== '무관') {
+      profileWheres.push({ ageRange });
+    }
+
+    // 5. 여행 스타일 (JSON 배열 내 OR 매칭 -> CHAR 캐스팅 후 LIKE 조합)
+    if (travelStylesArr.length > 0) {
+      const styleConditions = travelStylesArr.map(style =>
+        Sequelize.where(
+          Sequelize.cast(Sequelize.col('UserProfile.travelStyles'), 'CHAR'),
+          { [Op.like]: `%${style}%` }
+        )
+      );
+      profileWheres.push({ [Op.or]: styleConditions });
+    }
+
+    // 6. 관심사 (JSON 배열 내 OR 매칭 -> CHAR 캐스팅 후 LIKE 조합)
+    if (interestsArr.length > 0) {
+      const interestConditions = interestsArr.map(interest =>
+        Sequelize.where(
+          Sequelize.cast(Sequelize.col('UserProfile.interests'), 'CHAR'),
+          { [Op.like]: `%${interest}%` }
+        )
+      );
+      profileWheres.push({ [Op.or]: interestConditions });
+    }
+
     const includeConditions = [
       {
         model: UserProfile,
         as: 'UserProfile',
-        required: true, // INNER JOIN to ensure user has a profile
-        where: {},
-        include: []
+        required: true,
+        where: profileWheres.length > 0 ? { [Op.and]: profileWheres } : {},
       }
     ];
-
-    // Filter by keyword in nickname or bio
-    if (keyword) {
-      includeConditions[0].where[Op.or] = [
-        { nickname: { [Op.like]: `%${keyword}%` } },
-        { bio: { [Op.like]: `%${keyword}%` } },
-      ];
-    }
-
-    // Filter by preferred locations (JSON column in UserProfile)
-    if (preferredLocation) {
-      includeConditions[0].where.preferredDestinations = {
-        [Op.like]: `%${preferredLocation}%`
-      };
-    }
 
     // Filter by itinerary (destination or dates)
     const hasItineraryFilter = destination || startDate || endDate;
     if (hasItineraryFilter) {
-      const itinerayWhere = {};
+      const itinerayWhere = [];
+
       if (destination) {
-        itinerayWhere.title = { [Op.like]: `%${destination}%` };
+        itinerayWhere.push({ title: { [Op.like]: `%${destination}%` } });
       }
+
       if (startDate || endDate) {
-        // Find itineraries that overlap with the searched range [startDate, endDate]
-        // Overlap condition: (itinerary.startDate <= searched.endDate) AND (itinerary.endDate >= searched.startDate)
         if (startDate && endDate) {
-          itinerayWhere[Op.and] = [
-            { startDate: { [Op.lte]: endDate } },
-            { endDate: { [Op.gte]: startDate } }
-          ];
+          itinerayWhere.push({
+            [Op.and]: [
+              { startDate: { [Op.lte]: endDate } },
+              { endDate: { [Op.gte]: startDate } }
+            ]
+          });
         } else if (startDate) {
-          itinerayWhere.endDate = { [Op.gte]: startDate };
+          itinerayWhere.push({ endDate: { [Op.gte]: startDate } });
         } else if (endDate) {
-          itinerayWhere.startDate = { [Op.lte]: endDate };
+          itinerayWhere.push({ startDate: { [Op.lte]: endDate } });
         }
       }
 
       includeConditions.push({
         model: Itinerary,
-        as: 'Itineraries', // Check model association alias
-        where: itinerayWhere,
-        required: true, // Find only users who have a matching itinerary
+        as: 'Itineraries',
+        required: true,
+        where: itinerayWhere.length > 0 ? { [Op.and]: itinerayWhere } : {},
       });
     }
 
-    // Filter by gender
-    if (gender && gender !== 'Any') {
-      includeConditions[0].where.gender = gender;
-    }
-
-    // Filter by age range
-    if (ageRange && ageRange !== 'Any') {
-      includeConditions[0].where.ageRange = ageRange;
-    }
-
-    // Filter by travel styles (JSON column in UserProfile)
-    if (travelStylesArr.length > 0) {
-      includeConditions[0].where[Op.and] = includeConditions[0].where[Op.and] || [];
-      const styleConditions = travelStylesArr.map(style => ({
-        travelStyles: { [Op.like]: `%${style}%` }
-      }));
-      includeConditions[0].where[Op.and].push({ [Op.or]: styleConditions });
-    }
-
-    // Filter by interests (JSON column in UserProfile)
-    if (interestsArr.length > 0) {
-      includeConditions[0].where[Op.and] = includeConditions[0].where[Op.and] || [];
-      const interestConditions = interestsArr.map(interest => ({
-        interests: { [Op.like]: `%${interest}%` }
-      }));
-      includeConditions[0].where[Op.and].push({ [Op.or]: interestConditions });
-    }
-
-    // TODO: Implement date range filtering if applicable (requires itinerary/travel plan tables)
-
-    // [동행 검색] 실제 질의 조건 요약 로그 (User.where + UserProfile.where + Tag 필터)
-    console.log('[동행 검색] 질의 조건:', JSON.stringify({
-      userWhere: whereConditions,
-      profileWhere: includeConditions[0].where,
-      preferredLocationFilter: preferredLocation ?? null,
-      travelStylesFilter: travelStylesArr.length ? travelStylesArr : null,
-      interestsFilter: interestsArr.length ? interestsArr : null,
-      limit: parseInt(limit),
-      offset: parseInt(offset),
-    }, null, 2));
 
     const users = await User.findAndCountAll({
       where: whereConditions,
@@ -148,14 +135,6 @@ exports.searchCompanions = async (req, res, next) => {
       attributes: ['firebase_uid', 'id'],
     });
 
-    // [동행 검색] 질의 결과 로그
-    console.log('[동행 검색] 질의 결과:', JSON.stringify({
-      total: users.count,
-      returned: users.rows.length,
-      limit: parseInt(limit),
-      offset: parseInt(offset),
-      sampleNicknames: users.rows.slice(0, 3).map(r => r.UserProfile?.nickname).filter(Boolean),
-    }));
 
     // Remap the results to a more user-friendly format, flattening UserProfile
     const formattedUsers = users.rows.map(user => {
