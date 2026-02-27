@@ -40,7 +40,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   final List<String> _selectedTravelStyles = [];
   final List<String> _selectedInterests = [];
 
-  final List<String> _genders = ['남성', '여성', '기타'];
+  final List<String> _genders = ['남성', '여성'];
   final List<String> _ageRanges = ['10대', '20대', '30대', '40대', '50대 이상', '비공개'];
   final List<String> _availableTravelStyles = ['모험', '휴양', '문화', '맛집', '저렴한 여행', '럭셔리', '혼자 여행', '그룹 여행'];
   final List<String> _availableInterests = ['자연', '역사', '예술', '해변', '산', '도시 탐험', '사진', '쇼핑', '나이트라이프', '웰니스'];

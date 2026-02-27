@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS `user_profiles` (
   `nickname` VARCHAR(255) NOT NULL UNIQUE COMMENT '사용자 닉네임',
   `bio` TEXT COMMENT '자기소개',
   `profileImageUrl` VARCHAR(512) COMMENT '프로필 이미지 URL (백엔드 POST /api/upload/profile 반환 URL). 긴 URL 대비 512 권장.',
-  `gender` VARCHAR(50) COMMENT '성별 (Male, Female, Other 등)',
+  `gender` VARCHAR(50) COMMENT '성별 (남성, 여성)',
   `ageRange` VARCHAR(50) COMMENT '연령대 (20s, 30s 등)',
   `travelStyles` JSON COMMENT '여행 스타일 태그 목록 (JSON 배열)',
   `interests` JSON COMMENT '관심사 태그 목록 (JSON 배열)',
