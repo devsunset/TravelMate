@@ -76,93 +76,122 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
     final hasPasswordProvider = currentUser?.providerData.any((p) => p.providerId == 'password') ?? false;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: const Color(0xFF1E1E32),
       appBar: const AppAppBar(title: '계정 설정'),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
-          : SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: AppConstants.paddingLarge, vertical: 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  if (hasPasswordProvider) ...[
-                    _SettingsTile(
-                      icon: Icons.lock_outline_rounded,
-                      label: '비밀번호 변경',
-                      color: AppColors.accent,
-                      onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('비밀번호 변경 기능은 준비 중입니다.'), backgroundColor: AppColors.surface),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 12),
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          // 배경 이미지 (설정/계정 느낌)
+          Positioned.fill(
+            child: Image.network(
+              'https://images.unsplash.com/photo-1434494878577-86c23bcb06b9?w=800', // 좀 더 정돈된/정적인 느낌의 이미지
+              fit: BoxFit.cover,
+              errorBuilder: (_, _, _) => const ColoredBox(color: Color(0xFF1E1E32)),
+            ),
+          ),
+          // 그라데이션 오버레이 (ProfileDetailScreen과 동일한 코드)
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    const Color(0xFF1E1E32).withOpacity(0.82),
+                    const Color(0xFF1E1E32).withOpacity(0.88),
+                    const Color(0xFF1E1E32).withOpacity(0.95),
                   ],
-                  _SettingsTile(
-                    icon: Icons.vpn_key_rounded,
-                    label: 'API 테스트용 토큰 복사',
-                    color: AppColors.secondary,
-                    onTap: () async {
-                      final authService = Provider.of<AuthService>(context, listen: false);
-                      final token = await authService.getIdToken();
-                      if (token == null || token.isEmpty) {
-                        if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('토큰을 가져올 수 없습니다. 로그인 상태를 확인하세요.')),
-                          );
-                        }
-                        return;
-                      }
-                      await Clipboard.setData(ClipboardData(text: token));
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('토큰이 클립보드에 복사되었습니다. curl/Postman에서 Authorization: Bearer <붙여넣기> 로 사용하세요.')),
-                        );
-                      }
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  _SettingsTile(
-                    icon: Icons.logout_rounded,
-                    label: '로그아웃',
-                    color: AppColors.primary,
-                    onTap: () async {
-                      await Provider.of<AuthService>(context, listen: false).signOut();
-                      if (mounted) context.go('/login');
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  _SettingsTile(
-                    icon: Icons.delete_forever_rounded,
-                    label: '계정 삭제',
-                    color: AppColors.error,
-                    onTap: () => _deleteAccount(context),
-                    isDanger: true,
-                  ),
-                  if (_errorMessage != null) ...[
-                    const SizedBox(height: 20),
-                    Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: AppColors.error.withOpacity(0.12),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.error.withOpacity(0.3)),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(Icons.error_outline_rounded, size: 20, color: AppColors.error),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(_errorMessage!, style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.error)),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                  const SizedBox(height: 32),
-                ],
+                ),
               ),
             ),
+          ),
+          _isLoading
+              ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+              : SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: AppConstants.paddingLarge, vertical: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      if (hasPasswordProvider) ...[
+                        _SettingsTile(
+                          icon: Icons.lock_outline_rounded,
+                          label: '비밀번호 변경',
+                          color: AppColors.accent,
+                          onTap: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('비밀번호 변경 기능은 준비 중입니다.'), backgroundColor: AppColors.surface),
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+                      _SettingsTile(
+                        icon: Icons.vpn_key_rounded,
+                        label: 'API 테스트용 토큰 복사',
+                        color: AppColors.secondary,
+                        onTap: () async {
+                          final authService = Provider.of<AuthService>(context, listen: false);
+                          final token = await authService.getIdToken();
+                          if (token == null || token.isEmpty) {
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('토큰을 가져올 수 없습니다. 로그인 상태를 확인하세요.')),
+                              );
+                            }
+                            return;
+                          }
+                          await Clipboard.setData(ClipboardData(text: token));
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('토큰이 클립보드에 복사되었습니다. curl/Postman에서 Authorization: Bearer <붙여넣기> 로 사용하세요.')),
+                            );
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      _SettingsTile(
+                        icon: Icons.logout_rounded,
+                        label: '로그아웃',
+                        color: AppColors.primary,
+                        onTap: () async {
+                          await Provider.of<AuthService>(context, listen: false).signOut();
+                          if (mounted) context.go('/login');
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      _SettingsTile(
+                        icon: Icons.delete_forever_rounded,
+                        label: '계정 삭제',
+                        color: AppColors.error,
+                        onTap: () => _deleteAccount(context),
+                        isDanger: true,
+                      ),
+                      if (_errorMessage != null) ...[
+                        const SizedBox(height: 24),
+                        Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: AppColors.error.withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: AppColors.error.withOpacity(0.3)),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.error_outline_rounded, size: 20, color: AppColors.error),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(_errorMessage!, style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.error)),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 32),
+                    ],
+                  ),
+                ),
+        ],
+      ),
     );
   }
 }
@@ -184,26 +213,30 @@ class _SettingsTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const surface = Color(0xFF16162A);
-    const surfaceLight = Color(0xFF1C1C34);
+    // ProfileDetailScreen의 카드 효과와 동일하게 계산
+    final cardBase = Color.lerp(Colors.white, color, 0.12)!;
+    final cardHighlight = Color.lerp(Colors.white, color, 0.22)!;
 
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppConstants.borderRadius),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: color.withOpacity(0.4), width: 1.2),
+            borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+            border: Border.all(color: color.withOpacity(0.5), width: 1.5),
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [surface, surfaceLight, color.withOpacity(0.06)],
-              stops: const [0.0, 0.6, 1.0],
+              colors: [cardBase, cardHighlight, color.withOpacity(0.12)],
+              stops: const [0.0, 0.5, 1.0],
             ),
-            boxShadow: [BoxShadow(color: color.withOpacity(0.08), blurRadius: 12, offset: const Offset(0, 4))],
+            boxShadow: [
+              BoxShadow(color: color.withOpacity(0.2), blurRadius: 14, offset: const Offset(0, 4)),
+              BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 8, offset: const Offset(0, 2)),
+            ],
           ),
           child: Row(
             children: [
@@ -213,16 +246,20 @@ class _SettingsTile extends StatelessWidget {
                   color: color.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(icon, size: 22, color: color),
+                child: Icon(icon, size: 24, color: color),
               ),
               const SizedBox(width: 16),
               Expanded(
                 child: Text(
                   label,
-                  style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.w500, color: isDanger ? AppColors.error : AppColors.textPrimary),
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold, // 프로필 카드 느낌을 위해 볼드 처리
+                    color: isDanger ? AppColors.error : color, // 텍스트 컬러도 컬러감 반영
+                  ),
                 ),
               ),
-              Icon(Icons.chevron_right_rounded, size: 24, color: AppColors.textSecondary.withOpacity(0.6)),
+              Icon(Icons.chevron_right_rounded, size: 24, color: color.withOpacity(0.7)),
             ],
           ),
         ),

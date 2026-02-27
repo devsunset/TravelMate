@@ -64,10 +64,10 @@ class _HomeScreenBodyState extends State<_HomeScreenBody> {
 
     // 카드별 색상 + 주제에 맞는 배경 이미지 (동행, 채팅, 커뮤니티, 일정)
     const cardColors = [
-      Color(0xFF14B8A6), // Teal - 동행 찾기
+      Color(0xFFD946EF), // Fuchsia - 동행 찾기
       Color(0xFF0EA5E9), // Sky - 채팅
       Color(0xFFF59E0B), // Amber - 커뮤니티
-      Color(0xFF10B981), // Emerald - 일정
+      Color(0xFF8B5CF6), // Violet - 일정
     ];
     final cardBgImages = AppConstants.sectionBackgroundImages;
     final navCards = [
@@ -78,7 +78,7 @@ class _HomeScreenBodyState extends State<_HomeScreenBody> {
     ];
 
     // 데스크톱: 콘텐츠 최대 너비 제한(중앙 정렬). 모바일: 전체 너비 사용.
-    final maxContentWidth = w >= Responsive.breakpointMedium ? 560.0 : w;
+    final maxContentWidth = w >= Responsive.breakpointMedium ? 800.0 : w;
     final padH = headerPaddingH;
 
     return Scaffold(
@@ -219,7 +219,7 @@ class _HomeScreenBodyState extends State<_HomeScreenBody> {
                                   end: Alignment.bottomRight,
                                 ).createShader(bounds),
                                 child: Text(
-                                  'Find Your\nTravel Squad',
+                                  'Find Your Travel Squad',
                                   style: GoogleFonts.outfit(
                                     fontSize: heroTitleSize,
                                     fontWeight: FontWeight.bold,
@@ -249,36 +249,30 @@ class _HomeScreenBodyState extends State<_HomeScreenBody> {
                             ],
                           ),
                         ),
-                        LayoutBuilder(
-                          builder: (context, constraints) {
-                            final viewportHeight = h - MediaQuery.paddingOf(context).top - MediaQuery.paddingOf(context).bottom;
-                            final estimatedHeaderHero = isCompact ? 200.0 : 260.0;
-                            final gridHeight = (viewportHeight - estimatedHeaderHero - bottomPadding).clamp(200.0, 420.0);
-                            final contentWidth = (maxContentWidth - 2 * padH - gridSpacing).clamp(200.0, double.infinity);
-                            final cellWidth = (contentWidth) / 2;
-                            final rowHeight = (gridHeight - gridSpacing) / 2;
-                            final aspectRatio = (cellWidth / rowHeight.clamp(40.0, double.infinity)).clamp(0.6, 1.4);
-                            return Padding(
-                              padding: EdgeInsets.only(left: padH, right: padH, bottom: bottomPadding),
-                              child: SizedBox(
-                                height: gridHeight,
-                                child: GridView.builder(
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                    crossAxisCount: 2,
-                                    mainAxisSpacing: gridSpacing,
-                                    crossAxisSpacing: gridSpacing,
-                                    childAspectRatio: aspectRatio,
-                                  ),
-                                  itemCount: 4,
-                                  itemBuilder: (context, index) {
-                                    final item = navCards[index];
-                                    return _NavCard(icon: item.$1, label: item.$2, color: item.$3, backgroundImageUrl: item.$4, onTap: item.$5, compact: isCompact);
-                                  },
-                                ),
-                              ),
-                            );
-                          },
+                        Padding(
+                          padding: EdgeInsets.only(left: padH, right: padH, bottom: bottomPadding),
+                          child: GridView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              mainAxisSpacing: gridSpacing,
+                              crossAxisSpacing: gridSpacing,
+                              childAspectRatio: isCompact ? 1.0 : 1.25,
+                            ),
+                            itemCount: 4,
+                            itemBuilder: (context, index) {
+                              final item = navCards[index];
+                              return _NavCard(
+                                icon: item.$1,
+                                label: item.$2,
+                                color: item.$3,
+                                backgroundImageUrl: item.$4,
+                                onTap: item.$5,
+                                compact: isCompact,
+                              );
+                            },
+                          ),
                         ),
                       ],
                     ),
