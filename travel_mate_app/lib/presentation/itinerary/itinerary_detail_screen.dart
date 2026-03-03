@@ -133,10 +133,22 @@ class _ItineraryDetailScreenState extends State<ItineraryDetailScreen> {
         });
       }
     } catch (e) {
-      setState(() {
-        _errorMessage = '일정을 불러오지 못했습니다: ${e.toString()}';
-        _isLoading = false;
-      });
+      // Flutter Web에서 클립보드 권한 문제로 발생하는 비치명적 에러는 무시합니다.
+      if (e.toString().contains('Clipboard.hasStrings')) {
+        debugPrint('Ignored Web Clipboard error: $e');
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+        return;
+      }
+      if (mounted) {
+        setState(() {
+          _errorMessage = '일정을 불러오지 못했습니다: ${e.toString()}';
+          _isLoading = false;
+        });
+      }
     }
   }
 

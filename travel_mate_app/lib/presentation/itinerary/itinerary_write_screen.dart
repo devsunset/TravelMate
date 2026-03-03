@@ -121,13 +121,21 @@ class _ItineraryWriteScreenState extends State<ItineraryWriteScreen> {
         _center = _markers.first.position;
       }
     } catch (e) {
-      setState(() {
-        _errorMessage = '일정을 불러오지 못했습니다: ${e.toString()}';
-      });
+      if (e.toString().contains('Clipboard.hasStrings')) {
+        debugPrint('Ignored Web Clipboard error: $e');
+      } else {
+        if (mounted) {
+          setState(() {
+            _errorMessage = '일정을 불러오지 못했습니다: ${e.toString()}';
+          });
+        }
+      }
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
